@@ -33,7 +33,7 @@ const RecentDocuments = () => {
         .from('documents')
         .select('id, title, user_id, file_type, created_at')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(3); // Changed from 5 to 3
 
       if (error) {
         throw error;

@@ -30,6 +30,7 @@ interface Document {
   file_type: string;
   file_size: number;
   created_at: string;
+  user_id?: string;
 }
 
 const DocumentsList = () => {
@@ -60,7 +61,33 @@ const DocumentsList = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDocuments(data || []);
+      
+      // Add author information to documents
+      const documentsWithAuthors = await Promise.all((data || []).map(async (doc) => {
+        // If there's no user_id, mark as Unknown
+        if (!doc.user_id) {
+          return { ...doc, author: "Unknown" };
+        }
+
+        // Fetch the user's profile information
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('name, email')
+          .eq('id', doc.user_id)
+          .single();
+        
+        if (profileError || !profileData) {
+          return { ...doc, author: "Unknown" };
+        }
+        
+        // Use the profile name or the first part of the email
+        const authorName = profileData.name || 
+                           (profileData.email ? profileData.email.split('@')[0] : null);
+                           
+        return { ...doc, author: authorName || "Unknown" };
+      }));
+      
+      setDocuments(documentsWithAuthors);
     } catch (error: any) {
       console.error('문서 로딩 오류:', error);
       toast({
