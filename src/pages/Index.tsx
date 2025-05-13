@@ -1,48 +1,32 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import DashboardCard from "@/components/DashboardCard";
 import NoticeCard from "@/components/NoticeCard";
+import { supabase } from "@/integrations/supabase/client";
+import { format, isAfter, subDays } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+
+type Notice = {
+  id: string;
+  title: string;
+  author: string;
+  category?: string;
+  created_at: string;
+  views: number;
+};
 
 const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [recentNotices, setRecentNotices] = useState<Notice[]>([]);
+  const [loadingNotices, setLoadingNotices] = useState(true);
+  const { toast } = useToast();
+  const navigate = useNavigate();
   
   // 가상 데이터
-  const notices = [
-    { 
-      id: 1, 
-      title: "2023년 하반기 복지사업 계획 안내", 
-      date: "2023-07-15", 
-      author: "관리자", 
-      isNew: true, 
-      isPinned: true,
-      category: "공지"
-    },
-    { 
-      id: 2, 
-      title: "7월 봉사활동 참가자 모집", 
-      date: "2023-07-10", 
-      author: "봉사팀", 
-      isNew: true,
-      category: "모집"
-    },
-    { 
-      id: 3, 
-      title: "사무실 이전 안내", 
-      date: "2023-07-05", 
-      author: "행정팀"
-    },
-    { 
-      id: 4, 
-      title: "여름 캠프 프로그램 안내", 
-      date: "2023-07-01", 
-      author: "프로그램팀",
-      category: "행사"
-    },
-  ];
-
   const tasks = [
     { id: 1, title: "2023년 3분기 예산안 검토", status: "진행중", dueDate: "2023-07-20" },
     { id: 2, title: "후원자 감사 이메일 발송", status: "완료", dueDate: "2023-07-10" },
@@ -55,6 +39,36 @@ const Index = () => {
     { id: 2, title: "봉사자 교육", date: "2023-07-20 10:00", location: "교육장" },
     { id: 3, title: "후원자 간담회", date: "2023-07-25 18:00", location: "세미나실" },
   ];
+
+  useEffect(() => {
+    fetchRecentNotices();
+  }, []);
+
+  const fetchRecentNotices = async () => {
+    try {
+      setLoadingNotices(true);
+      const { data, error } = await supabase
+        .from('notices')
+        .select('id, title, author, category, created_at, views')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        throw error;
+      }
+
+      setRecentNotices(data || []);
+    } catch (error) {
+      console.error('최근 공지사항을 가져오는 중 오류가 발생했습니다:', error);
+      toast({
+        title: "데이터 로드 실패",
+        description: "최근 공지사항을 불러오는 데 실패했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingNotices(false);
+    }
+  };
 
   // 상태에 따른 배지 색상
   const getStatusColor = (status: string) => {
@@ -69,6 +83,22 @@ const Index = () => {
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'yyyy-MM-dd');
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const isNew = (dateString: string) => {
+    try {
+      return isAfter(new Date(dateString), subDays(new Date(), 3));
+    } catch (error) {
+      return false;
     }
   };
 
@@ -108,21 +138,35 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <DashboardCard 
               title="공지사항" 
-              action={<Button variant="ghost" size="sm">더보기</Button>}
+              action={
+                <Button variant="ghost" size="sm" onClick={() => navigate('/notices')}>
+                  더보기
+                </Button>
+              }
             >
-              <div className="space-y-0">
-                {notices.map(notice => (
-                  <NoticeCard
-                    key={notice.id}
-                    title={notice.title}
-                    date={notice.date}
-                    author={notice.author}
-                    isNew={notice.isNew}
-                    isPinned={notice.isPinned}
-                    category={notice.category}
-                  />
-                ))}
-              </div>
+              {loadingNotices ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+              ) : recentNotices.length > 0 ? (
+                <div className="space-y-0">
+                  {recentNotices.map(notice => (
+                    <div key={notice.id} onClick={() => navigate(`/notices/${notice.id}`)}>
+                      <NoticeCard
+                        title={notice.title}
+                        date={formatDate(notice.created_at)}
+                        author={notice.author}
+                        isNew={isNew(notice.created_at)}
+                        category={notice.category}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  공지사항이 없습니다.
+                </div>
+              )}
             </DashboardCard>
             
             <DashboardCard 

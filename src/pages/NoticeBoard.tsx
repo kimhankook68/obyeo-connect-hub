@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, PlusCircle, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type Notice = {
@@ -37,6 +38,7 @@ const NoticeBoard = () => {
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 10;
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchNotices();
@@ -130,7 +132,13 @@ const NoticeBoard = () => {
         <Header />
         
         <main className="flex-1 overflow-y-auto p-6 bg-background">
-          <h1 className="text-2xl font-semibold mb-6">공지사항</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold">공지사항</h1>
+            <Button onClick={() => navigate('/notices/create')}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              공지사항 작성
+            </Button>
+          </div>
           
           <Card>
             <CardHeader>
@@ -158,7 +166,7 @@ const NoticeBoard = () => {
                       <TableBody>
                         {notices.length > 0 ? (
                           notices.map((notice, index) => (
-                            <TableRow key={notice.id}>
+                            <TableRow key={notice.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/notices/${notice.id}`)}>
                               <TableCell className="text-center">
                                 {(currentPage - 1) * pageSize + index + 1}
                               </TableCell>
@@ -166,7 +174,12 @@ const NoticeBoard = () => {
                                 {notice.category ? renderCategoryBadge(notice.category) : '-'}
                               </TableCell>
                               <TableCell className="font-medium">
-                                {notice.title}
+                                <div className="flex items-center gap-2">
+                                  {notice.title}
+                                  {notice.attachment_url && (
+                                    <FileText size={16} className="text-blue-500" />
+                                  )}
+                                </div>
                               </TableCell>
                               <TableCell>{notice.author}</TableCell>
                               <TableCell>{formatDate(notice.created_at)}</TableCell>
