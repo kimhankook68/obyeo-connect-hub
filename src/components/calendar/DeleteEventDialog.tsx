@@ -25,6 +25,12 @@ const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
   onConfirm,
   event,
 }) => {
+  // 직접 삭제 처리 함수
+  const handleDeleteConfirm = () => {
+    console.log("Confirming delete for event:", event?.title);
+    onConfirm();
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -36,7 +42,7 @@ const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>취소</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>삭제</AlertDialogAction>
+          <AlertDialogAction onClick={handleDeleteConfirm}>삭제</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
