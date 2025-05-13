@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -28,7 +28,7 @@ const fetchMembers = async (): Promise<Member[]> => {
     .order("name");
 
   if (error) {
-    console.error("Error fetching members:", error);
+    console.error("회원 정보 조회 오류:", error);
     throw new Error(error.message);
   }
 
