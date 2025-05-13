@@ -27,7 +27,7 @@ const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
 }) => {
   // 직접 삭제 처리 함수
   const handleDeleteConfirm = () => {
-    console.log("Confirming delete for event:", event?.title);
+    console.log("Confirming delete for event:", event?.id, event?.title);
     onConfirm();
   };
 

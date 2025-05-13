@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
@@ -104,44 +103,41 @@ export const useCalendarEvents = () => {
     try {
       console.log("Updating event with ID:", id, "and data:", eventData);
       
-      // 1. 업데이트 요청 전송
-      const { error: updateError } = await supabase
+      // 업데이트할 데이터 준비
+      const updateData = {
+        title: eventData.title,
+        description: eventData.description,
+        start_time: eventData.start_time,
+        end_time: eventData.end_time,
+        location: eventData.location,
+        type: eventData.type
+      };
+      
+      // 업데이트 요청 전송
+      const { error } = await supabase
         .from("calendar_events")
-        .update({
-          title: eventData.title,
-          description: eventData.description,
-          start_time: eventData.start_time,
-          end_time: eventData.end_time,
-          location: eventData.location,
-          type: eventData.type
-        })
+        .update(updateData)
         .eq("id", id);
 
-      if (updateError) {
-        console.error("Error updating event:", updateError);
-        throw updateError;
+      if (error) {
+        console.error("Error updating event:", error);
+        throw error;
       }
 
-      // 2. 업데이트된 데이터 조회
+      // 업데이트 성공 후 데이터 다시 조회
       const { data: updatedEvent, error: fetchError } = await supabase
         .from("calendar_events")
         .select("*")
         .eq("id", id)
-        .maybeSingle();
+        .single();
         
       if (fetchError) {
         console.error("Error fetching updated event:", fetchError);
         throw fetchError;
       }
 
-      if (!updatedEvent) {
-        console.warn("Updated event not found, refreshing all events");
-        await fetchEvents(); // 모든 이벤트를 다시 로드
-      } else {
-        // 이벤트가 정상적으로 업데이트된 경우
-        setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
-      }
-
+      // 로컬 상태 업데이트
+      setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
       toast.success("일정이 수정되었습니다");
       setSelectedEvent(null);
       setModalOpen(false);
@@ -158,18 +154,18 @@ export const useCalendarEvents = () => {
     try {
       console.log("Deleting event with ID:", id);
       
-      // 1. 삭제 요청 전송
-      const { error: deleteError } = await supabase
+      // 삭제 요청 전송
+      const { error } = await supabase
         .from("calendar_events")
         .delete()
         .eq("id", id);
 
-      if (deleteError) {
-        console.error("Error deleting event:", deleteError);
-        throw deleteError;
+      if (error) {
+        console.error("Error deleting event:", error);
+        throw error;
       }
 
-      // 2. 성공적으로 삭제된 경우 로컬 상태 업데이트
+      // 로컬 상태에서 제거
       setEvents(prev => prev.filter(event => event.id !== id));
       toast.success("일정이 삭제되었습니다");
       setSelectedEvent(null);
@@ -177,8 +173,6 @@ export const useCalendarEvents = () => {
     } catch (error: any) {
       console.error("Error deleting event:", error.message);
       toast.error("일정 삭제 실패");
-      // 삭제 실패 시 현재 상태 다시 로드
-      fetchEvents();
     }
   };
 

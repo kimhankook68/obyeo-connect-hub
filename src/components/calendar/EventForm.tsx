@@ -90,14 +90,23 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
   const handleSubmit = (data: CalendarEventFormData) => {
     console.log("Form submit with data:", data);
     
-    // 빈 문자열을 undefined로 변환하지 않도록 수정
-    const processedData = {
-      ...data,
-      description: data.description || "", // 빈 문자열 유지
-      location: data.location || "" // 빈 문자열 유지
-    };
-    
-    onSubmit(processedData);
+    try {
+      // 모든 필수 필드가 있는지 확인
+      if (!data.title) {
+        console.error("Title is required");
+        return;
+      }
+      
+      if (!data.start_time || !data.end_time) {
+        console.error("Start and end times are required");
+        return;
+      }
+      
+      // 폼 데이터 전송
+      onSubmit(data);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
 
   const getSelectedDate = (dateString: string): Date | undefined => {

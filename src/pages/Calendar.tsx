@@ -52,16 +52,16 @@ const CalendarPage: React.FC = () => {
   const handleUpdateEvent = (data: any) => {
     console.log("handleUpdateEvent called with data:", data, "and selectedEvent:", selectedEvent);
     if (selectedEvent) {
-      // 모든 필드가 전달되도록 수정
-      const completeData = {
-        title: data.title || selectedEvent.title,
-        description: data.description || selectedEvent.description,
-        start_time: data.start_time || selectedEvent.start_time,
-        end_time: data.end_time || selectedEvent.end_time, 
-        location: data.location || selectedEvent.location,
-        type: data.type || selectedEvent.type
+      // 업데이트된 데이터 전송
+      const updatedData = {
+        title: data.title,
+        description: data.description,
+        start_time: data.start_time,
+        end_time: data.end_time, 
+        location: data.location,
+        type: data.type
       };
-      updateEvent(selectedEvent.id, completeData);
+      updateEvent(selectedEvent.id, updatedData);
     }
   };
 
