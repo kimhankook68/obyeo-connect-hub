@@ -12,6 +12,7 @@ export type Database = {
       calendar_events: {
         Row: {
           created_at: string
+          description: string | null
           end_time: string
           id: string
           location: string | null
@@ -22,6 +23,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           end_time: string
           id?: string
           location?: string | null
@@ -32,6 +34,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           end_time?: string
           id?: string
           location?: string | null

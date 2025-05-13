@@ -66,21 +66,25 @@ export const useCalendarEvents = () => {
   // Create a new event
   const createEvent = async (eventData: CalendarEventFormData) => {
     try {
-      if (!user) {
-        toast("로그인이 필요합니다");
-        return;
-      }
-
+      console.log("Creating event with data:", eventData);
+      
+      const newEvent = {
+        title: eventData.title,
+        description: eventData.description || null,
+        start_time: eventData.start_time,
+        end_time: eventData.end_time,
+        location: eventData.location || null,
+        type: eventData.type
+      };
+      
       const { data, error } = await supabase
         .from("calendar_events")
-        .insert({
-          ...eventData,
-          user_id: user.id
-        })
+        .insert(newEvent)
         .select()
         .single();
 
       if (error) {
+        console.error("Error creating event:", error);
         throw error;
       }
 
@@ -98,14 +102,26 @@ export const useCalendarEvents = () => {
   // Update an existing event
   const updateEvent = async (id: string, eventData: Partial<CalendarEventFormData>) => {
     try {
+      console.log("Updating event with ID:", id, "and data:", eventData);
+      
+      const updateData = {
+        title: eventData.title,
+        description: eventData.description,
+        start_time: eventData.start_time,
+        end_time: eventData.end_time,
+        location: eventData.location,
+        type: eventData.type
+      };
+      
       const { data, error } = await supabase
         .from("calendar_events")
-        .update(eventData)
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
 
       if (error) {
+        console.error("Error updating event:", error);
         throw error;
       }
 
@@ -124,12 +140,15 @@ export const useCalendarEvents = () => {
   // Delete an event
   const deleteEvent = async (id: string) => {
     try {
+      console.log("Deleting event with ID:", id);
+      
       const { error } = await supabase
         .from("calendar_events")
         .delete()
         .eq("id", id);
 
       if (error) {
+        console.error("Error deleting event:", error);
         throw error;
       }
 
@@ -144,16 +163,19 @@ export const useCalendarEvents = () => {
   };
 
   const handleEdit = (event: CalendarEvent) => {
+    console.log("Editing event:", event);
     setSelectedEvent(event);
     setModalOpen(true);
   };
 
   const handleDelete = (event: CalendarEvent) => {
+    console.log("Delete requested for event:", event);
     setSelectedEvent(event);
     setDeleteDialogOpen(true);
   };
 
   const handleAdd = () => {
+    console.log("Adding new event");
     setSelectedEvent(null);
     setModalOpen(true);
   };

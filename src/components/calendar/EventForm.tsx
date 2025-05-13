@@ -53,21 +53,26 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
     },
   });
 
+  console.log("EventForm rendering with event:", event);
+
   // 폼 초기화
   useEffect(() => {
     if (event) {
-      const startDate = event.start_time ? new Date(event.start_time) : new Date();
-      const endDate = event.end_time ? new Date(event.end_time) : new Date();
-      
-      form.reset({
-        title: event.title,
-        description: event.description || "",
-        start_time: startDate.toISOString(),
-        end_time: endDate.toISOString(),
-        location: event.location || "",
-        type: event.type,
-      });
+      console.log("Setting form values from event:", event);
+      try {
+        form.reset({
+          title: event.title || "",
+          description: event.description || "",
+          start_time: event.start_time || new Date().toISOString(),
+          end_time: event.end_time || new Date().toISOString(),
+          location: event.location || "",
+          type: event.type || "meeting",
+        });
+      } catch (error) {
+        console.error("Error resetting form with event data:", error);
+      }
     } else {
+      console.log("Resetting form to empty values");
       form.reset({
         title: "",
         description: "",
@@ -77,9 +82,10 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
         type: "meeting",
       });
     }
-  }, [event, form]);
+  }, [event, form, open]);
 
   const handleSubmit = (data: CalendarEventFormData) => {
+    console.log("Form submit with data:", data);
     onSubmit(data);
   };
 
@@ -89,15 +95,25 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
 
   const getTimeFromDate = (dateString: string): string => {
     if (!dateString) return '';
-    const date = parseISO(dateString);
-    return format(date, 'HH:mm');
+    try {
+      const date = parseISO(dateString);
+      return format(date, 'HH:mm');
+    } catch (error) {
+      console.error("Error parsing date:", error);
+      return "00:00";
+    }
   };
 
   const combineDateTime = (date: Date, timeString: string): string => {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    const newDate = new Date(date);
-    newDate.setHours(hours, minutes);
-    return newDate.toISOString();
+    try {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const newDate = new Date(date);
+      newDate.setHours(hours, minutes);
+      return newDate.toISOString();
+    } catch (error) {
+      console.error("Error combining date and time:", error);
+      return new Date().toISOString();
+    }
   };
 
   return (
@@ -130,7 +146,7 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
                 <FormItem>
                   <FormLabel>설명</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="일정에 대한 설명을 입력하세요" {...field} />
+                    <Textarea placeholder="일정에 대한 설명을 입력하세요" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -298,7 +314,7 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
                 <FormItem>
                   <FormLabel>장소</FormLabel>
                   <FormControl>
-                    <Input placeholder="장소를 입력하세요" {...field} />
+                    <Input placeholder="장소를 입력하세요" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
