@@ -113,23 +113,42 @@ export const useCalendarEvents = () => {
         type: eventData.type
       };
       
-      const { data, error } = await supabase
+      // 수정: .single() 대신에 요청만 수행하고 결과는 따로 처리
+      const { error } = await supabase
         .from("calendar_events")
         .update(updateData)
-        .eq("id", id)
-        .select()
-        .single();
+        .eq("id", id);
 
       if (error) {
         console.error("Error updating event:", error);
         throw error;
       }
 
+      // 업데이트된 데이터를 다시 가져오기
+      const { data: updatedEvent, error: fetchError } = await supabase
+        .from("calendar_events")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+        
+      if (fetchError) {
+        console.error("Error fetching updated event:", fetchError);
+        throw fetchError;
+      }
+
       toast.success("일정이 수정되었습니다");
-      setEvents(prev => prev.map(event => event.id === id ? data : event));
+      
+      // 수정된 이벤트가 있으면 업데이트하고, 없으면 목록에서 삭제
+      if (updatedEvent) {
+        setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
+      } else {
+        console.warn("Updated event not found, refreshing all events");
+        fetchEvents(); // 모든 이벤트를 다시 로드
+      }
+      
       setSelectedEvent(null);
       setModalOpen(false);
-      return data;
+      return updatedEvent;
     } catch (error: any) {
       console.error("Error updating event:", error.message);
       toast.error("일정 수정 실패");

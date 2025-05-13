@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -55,19 +54,23 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
 
   console.log("EventForm rendering with event:", event);
 
-  // 폼 초기화
+  // 폼 초기화 - 깊은 복사와 null/undefined 처리 추가
   useEffect(() => {
     if (event) {
       console.log("Setting form values from event:", event);
       try {
-        form.reset({
+        // 이벤트 데이터의 깊은 복사본 생성 
+        const formData = {
           title: event.title || "",
           description: event.description || "",
           start_time: event.start_time || new Date().toISOString(),
           end_time: event.end_time || new Date().toISOString(),
           location: event.location || "",
           type: event.type || "meeting",
-        });
+        };
+        
+        console.log("Form reset with data:", formData);
+        form.reset(formData);
       } catch (error) {
         console.error("Error resetting form with event data:", error);
       }
@@ -86,7 +89,15 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
 
   const handleSubmit = (data: CalendarEventFormData) => {
     console.log("Form submit with data:", data);
-    onSubmit(data);
+    
+    // 빈 문자열을 undefined로 변환하지 않도록 수정
+    const processedData = {
+      ...data,
+      description: data.description || "", // 빈 문자열 유지
+      location: data.location || "" // 빈 문자열 유지
+    };
+    
+    onSubmit(processedData);
   };
 
   const getSelectedDate = (dateString: string): Date | undefined => {
