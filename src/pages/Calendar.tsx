@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import { TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import EventForm from "@/components/calendar/EventForm";
 import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
@@ -67,29 +67,31 @@ const CalendarPage: React.FC = () => {
             onViewChange={handleViewChange}
           />
           
-          <TabsContent value="calendar" className="space-y-4">
-            <CalendarView 
-              date={date}
-              setDate={setDate}
-              events={events}
-              loading={loading}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-              formatEventDate={formatEventDate}
-              isUserLoggedIn={!!user}
-            />
-          </TabsContent>
-          
-          <TabsContent value="list">
-            <ListView 
-              events={events}
-              loading={loading}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-              formatEventDate={formatEventDate}
-              isUserLoggedIn={!!user}
-            />
-          </TabsContent>
+          <Tabs value={view} onValueChange={(value) => handleViewChange(value as "calendar" | "list")}>
+            <TabsContent value="calendar" className="space-y-4">
+              <CalendarView 
+                date={date}
+                setDate={setDate}
+                events={events}
+                loading={loading}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                formatEventDate={formatEventDate}
+                isUserLoggedIn={!!user}
+              />
+            </TabsContent>
+            
+            <TabsContent value="list">
+              <ListView 
+                events={events}
+                loading={loading}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                formatEventDate={formatEventDate}
+                isUserLoggedIn={!!user}
+              />
+            </TabsContent>
+          </Tabs>
           
           <EventForm
             open={modalOpen}
