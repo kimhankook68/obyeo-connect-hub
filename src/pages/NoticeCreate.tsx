@@ -86,7 +86,8 @@ const NoticeCreate = () => {
             category: data.category,
             content: data.content,
             attachment_url: attachmentUrl,
-            user_id: '12345', // 실제 구현 시에는 로그인한 사용자의 ID를 사용해야 합니다
+            // 유효한 UUID 형식으로 수정 - 테스트용 임시 UUID 사용 
+            user_id: '00000000-0000-0000-0000-000000000000',
           },
         ])
         .select('id')

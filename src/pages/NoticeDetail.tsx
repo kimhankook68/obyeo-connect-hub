@@ -69,6 +69,7 @@ const NoticeDetail = () => {
 
   const incrementViews = async (noticeId: string) => {
     try {
+      // 올바른 UUID 문자열을 전달
       await supabase.rpc('increment_notice_views', { notice_id: noticeId });
     } catch (error) {
       console.error('조회수 업데이트 중 오류가 발생했습니다:', error);
