@@ -30,6 +30,7 @@ const CalendarPage: React.FC = () => {
     createEvent,
     updateEvent,
     deleteEvent,
+    fetchEvents,
     formatEventDate
   } = useCalendarEvents();
 
@@ -69,6 +70,8 @@ const CalendarPage: React.FC = () => {
     console.log("handleDeleteConfirm called with selectedEvent:", selectedEvent);
     if (selectedEvent) {
       deleteEvent(selectedEvent.id);
+    } else {
+      console.error("Cannot delete: No event selected");
     }
   };
 
@@ -80,6 +83,17 @@ const CalendarPage: React.FC = () => {
   const handleAddEvent = () => {
     console.log("handleAddEvent called with date:", date);
     handleAdd();
+  };
+
+  // 데이터 변경 후 화면 새로고침을 위해 수동으로 데이터를 다시 불러오는 함수
+  const refreshEvents = () => {
+    console.log("Manually refreshing events");
+    fetchEvents();
+  };
+
+  // 이벤트 업데이트 완료 후 데이터 다시 불러오기
+  const handleEventUpdated = () => {
+    refreshEvents();
   };
 
   return (
@@ -124,14 +138,26 @@ const CalendarPage: React.FC = () => {
           
           <EventForm
             open={modalOpen}
-            onOpenChange={setModalOpen}
+            onOpenChange={(open) => {
+              setModalOpen(open);
+              if (!open) {
+                // 모달이 닫힐 때 데이터 새로고침
+                refreshEvents();
+              }
+            }}
             onSubmit={selectedEvent ? handleUpdateEvent : handleCreateEvent}
             event={selectedEvent}
           />
           
           <DeleteEventDialog
             open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
+            onOpenChange={(open) => {
+              setDeleteDialogOpen(open);
+              if (!open) {
+                // 삭제 다이얼로그가 닫힐 때 데이터 새로고침
+                refreshEvents();
+              }
+            }}
             onConfirm={handleDeleteConfirm}
             event={selectedEvent}
           />

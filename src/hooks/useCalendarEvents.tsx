@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
@@ -114,34 +115,26 @@ export const useCalendarEvents = () => {
       };
       
       // 업데이트 요청 전송
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("calendar_events")
         .update(updateData)
-        .eq("id", id);
+        .eq("id", id)
+        .select('*')
+        .single();
 
       if (error) {
         console.error("Error updating event:", error);
         throw error;
       }
-
-      // 업데이트 성공 후 데이터 다시 조회
-      const { data: updatedEvent, error: fetchError } = await supabase
-        .from("calendar_events")
-        .select("*")
-        .eq("id", id)
-        .single();
-        
-      if (fetchError) {
-        console.error("Error fetching updated event:", fetchError);
-        throw fetchError;
-      }
+      
+      console.log("Event updated successfully:", data);
 
       // 로컬 상태 업데이트
-      setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
+      setEvents(prev => prev.map(event => event.id === id ? data : event));
       toast.success("일정이 수정되었습니다");
       setSelectedEvent(null);
       setModalOpen(false);
-      return updatedEvent;
+      return data;
     } catch (error: any) {
       console.error("Error updating event:", error.message);
       toast.error("일정 수정 실패");
@@ -155,15 +148,18 @@ export const useCalendarEvents = () => {
       console.log("Deleting event with ID:", id);
       
       // 삭제 요청 전송
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from("calendar_events")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .select();
 
       if (error) {
         console.error("Error deleting event:", error);
         throw error;
       }
+      
+      console.log("Event deletion response:", data);
 
       // 로컬 상태에서 제거
       setEvents(prev => prev.filter(event => event.id !== id));
