@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { v4 as uuidv4 } from "@supabase/supabase-js";
 
 // 부서 목록 정의
 export const DEPARTMENTS = [
@@ -81,8 +82,12 @@ export function MemberFormDialog({
 
   async function onSubmit(values: FormValues) {
     try {
+      // 새 UUID 생성 (Supabase에서 가져옴)
+      const newId = crypto.randomUUID();
+      
       // Supabase에 새 임직원 데이터 삽입
       const { error } = await supabase.from("profiles").insert({
+        id: newId, // 명시적으로 id 제공
         name: values.name,
         email: values.email,
         department: values.department,
