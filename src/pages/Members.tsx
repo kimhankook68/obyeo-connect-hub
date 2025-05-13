@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import MembersList from "@/components/MembersList";
+import { MemberFormDialog, DEPARTMENTS } from "@/components/MemberFormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, UserPlus, Filter, MoreVertical, Download } from "lucide-react";
@@ -47,8 +48,9 @@ const Members = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterByDepartment, setFilterByDepartment] = useState("");
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
 
-  const { data: members, isLoading, error } = useQuery({
+  const { data: members, isLoading, error, refetch } = useQuery({
     queryKey: ["members"],
     queryFn: fetchMembers,
   });
@@ -61,7 +63,7 @@ const Members = () => {
     (filterByDepartment ? member.department === filterByDepartment : true)
   );
 
-  const departments = members ? [...new Set(members.map(member => member.department))].filter(Boolean) : [];
+  const departments = DEPARTMENTS;
 
   const handleExportCSV = () => {
     if (!members) return;
@@ -144,7 +146,7 @@ const Members = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                <Button>
+                <Button onClick={() => setIsFormDialogOpen(true)}>
                   <UserPlus className="mr-2 h-4 w-4" />
                   임직원 등록
                 </Button>
@@ -180,6 +182,12 @@ const Members = () => {
             ) : (
               <MembersList members={filteredMembers || []} />
             )}
+
+            <MemberFormDialog 
+              open={isFormDialogOpen}
+              onOpenChange={setIsFormDialogOpen}
+              onSuccess={() => refetch()}
+            />
           </div>
         </main>
       </div>
