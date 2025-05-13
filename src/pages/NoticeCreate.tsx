@@ -57,10 +57,20 @@ const NoticeCreate = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setCurrentUser(session.user);
-        // Auto-populate author field with user's name
-        const userName = session.user.user_metadata?.name || 
+        
+        // Get user name from profile if it exists
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', session.user.id)
+          .single();
+        
+        // Auto-populate author field with user's name from profile if available
+        const userName = profileData?.name || 
+                         session.user.user_metadata?.name || 
                          session.user.email?.split('@')[0] || 
                          '사용자';
+        
         form.setValue("author", userName);
       } else {
         // Redirect to login if no user
@@ -123,9 +133,10 @@ const NoticeCreate = () => {
             content: data.content,
             attachment_url: attachmentUrl,
             user_id: currentUser.id, // Use the actual user ID
+            views: 0, // Initialize views to 0
           },
         ])
-        .select('id')
+        .select()
         .single();
       
       if (error) {
@@ -202,7 +213,7 @@ const NoticeCreate = () => {
                         <FormItem>
                           <FormLabel>작성자</FormLabel>
                           <FormControl>
-                            <Input placeholder="작성자 이름" {...field} readOnly />
+                            <Input placeholder="작성자 이름" {...field} readOnly className="bg-muted" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

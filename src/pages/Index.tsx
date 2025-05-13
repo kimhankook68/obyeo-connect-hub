@@ -168,7 +168,7 @@ const Index = () => {
                       <NoticeCard
                         title={notice.title}
                         date={formatDate(notice.created_at)}
-                        author={notice.author}
+                        author={notice.author} // Display author name from DB
                         isNew={isNew(notice.created_at)}
                         category={notice.category}
                       />
