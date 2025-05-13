@@ -103,7 +103,7 @@ export const useCalendarEvents = () => {
     }
   };
 
-  // Update an existing event
+  // Update an existing event - 수정된 함수
   const updateEvent = async (id: string, eventData: Partial<CalendarEventFormData>) => {
     try {
       console.log("Updating event with ID:", id, "and data:", eventData);
@@ -124,9 +124,7 @@ export const useCalendarEvents = () => {
         throw new Error("필수 필드가 누락되었습니다");
       }
       
-      console.log("Sending update request with data:", updateData);
-      
-      // 업데이트 요청 전송 - maybeSingle 대신 select만 사용
+      // 업데이트 요청 전송
       const { data, error } = await supabase
         .from("calendar_events")
         .update(updateData)
@@ -138,9 +136,7 @@ export const useCalendarEvents = () => {
         throw error;
       }
       
-      // 데이터가 비어있는지 확인
       if (!data || data.length === 0) {
-        console.error("No data returned after update");
         throw new Error("업데이트된 데이터를 찾을 수 없습니다");
       }
       
@@ -153,9 +149,6 @@ export const useCalendarEvents = () => {
       setSelectedEvent(null);
       setModalOpen(false);
       
-      // 업데이트 후 데이터 다시 불러오기
-      fetchEvents();
-      
       return updatedEvent;
     } catch (error: any) {
       console.error("Error updating event:", error.message);
@@ -164,7 +157,7 @@ export const useCalendarEvents = () => {
     }
   };
 
-  // Delete an event
+  // Delete an event - 수정된 함수
   const deleteEvent = async (id: string) => {
     try {
       console.log("Deleting event with ID:", id);
@@ -174,7 +167,7 @@ export const useCalendarEvents = () => {
         throw new Error("유효하지 않은 이벤트 ID");
       }
       
-      // 삭제 요청 전송 - 성공 여부만 확인
+      // 삭제 요청 전송
       const { error } = await supabase
         .from("calendar_events")
         .delete()
@@ -193,8 +186,6 @@ export const useCalendarEvents = () => {
       setSelectedEvent(null);
       setDeleteDialogOpen(false);
       
-      // 삭제 후 데이터 다시 불러오기
-      fetchEvents();
     } catch (error: any) {
       console.error("Error deleting event:", error.message);
       toast.error("일정 삭제 실패");

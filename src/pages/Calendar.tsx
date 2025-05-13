@@ -47,11 +47,7 @@ const CalendarPage: React.FC = () => {
       data.end_time = endDate.toISOString();
     }
     
-    // 생성 후 데이터 새로고침
-    const result = createEvent(data);
-    if (result) {
-      setTimeout(fetchEvents, 500); // 데이터베이스 반영 시간을 고려하여 약간의 지연 추가
-    }
+    createEvent(data);
   };
 
   const handleUpdateEvent = (data: any) => {
@@ -67,20 +63,14 @@ const CalendarPage: React.FC = () => {
         type: data.type
       };
       
-      // 업데이트 후 데이터 새로고침
-      const result = updateEvent(selectedEvent.id, updatedData);
-      if (result) {
-        setTimeout(fetchEvents, 500); // 데이터베이스 반영 시간을 고려하여 약간의 지연 추가
-      }
+      updateEvent(selectedEvent.id, updatedData);
     }
   };
 
   const handleDeleteConfirm = () => {
     console.log("handleDeleteConfirm called with selectedEvent:", selectedEvent);
     if (selectedEvent) {
-      // 삭제 후 데이터 새로고침
       deleteEvent(selectedEvent.id);
-      setTimeout(fetchEvents, 500); // 데이터베이스 반영 시간을 고려하여 약간의 지연 추가
     } else {
       console.error("Cannot delete: No event selected");
     }
@@ -94,12 +84,6 @@ const CalendarPage: React.FC = () => {
   const handleAddEvent = () => {
     console.log("handleAddEvent called with date:", date);
     handleAdd();
-  };
-
-  // 데이터 변경 후 화면 새로고침을 위해 수동으로 데이터를 다시 불러오는 함수
-  const refreshEvents = () => {
-    console.log("Manually refreshing events");
-    fetchEvents();
   };
 
   return (
@@ -144,26 +128,14 @@ const CalendarPage: React.FC = () => {
           
           <EventForm
             open={modalOpen}
-            onOpenChange={(open) => {
-              setModalOpen(open);
-              if (!open) {
-                // 모달이 닫힐 때 데이터 새로고침
-                refreshEvents();
-              }
-            }}
+            onOpenChange={setModalOpen}
             onSubmit={selectedEvent ? handleUpdateEvent : handleCreateEvent}
             event={selectedEvent}
           />
           
           <DeleteEventDialog
             open={deleteDialogOpen}
-            onOpenChange={(open) => {
-              setDeleteDialogOpen(open);
-              if (!open) {
-                // 삭제 다이얼로그가 닫힐 때 데이터 새로고침
-                refreshEvents();
-              }
-            }}
+            onOpenChange={setDeleteDialogOpen}
             onConfirm={handleDeleteConfirm}
             event={selectedEvent}
           />
