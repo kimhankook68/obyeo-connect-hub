@@ -14,9 +14,35 @@ interface FileUploaderProps {
 const FileUploader = ({ onSuccess }: FileUploaderProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
   const [description, setDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+
+  // Fetch current user on component mount
+  React.useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Get user name from profile if it exists
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', session.user.id)
+          .single();
+        
+        // Auto-populate author field with user's name from profile if available
+        const userName = profileData?.name || 
+                         session.user.user_metadata?.name || 
+                         session.user.email?.split('@')[0] || 
+                         '사용자';
+        
+        setAuthor(userName);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -38,6 +64,14 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
     if (!title) {
       toast({
         title: "제목을 입력해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!author) {
+      toast({
+        title: "작성자를 입력해주세요",
         variant: "destructive",
       });
       return;
@@ -65,6 +99,7 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
       // 3. 문서 메타데이터 저장 - 중요: user_id 필드 추가
       const { error: dbError } = await supabase.from('documents').insert({
         title,
+        author,
         description,
         file_path: filePath,
         file_type: file.type,
@@ -107,6 +142,17 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="파일 제목"
+          required
+        />
+      </div>
+      
+      <div>
+        <label htmlFor="author" className="block text-sm font-medium mb-1">작성자</label>
+        <Input
+          id="author"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+          placeholder="작성자 이름"
           required
         />
       </div>

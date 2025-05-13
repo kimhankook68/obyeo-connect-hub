@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import DashboardCard from "@/components/DashboardCard";
@@ -9,12 +9,22 @@ import DocumentsList from "@/components/DocumentsList";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 
 const DocumentsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const documentId = searchParams.get('document');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   const { toast } = useToast();
   
+  useEffect(() => {
+    // If a document ID is provided in the URL, ensure we're on the list tab
+    if (documentId) {
+      setActiveTab('list');
+    }
+  }, [documentId]);
+
   const handleUploadSuccess = () => {
     setActiveTab('list');
     // 목록을 새로고침하기 위해 DocumentsList를 리렌더링
@@ -22,6 +32,12 @@ const DocumentsPage = () => {
       title: "파일이 업로드되었습니다",
       description: "자료실 목록이 업데이트되었습니다",
     });
+    
+    // Clear document from URL if it exists
+    if (searchParams.has('document')) {
+      searchParams.delete('document');
+      setSearchParams(searchParams);
+    }
   };
 
   return (

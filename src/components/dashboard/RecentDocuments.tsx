@@ -6,11 +6,12 @@ import DashboardCard from "@/components/DashboardCard";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { FileIcon, Upload } from "lucide-react";
+import { FileIcon } from "lucide-react";
 
 type Document = {
   id: string;
   title: string;
+  author?: string;
   file_type: string;
   created_at: string;
 };
@@ -30,7 +31,7 @@ const RecentDocuments = () => {
       setLoadingDocuments(true);
       const { data, error } = await supabase
         .from('documents')
-        .select('id, title, file_type, created_at')
+        .select('id, title, author, file_type, created_at')
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -58,6 +59,10 @@ const RecentDocuments = () => {
       return dateString;
     }
   };
+
+  const handleDocumentClick = (id: string) => {
+    navigate(`/documents?document=${id}`);
+  };
   
   return (
     <DashboardCard 
@@ -71,26 +76,27 @@ const RecentDocuments = () => {
       ) : recentDocuments.length > 0 ? (
         <div className="space-y-3">
           {recentDocuments.map(doc => (
-            <div key={doc.id} className="flex items-center justify-between p-3 border border-border rounded-md">
-              <div className="flex items-center gap-3">
-                <FileIcon className="h-4 w-4 text-muted-foreground" />
-                <span>{doc.title}</span>
+            <div 
+              key={doc.id} 
+              className="flex items-center justify-between p-3 border border-border rounded-md cursor-pointer hover:bg-muted/50"
+              onClick={() => handleDocumentClick(doc.id)}
+            >
+              <div className="flex-1 flex items-center gap-3 min-w-0">
+                <FileIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{doc.title}</div>
+                  {doc.author && (
+                    <div className="text-xs text-muted-foreground truncate">작성자: {doc.author}</div>
+                  )}
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">{formatDate(doc.created_at)}</div>
+              <div className="text-xs text-muted-foreground pl-3">{formatDate(doc.created_at)}</div>
             </div>
           ))}
-          <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/documents')}>
-            <Upload className="h-4 w-4 mr-2" /> 파일 업로드
-          </Button>
         </div>
       ) : (
         <div className="text-center py-8 text-muted-foreground">
           등록된 자료가 없습니다.
-          <div className="mt-4">
-            <Button variant="outline" size="sm" onClick={() => navigate('/documents')}>
-              <Upload className="h-4 w-4 mr-2" /> 파일 업로드
-            </Button>
-          </div>
         </div>
       )}
     </DashboardCard>
