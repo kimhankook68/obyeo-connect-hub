@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { CalendarEvent, CalendarEventFormData } from "@/hooks/useCalendarEvents";
+import { format, parseISO } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CalendarIcon, Clock } from "lucide-react";
+import { ko } from "date-fns/locale";
 
 interface EventFormProps {
   open: boolean;
@@ -24,16 +30,20 @@ const eventTypes = [
   { value: "other", label: "기타" },
 ];
 
+const timeOptions = Array.from({ length: 24 * 4 }).map((_, i) => {
+  const hour = Math.floor(i / 4);
+  const minute = (i % 4) * 15;
+  const formattedHour = hour.toString().padStart(2, "0");
+  const formattedMinute = minute.toString().padStart(2, "0");
+  return {
+    value: `${formattedHour}:${formattedMinute}`,
+    label: `${formattedHour}:${formattedMinute}`
+  };
+});
+
 const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, event }) => {
   const form = useForm<CalendarEventFormData>({
-    defaultValues: event ? {
-      title: event.title,
-      description: event.description || "",
-      start_time: event.start_time ? new Date(event.start_time).toISOString().substring(0, 16) : "",
-      end_time: event.end_time ? new Date(event.end_time).toISOString().substring(0, 16) : "",
-      location: event.location || "",
-      type: event.type,
-    } : {
+    defaultValues: {
       title: "",
       description: "",
       start_time: "",
@@ -43,13 +53,56 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
     },
   });
 
+  // 폼 초기화
+  useEffect(() => {
+    if (event) {
+      const startDate = event.start_time ? new Date(event.start_time) : new Date();
+      const endDate = event.end_time ? new Date(event.end_time) : new Date();
+      
+      form.reset({
+        title: event.title,
+        description: event.description || "",
+        start_time: startDate.toISOString(),
+        end_time: endDate.toISOString(),
+        location: event.location || "",
+        type: event.type,
+      });
+    } else {
+      form.reset({
+        title: "",
+        description: "",
+        start_time: "",
+        end_time: "",
+        location: "",
+        type: "meeting",
+      });
+    }
+  }, [event, form]);
+
   const handleSubmit = (data: CalendarEventFormData) => {
     onSubmit(data);
   };
 
+  const getSelectedDate = (dateString: string): Date | undefined => {
+    return dateString ? parseISO(dateString) : undefined;
+  };
+
+  const getTimeFromDate = (dateString: string): string => {
+    if (!dateString) return '';
+    const date = parseISO(dateString);
+    return format(date, 'HH:mm');
+  };
+
+  const combineDateTime = (date: Date, timeString: string): string => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const newDate = new Date(date);
+    newDate.setHours(hours, minutes);
+    return newDate.toISOString();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{event ? "일정 수정" : "새 일정 추가"}</DialogTitle>
         </DialogHeader>
@@ -84,16 +137,78 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="start_time"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>시작 시간</FormLabel>
-                    <FormControl>
-                      <Input type="datetime-local" {...field} />
-                    </FormControl>
+                  <FormItem className="flex flex-col">
+                    <FormLabel>시작 일시</FormLabel>
+                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "pl-3 text-left font-normal flex-1",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(parseISO(field.value), "yyyy년 MM월 dd일", { locale: ko })
+                              ) : (
+                                <span>날짜 선택</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? parseISO(field.value) : undefined}
+                            onSelect={(date) => {
+                              if (date) {
+                                const timeString = getTimeFromDate(field.value) || '00:00';
+                                const newDateTime = combineDateTime(date, timeString);
+                                field.onChange(newDateTime);
+                              }
+                            }}
+                            initialFocus
+                            locale={ko}
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <Select 
+                        value={getTimeFromDate(field.value)}
+                        onValueChange={(time) => {
+                          if (field.value) {
+                            const date = parseISO(field.value);
+                            field.onChange(combineDateTime(date, time));
+                          } else {
+                            const today = new Date();
+                            field.onChange(combineDateTime(today, time));
+                          }
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="시간 선택" />
+                            <Clock className="h-4 w-4 opacity-50" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="h-[300px]">
+                          {timeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -103,11 +218,73 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
                 control={form.control}
                 name="end_time"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>종료 시간</FormLabel>
-                    <FormControl>
-                      <Input type="datetime-local" {...field} />
-                    </FormControl>
+                  <FormItem className="flex flex-col">
+                    <FormLabel>종료 일시</FormLabel>
+                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "pl-3 text-left font-normal flex-1",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(parseISO(field.value), "yyyy년 MM월 dd일", { locale: ko })
+                              ) : (
+                                <span>날짜 선택</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? parseISO(field.value) : undefined}
+                            onSelect={(date) => {
+                              if (date) {
+                                const timeString = getTimeFromDate(field.value) || '00:00';
+                                const newDateTime = combineDateTime(date, timeString);
+                                field.onChange(newDateTime);
+                              }
+                            }}
+                            initialFocus
+                            locale={ko}
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <Select 
+                        value={getTimeFromDate(field.value)}
+                        onValueChange={(time) => {
+                          if (field.value) {
+                            const date = parseISO(field.value);
+                            field.onChange(combineDateTime(date, time));
+                          } else {
+                            const today = new Date();
+                            field.onChange(combineDateTime(today, time));
+                          }
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="시간 선택" />
+                            <Clock className="h-4 w-4 opacity-50" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="h-[300px]">
+                          {timeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -134,7 +311,7 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>일정 유형</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="일정 유형을 선택하세요" />

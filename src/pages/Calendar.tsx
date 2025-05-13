@@ -34,6 +34,17 @@ const CalendarPage: React.FC = () => {
   } = useCalendarEvents();
 
   const handleCreateEvent = (data: any) => {
+    // 일정 생성 시 현재 선택된 날짜가 있으면 설정
+    if (date && !data.start_time) {
+      const startDate = new Date(date);
+      startDate.setHours(9, 0, 0); // 기본값으로 오전 9시 설정
+      data.start_time = startDate.toISOString();
+      
+      const endDate = new Date(date);
+      endDate.setHours(10, 0, 0); // 기본값으로 오전 10시 설정
+      data.end_time = endDate.toISOString();
+    }
+    
     createEvent(data);
   };
 
@@ -53,6 +64,11 @@ const CalendarPage: React.FC = () => {
     setView(newView);
   };
 
+  // 일정 추가 버튼 클릭 핸들러
+  const handleAddEvent = () => {
+    handleAdd();
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
@@ -62,7 +78,7 @@ const CalendarPage: React.FC = () => {
         
         <main className="flex-1 overflow-y-auto p-6 bg-background">
           <CalendarHeader 
-            onAddEvent={handleAdd} 
+            onAddEvent={handleAddEvent} 
             view={view} 
             onViewChange={handleViewChange}
           />
