@@ -96,10 +96,9 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
 
       if (uploadError) throw uploadError;
       
-      // 3. 문서 메타데이터 저장 - 중요: user_id 필드 추가
+      // 3. 문서 메타데이터 저장 - 중요: author 필드 제거, user_id 필드 추가
       const { error: dbError } = await supabase.from('documents').insert({
         title,
-        author,
         description,
         file_path: filePath,
         file_type: file.type,
