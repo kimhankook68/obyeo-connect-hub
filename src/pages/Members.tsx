@@ -4,32 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import MembersList from "@/components/MembersList";
-import { MemberFormDialog, DEPARTMENTS } from "@/components/MemberFormDialog";
-import { MemberDeleteDialog } from "@/components/MemberDeleteDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, UserPlus, Filter, MoreVertical, Download } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-// Define the Member type based on our database structure
-export type Member = {
-  id: string;
-  name: string;
-  email: string;
-  department: string;
-  role: string;
-  phone?: string | null;
-  image?: string | null;
-  created_at: string;
-};
+import { Search, UserPlus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MemberFormDialog } from "@/components/MemberFormDialog";
+import { Member } from "@/types/member";
 
 const fetchMembers = async (): Promise<Member[]> => {
   const { data, error } = await supabase
@@ -48,15 +29,10 @@ const fetchMembers = async (): Promise<Member[]> => {
 const Members = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterByDepartment, setFilterByDepartment] = useState("");
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   
   // 임직원 편집 상태 관리
   const [editingMember, setEditingMember] = useState<Member | null>(null);
-  
-  // 임직원 삭제 상태 관리
-  const [deletingMember, setDeletingMember] = useState<Member | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { data: members, isLoading, error, refetch } = useQuery({
     queryKey: ["members"],
@@ -67,21 +43,8 @@ const Members = () => {
     (member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.role?.toLowerCase().includes(searchQuery.toLowerCase())) && 
-    (filterByDepartment ? member.department === filterByDepartment : true)
+    member.role?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
-
-  const departments = DEPARTMENTS;
-
-  const handleEditMember = (member: Member) => {
-    setEditingMember(member);
-    setIsFormDialogOpen(true);
-  };
-
-  const handleDeleteMember = (member: Member) => {
-    setDeletingMember(member);
-    setIsDeleteDialogOpen(true);
-  };
 
   const handleAddNewMember = () => {
     setEditingMember(null); // 새 임직원 등록 모드
@@ -93,35 +56,6 @@ const Members = () => {
     setEditingMember(null);
   };
 
-  const handleDeleteDialogClose = () => {
-    setIsDeleteDialogOpen(false);
-    setDeletingMember(null);
-  };
-
-  const handleExportCSV = () => {
-    if (!members) return;
-
-    const headers = ["이름", "이메일", "부서", "직책", "전화번호"];
-    const csvData = members.map(member => [
-      member.name || "",
-      member.email || "",
-      member.department || "",
-      member.role || "",
-      member.phone || ""
-    ]);
-    
-    const csvContent = [
-      headers.join(","),
-      ...csvData.map(row => row.join(","))
-    ].join("\n");
-    
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "임직원_목록.csv";
-    link.click();
-  };
-
   return (
     <div className="flex h-screen">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
@@ -130,11 +64,11 @@ const Members = () => {
         <main className="flex-1 overflow-y-auto p-6 bg-background">
           <div className="max-w-6xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-semibold">임직원 관리</h1>
+              <h1 className="text-2xl font-semibold">구성원</h1>
               <div className="flex items-center space-x-2">
                 <div className="relative w-64">
                   <Input
-                    placeholder="검색..."
+                    placeholder="이름 또는 이메일로 검색"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -142,67 +76,14 @@ const Members = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
                 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <Filter className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>부서별 필터링</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setFilterByDepartment("")}>
-                      모든 부서
-                    </DropdownMenuItem>
-                    {departments.map((dept) => (
-                      <DropdownMenuItem 
-                        key={dept} 
-                        onClick={() => setFilterByDepartment(dept)}
-                      >
-                        {dept}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleExportCSV}>
-                      <Download className="mr-2 h-4 w-4" />
-                      CSV 내보내기
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
                 <Button onClick={handleAddNewMember}>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  임직원 등록
+                  구성원 추가
                 </Button>
               </div>
             </div>
 
-            {filterByDepartment && (
-              <div className="mb-4">
-                <div className="inline-flex items-center bg-secondary px-3 py-1 rounded-md text-sm">
-                  <span className="mr-2">부서 필터:</span>
-                  <span className="font-medium">{filterByDepartment}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-5 w-5 p-0 ml-2" 
-                    onClick={() => setFilterByDepartment("")}
-                  >
-                    <span className="sr-only">삭제</span>
-                    ✕
-                  </Button>
-                </div>
-              </div>
-            )}
+            <p className="text-muted-foreground mb-6">재단의 구성원 정보를 확인하세요.</p>
             
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
@@ -213,28 +94,69 @@ const Members = () => {
                 사용자 정보를 불러오는 중 오류가 발생했습니다.
               </div>
             ) : (
-              <MembersList 
-                members={filteredMembers || []}
-                onEditMember={handleEditMember}
-                onDeleteMember={handleDeleteMember}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredMembers?.map((member) => (
+                  <Card key={member.id} className="overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col items-center text-center mb-4">
+                        <Avatar className="h-24 w-24 mb-4">
+                          <AvatarImage src={member.image || ""} />
+                          <AvatarFallback className="text-2xl">
+                            {member.name ? member.name.substring(0, 2).toUpperCase() : "??"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="text-xl font-medium">{member.name || "이름 없음"}</h3>
+                          <p className="text-muted-foreground">{member.department} · {member.role}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4 mt-6">
+                        <div className="flex items-center gap-2">
+                          <span className="i-lucide-mail text-muted-foreground flex-shrink-0" />
+                          <a href={`mailto:${member.email}`} className="text-sm hover:underline truncate">
+                            {member.email}
+                          </a>
+                        </div>
+                        
+                        {member.phone && (
+                          <div className="flex items-center gap-2">
+                            <span className="i-lucide-phone text-muted-foreground flex-shrink-0" />
+                            <a href={`tel:${member.phone}`} className="text-sm hover:underline">
+                              {member.phone}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <Button 
+                        variant="outline" 
+                        className="w-full mt-6"
+                        onClick={() => {
+                          // Handle profile view navigation
+                          window.location.href = `/profile?id=${member.id}`;
+                        }}
+                      >
+                        프로필 보기
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
 
+            {filteredMembers?.length === 0 && !isLoading && (
+              <div className="text-center p-8 border border-dashed rounded-lg">
+                <p className="text-muted-foreground">검색 결과가 없습니다.</p>
+              </div>
+            )}
+            
             {/* 임직원 등록/편집 다이얼로그 */}
             <MemberFormDialog 
               open={isFormDialogOpen}
               onOpenChange={handleFormDialogClose}
               onSuccess={() => refetch()}
               editMember={editingMember || undefined}
-            />
-
-            {/* 임직원 삭제 다이얼로그 */}
-            <MemberDeleteDialog
-              open={isDeleteDialogOpen}
-              onOpenChange={handleDeleteDialogClose}
-              memberId={deletingMember?.id || null}
-              memberName={deletingMember?.name || null}
-              onSuccess={() => refetch()}
             />
           </div>
         </main>

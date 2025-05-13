@@ -16,9 +16,6 @@ import Settings from "./pages/Settings";
 import Documents from "./pages/Documents";
 import Calendar from "./pages/Calendar";
 import Members from "./pages/Members";
-import BoardMeetings from "./pages/BoardMeetings";
-import BoardMeetingDetail from "./pages/BoardMeetingDetail";
-import BoardMeetingCreate from "./pages/BoardMeetingCreate";
 
 const queryClient = new QueryClient();
 
@@ -41,9 +38,6 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/tasks" element={<Index />} />
           <Route path="/members" element={<Members />} />
-          <Route path="/board-meetings" element={<BoardMeetings />} />
-          <Route path="/board-meetings/:id" element={<BoardMeetingDetail />} />
-          <Route path="/board-meetings/create" element={<BoardMeetingCreate />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

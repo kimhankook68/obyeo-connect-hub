@@ -1,11 +1,12 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { type Member } from "@/pages/Members";
+import { Member } from "@/types/member";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, User } from "lucide-react";
 
 interface MembersListProps {
   members: Member[];
@@ -14,6 +15,8 @@ interface MembersListProps {
 }
 
 const MembersList = ({ members, onEditMember, onDeleteMember }: MembersListProps) => {
+  const navigate = useNavigate();
+  
   if (members.length === 0) {
     return (
       <div className="text-center p-8 border border-dashed rounded-lg">
@@ -33,7 +36,7 @@ const MembersList = ({ members, onEditMember, onDeleteMember }: MembersListProps
               <TableHead>부서</TableHead>
               <TableHead>직책</TableHead>
               <TableHead>연락처</TableHead>
-              <TableHead className="w-[100px] text-right">작업</TableHead>
+              <TableHead className="w-[150px] text-right">작업</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -56,6 +59,14 @@ const MembersList = ({ members, onEditMember, onDeleteMember }: MembersListProps
                 <TableCell>{member.phone || "-"}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => navigate(`/profile?id=${member.id}`)}
+                    >
+                      <User className="h-4 w-4" />
+                      <span className="sr-only">프로필</span>
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => onEditMember(member)}>
                       <Edit className="h-4 w-4" />
                       <span className="sr-only">수정</span>
