@@ -61,19 +61,21 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   return (
     <div className="flex flex-col md:flex-row gap-6">
       <div className="md:w-1/2 bg-card p-4 rounded-lg border w-full">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          className="w-full rounded-md border"
-          locale={ko}
-          modifiers={{
-            event: (date) => isDayWithEvent(date)
-          }}
-          modifiersClassNames={{
-            event: "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-primary after:rounded-full"
-          }}
-        />
+        <div className="w-full">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="w-full rounded-md border"
+            locale={ko}
+            modifiers={{
+              event: (date) => isDayWithEvent(date)
+            }}
+            modifiersClassNames={{
+              event: "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-primary after:rounded-full"
+            }}
+          />
+        </div>
       </div>
       
       <div className="md:w-1/2">
