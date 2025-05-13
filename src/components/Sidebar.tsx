@@ -35,9 +35,9 @@ const navItems: NavItem[] = [
     icon: "👥"
   },
   {
-    name: "이용안내",
-    path: "/help",
-    icon: "❓"
+    name: "대화하기",
+    path: "/chat",
+    icon: "💬"
   }
 ];
 
