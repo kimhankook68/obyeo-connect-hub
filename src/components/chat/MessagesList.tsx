@@ -140,7 +140,7 @@ const MessagesList: React.FC<MessagesListProps> = ({
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center p-4 border-b">
         <div>
-          <h2 className="text-xl font-bold">{currentChat?.name}</h2>
+          <h2 className="text-lg font-semibold">{currentChat?.name}</h2>
         </div>
         <Button variant="outline" size="sm" onClick={onOpenParticipants}>
           <Users className="h-4 w-4 mr-2" />
@@ -148,7 +148,7 @@ const MessagesList: React.FC<MessagesListProps> = ({
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 bg-background">
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -158,7 +158,7 @@ const MessagesList: React.FC<MessagesListProps> = ({
             메시지가 없습니다. 첫 메시지를 보내보세요!
           </div>
         ) : (
-          <div className="space-y-4">
+          <div>
             {messages.map(message => (
               <ChatMessage 
                 key={message.id} 
@@ -171,7 +171,7 @@ const MessagesList: React.FC<MessagesListProps> = ({
         )}
       </div>
 
-      <div className="p-4 border-t">
+      <div className="p-3 border-t bg-background">
         <form onSubmit={sendMessage} className="flex items-center gap-2">
           <Button 
             type="button" 
@@ -179,18 +179,24 @@ const MessagesList: React.FC<MessagesListProps> = ({
             size="icon"
             onClick={handleFileSelect}
             disabled={uploading}
+            className="text-muted-foreground hover:text-foreground"
           >
             <Paperclip className="h-5 w-5" />
           </Button>
           <Input
             value={newMessage}
             onChange={e => setNewMessage(e.target.value)}
-            placeholder="메시지 입력..."
+            placeholder="메시지를 입력하세요..."
             disabled={uploading}
-            className="flex-1"
+            className="flex-1 bg-muted/40"
           />
-          <Button type="submit" disabled={(!newMessage.trim() && !fileInputRef.current?.files?.length) || uploading}>
-            <Send className="h-5 w-5" />
+          <Button 
+            type="submit" 
+            disabled={(!newMessage.trim() && !fileInputRef.current?.files?.length) || uploading}
+            size="icon"
+            className="rounded-full"
+          >
+            <Send className="h-4 w-4" />
           </Button>
           <input
             type="file"
