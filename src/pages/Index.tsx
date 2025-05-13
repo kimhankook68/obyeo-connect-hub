@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import NoticeCard from "@/components/NoticeCard";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isAfter, subDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { FileIcon, Upload } from "lucide-react";
 
 type Notice = {
   id: string;
@@ -18,21 +20,23 @@ type Notice = {
   views: number;
 };
 
+type Document = {
+  id: string;
+  title: string;
+  file_type: string;
+  created_at: string;
+};
+
 const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [recentNotices, setRecentNotices] = useState<Notice[]>([]);
+  const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   const [loadingNotices, setLoadingNotices] = useState(true);
+  const [loadingDocuments, setLoadingDocuments] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
   
   // 가상 데이터
-  const tasks = [
-    { id: 1, title: "2023년 3분기 예산안 검토", status: "진행중", dueDate: "2023-07-20" },
-    { id: 2, title: "후원자 감사 이메일 발송", status: "완료", dueDate: "2023-07-10" },
-    { id: 3, title: "여름 캠프 준비물 확인", status: "예정", dueDate: "2023-07-25" },
-    { id: 4, title: "홈페이지 콘텐츠 업데이트", status: "지연", dueDate: "2023-07-05" },
-  ];
-
   const events = [
     { id: 1, title: "직원 회의", date: "2023-07-18 14:00", location: "회의실 A" },
     { id: 2, title: "봉사자 교육", date: "2023-07-20 10:00", location: "교육장" },
@@ -41,6 +45,7 @@ const Index = () => {
 
   useEffect(() => {
     fetchRecentNotices();
+    fetchRecentDocuments();
   }, []);
 
   const fetchRecentNotices = async () => {
@@ -69,19 +74,29 @@ const Index = () => {
     }
   };
 
-  // 상태에 따른 배지 색상
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "진행중":
-        return "bg-blue-100 text-blue-800";
-      case "완료":
-        return "bg-green-100 text-green-800";
-      case "예정":
-        return "bg-purple-100 text-purple-800";
-      case "지연":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  const fetchRecentDocuments = async () => {
+    try {
+      setLoadingDocuments(true);
+      const { data, error } = await supabase
+        .from('documents')
+        .select('id, title, file_type, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        throw error;
+      }
+
+      setRecentDocuments(data || []);
+    } catch (error) {
+      console.error('최근 자료를 가져오는 중 오류가 발생했습니다:', error);
+      toast({
+        title: "데이터 로드 실패",
+        description: "최근 자료를 불러오는 데 실패했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingDocuments(false);
     }
   };
 
@@ -183,27 +198,38 @@ const Index = () => {
             </DashboardCard>
             
             <DashboardCard 
-              title="내 업무" 
-              action={<Button variant="ghost" size="sm">더보기</Button>}
+              title="자료실" 
+              action={<Button variant="ghost" size="sm" onClick={() => navigate('/documents')}>더보기</Button>}
             >
-              <div className="space-y-3">
-                {tasks.map(task => (
-                  <div key={task.id} className="flex items-center justify-between p-3 border border-border rounded-md">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-6 h-6 rounded-full border border-border">
-                        {task.status === "완료" ? "✓" : ""}
+              {loadingDocuments ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+              ) : recentDocuments.length > 0 ? (
+                <div className="space-y-3">
+                  {recentDocuments.map(doc => (
+                    <div key={doc.id} className="flex items-center justify-between p-3 border border-border rounded-md">
+                      <div className="flex items-center gap-3">
+                        <FileIcon className="h-4 w-4 text-muted-foreground" />
+                        <span>{doc.title}</span>
                       </div>
-                      <span>{task.title}</span>
+                      <div className="text-xs text-muted-foreground">{formatDate(doc.created_at)}</div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`px-2 py-0.5 text-xs rounded-full ${getStatusColor(task.status)}`}>
-                        {task.status}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{task.dueDate}</span>
-                    </div>
+                  ))}
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/documents')}>
+                    <Upload className="h-4 w-4 mr-2" /> 파일 업로드
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  등록된 자료가 없습니다.
+                  <div className="mt-4">
+                    <Button variant="outline" size="sm" onClick={() => navigate('/documents')}>
+                      <Upload className="h-4 w-4 mr-2" /> 파일 업로드
+                    </Button>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </DashboardCard>
           </div>
           

@@ -13,6 +13,7 @@ import NoticeEdit from "./pages/NoticeEdit";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Documents from "./pages/Documents";
 
 const queryClient = new QueryClient();
 
@@ -28,12 +29,12 @@ const App = () => (
           <Route path="/notices/:id" element={<NoticeDetail />} />
           <Route path="/notices/create" element={<NoticeCreate />} />
           <Route path="/notices/edit/:id" element={<NoticeEdit />} />
+          <Route path="/documents" element={<Documents />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/calendar" element={<Index />} />
           <Route path="/tasks" element={<Index />} />
-          <Route path="/documents" element={<Index />} />
           <Route path="/members" element={<Index />} />
           <Route path="/help" element={<Index />} />
           <Route path="*" element={<NotFound />} />
