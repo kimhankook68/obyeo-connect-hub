@@ -47,7 +47,11 @@ const CalendarPage: React.FC = () => {
       data.end_time = endDate.toISOString();
     }
     
-    createEvent(data);
+    // 생성 후 데이터 새로고침
+    const result = createEvent(data);
+    if (result) {
+      setTimeout(fetchEvents, 500); // 데이터베이스 반영 시간을 고려하여 약간의 지연 추가
+    }
   };
 
   const handleUpdateEvent = (data: any) => {
@@ -62,14 +66,21 @@ const CalendarPage: React.FC = () => {
         location: data.location,
         type: data.type
       };
-      updateEvent(selectedEvent.id, updatedData);
+      
+      // 업데이트 후 데이터 새로고침
+      const result = updateEvent(selectedEvent.id, updatedData);
+      if (result) {
+        setTimeout(fetchEvents, 500); // 데이터베이스 반영 시간을 고려하여 약간의 지연 추가
+      }
     }
   };
 
   const handleDeleteConfirm = () => {
     console.log("handleDeleteConfirm called with selectedEvent:", selectedEvent);
     if (selectedEvent) {
+      // 삭제 후 데이터 새로고침
       deleteEvent(selectedEvent.id);
+      setTimeout(fetchEvents, 500); // 데이터베이스 반영 시간을 고려하여 약간의 지연 추가
     } else {
       console.error("Cannot delete: No event selected");
     }
@@ -89,11 +100,6 @@ const CalendarPage: React.FC = () => {
   const refreshEvents = () => {
     console.log("Manually refreshing events");
     fetchEvents();
-  };
-
-  // 이벤트 업데이트 완료 후 데이터 다시 불러오기
-  const handleEventUpdated = () => {
-    refreshEvents();
   };
 
   return (

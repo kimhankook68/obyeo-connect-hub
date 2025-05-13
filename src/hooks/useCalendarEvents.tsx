@@ -41,6 +41,8 @@ export const useCalendarEvents = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
+      console.log("Fetching events from database");
+      
       const { data, error } = await supabase
         .from("calendar_events")
         .select("*")
@@ -50,6 +52,7 @@ export const useCalendarEvents = () => {
         throw error;
       }
 
+      console.log("Fetched events:", data);
       setEvents(data || []);
     } catch (error: any) {
       console.error("Error fetching events:", error.message);
@@ -88,6 +91,7 @@ export const useCalendarEvents = () => {
         throw error;
       }
 
+      console.log("Event created successfully:", data);
       toast.success("일정이 추가되었습니다");
       setEvents(prev => [...prev, data]);
       setModalOpen(false);
@@ -104,37 +108,55 @@ export const useCalendarEvents = () => {
     try {
       console.log("Updating event with ID:", id, "and data:", eventData);
       
-      // 업데이트할 데이터 준비
+      // 업데이트할 데이터 준비 - null 값 처리 추가
       const updateData = {
         title: eventData.title,
-        description: eventData.description,
+        description: eventData.description === "" ? null : eventData.description,
         start_time: eventData.start_time,
         end_time: eventData.end_time,
-        location: eventData.location,
+        location: eventData.location === "" ? null : eventData.location,
         type: eventData.type
       };
       
-      // 업데이트 요청 전송
+      // 모든 필드가 유효한지 확인
+      if (!updateData.title || !updateData.start_time || !updateData.end_time || !updateData.type) {
+        console.error("Invalid update data:", updateData);
+        throw new Error("필수 필드가 누락되었습니다");
+      }
+      
+      console.log("Sending update request with data:", updateData);
+      
+      // 업데이트 요청 전송 - maybeSingle 대신 select만 사용
       const { data, error } = await supabase
         .from("calendar_events")
         .update(updateData)
         .eq("id", id)
-        .select('*')
-        .single();
+        .select();
 
       if (error) {
         console.error("Error updating event:", error);
         throw error;
       }
       
-      console.log("Event updated successfully:", data);
+      // 데이터가 비어있는지 확인
+      if (!data || data.length === 0) {
+        console.error("No data returned after update");
+        throw new Error("업데이트된 데이터를 찾을 수 없습니다");
+      }
+      
+      const updatedEvent = data[0];
+      console.log("Event updated successfully:", updatedEvent);
 
       // 로컬 상태 업데이트
-      setEvents(prev => prev.map(event => event.id === id ? data : event));
+      setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
       toast.success("일정이 수정되었습니다");
       setSelectedEvent(null);
       setModalOpen(false);
-      return data;
+      
+      // 업데이트 후 데이터 다시 불러오기
+      fetchEvents();
+      
+      return updatedEvent;
     } catch (error: any) {
       console.error("Error updating event:", error.message);
       toast.error("일정 수정 실패");
@@ -147,25 +169,32 @@ export const useCalendarEvents = () => {
     try {
       console.log("Deleting event with ID:", id);
       
-      // 삭제 요청 전송
-      const { error, data } = await supabase
+      // ID 유효성 검사
+      if (!id) {
+        throw new Error("유효하지 않은 이벤트 ID");
+      }
+      
+      // 삭제 요청 전송 - 성공 여부만 확인
+      const { error } = await supabase
         .from("calendar_events")
         .delete()
-        .eq("id", id)
-        .select();
+        .eq("id", id);
 
       if (error) {
         console.error("Error deleting event:", error);
         throw error;
       }
       
-      console.log("Event deletion response:", data);
+      console.log("Event deleted successfully with ID:", id);
 
       // 로컬 상태에서 제거
       setEvents(prev => prev.filter(event => event.id !== id));
       toast.success("일정이 삭제되었습니다");
       setSelectedEvent(null);
       setDeleteDialogOpen(false);
+      
+      // 삭제 후 데이터 다시 불러오기
+      fetchEvents();
     } catch (error: any) {
       console.error("Error deleting event:", error.message);
       toast.error("일정 삭제 실패");

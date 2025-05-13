@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
+import { toast } from "sonner";
 
 interface DeleteEventDialogProps {
   open: boolean;
@@ -27,13 +28,21 @@ const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
 }) => {
   // 직접 삭제 처리 함수
   const handleDeleteConfirm = () => {
-    console.log("Confirming delete for event:", event?.id, event?.title);
-    // 이벤트가 null이 아님을 확인
-    if (event) {
-      // 확인 핸들러 호출
-      onConfirm();
-    } else {
-      console.error("Cannot delete: No event selected");
+    try {
+      console.log("Confirming delete for event:", event?.id, event?.title);
+      
+      // 이벤트가 null이 아님을 확인
+      if (event && event.id) {
+        // 확인 핸들러 호출
+        onConfirm();
+      } else {
+        console.error("Cannot delete: No event selected or invalid event ID");
+        toast.error("삭제할 일정을 찾을 수 없습니다");
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error("Error in delete confirmation:", error);
+      toast.error("일정 삭제 중 오류가 발생했습니다");
     }
   };
 
