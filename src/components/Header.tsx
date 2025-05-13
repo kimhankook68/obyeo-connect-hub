@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -24,45 +23,47 @@ const Header = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get current session and set up auth state listener
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+        
+        // Show toast notifications for auth events
+        if (event === 'SIGNED_IN') {
+          toast({
+            title: "로그인 성공",
+            description: "환영합니다!",
+          });
+        } else if (event === 'SIGNED_OUT') {
+          toast({
+            title: "로그아웃 완료",
+            description: "다음에 또 뵙겠습니다.",
+          });
+          // Redirect to home page on logout if needed
+          navigate("/");
+        }
+      }
+    );
+
+    // Then get current session
     const fetchUser = async () => {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
       setLoading(false);
-
-      // Listen for auth changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (event, session) => {
-          setUser(session?.user || null);
-          
-          // Show toast notifications for auth events
-          if (event === 'SIGNED_IN') {
-            toast({
-              title: "로그인 성공",
-              description: "환영합니다!",
-            });
-          } else if (event === 'SIGNED_OUT') {
-            toast({
-              title: "로그아웃 완료",
-              description: "다음에 또 뵙겠습니다.",
-            });
-          }
-        }
-      );
-
-      return () => {
-        subscription.unsubscribe();
-      };
     };
 
     fetchUser();
-  }, [toast]);
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [toast, navigate]);
 
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      navigate("/");
+      // Navigation will happen in the auth state change handler
     } catch (error) {
       console.error("로그아웃 중 오류가 발생했습니다:", error);
       toast({

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -100,7 +99,13 @@ const Auth = () => {
         throw error;
       }
 
-      // If successful, onAuthStateChange in Header will handle the toast and redirect
+      // Explicitly navigate to dashboard after successful login
+      navigate("/");
+      toast({
+        title: "로그인 성공",
+        description: "환영합니다!",
+      });
+
     } catch (error: any) {
       toast({
         title: "로그인 실패",
@@ -116,13 +121,14 @@ const Auth = () => {
   const onSignupSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           data: {
             name: data.name,
           },
+          emailRedirectTo: window.location.origin,
         },
       });
 
@@ -130,14 +136,30 @@ const Auth = () => {
         throw error;
       }
 
-      toast({
-        title: "회원가입 성공",
-        description: "이메일 확인 후 로그인해주세요.",
-      });
-      
-      // Switch to login tab
-      setActiveTab("login");
-      
+      // If signup was successful and we have a session, sign in automatically
+      if (signUpData.session) {
+        navigate("/");
+        toast({
+          title: "회원가입 성공",
+          description: "환영합니다!",
+        });
+      } else {
+        // In case there's no session but signup worked
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        });
+        
+        if (signInError) {
+          throw signInError;
+        }
+        
+        navigate("/");
+        toast({
+          title: "회원가입 성공",
+          description: "환영합니다!",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "회원가입 실패",
