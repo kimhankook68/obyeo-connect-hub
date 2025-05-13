@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import ChatList from "@/components/chat/ChatList";
 import MessagesList from "@/components/chat/MessagesList";
+import ParticipantsList from "@/components/chat/ParticipantsList";
 
 const Chat = () => {
   const navigate = useNavigate();
