@@ -46,7 +46,13 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
     try {
       setIsUploading(true);
       
-      // 1. 파일 업로드
+      // 1. 현재 사용자 확인
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        throw new Error("로그인이 필요합니다");
+      }
+      
+      // 2. 파일 업로드
       const fileExt = file.name.split('.').pop();
       const filePath = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
       
@@ -56,13 +62,14 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
 
       if (uploadError) throw uploadError;
       
-      // 2. 문서 메타데이터 저장
+      // 3. 문서 메타데이터 저장 - 중요: user_id 필드 추가
       const { error: dbError } = await supabase.from('documents').insert({
         title,
         description,
         file_path: filePath,
         file_type: file.type,
-        file_size: file.size
+        file_size: file.size,
+        user_id: session.user.id // 사용자 ID 추가
       });
 
       if (dbError) throw dbError;

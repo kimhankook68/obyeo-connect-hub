@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -26,12 +25,7 @@ const navItems: NavItem[] = [
     icon: "📅"
   },
   {
-    name: "업무관리",
-    path: "/tasks",
-    icon: "✅"
-  },
-  {
-    name: "문서함",
+    name: "자료실",
     path: "/documents",
     icon: "📁"
   },

@@ -11,9 +11,9 @@ const StatCards = () => {
       </div>
       
       <div className="p-6 rounded-lg border border-border bg-card shadow-sm flex flex-col items-center justify-center">
-        <div className="text-4xl mb-4">✅</div>
+        <div className="text-4xl mb-4">📁</div>
         <div className="text-2xl font-medium">5</div>
-        <div className="text-sm text-muted-foreground">진행중인 업무</div>
+        <div className="text-sm text-muted-foreground">자료실</div>
       </div>
       
       <div className="p-6 rounded-lg border border-border bg-card shadow-sm flex flex-col items-center justify-center">
