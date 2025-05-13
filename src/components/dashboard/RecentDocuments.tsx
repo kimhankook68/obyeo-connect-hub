@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { FileIcon } from "lucide-react";
+import { fetchDocumentAuthor } from "@/components/documents/documentUtils";
 
 type Document = {
   id: string;
@@ -33,7 +34,7 @@ const RecentDocuments = () => {
         .from('documents')
         .select('id, title, user_id, file_type, created_at')
         .order('created_at', { ascending: false })
-        .limit(3); // Changed from 5 to 3
+        .limit(3);
 
       if (error) {
         throw error;
@@ -41,32 +42,8 @@ const RecentDocuments = () => {
 
       // Process documents to add author information
       const documentsWithAuthors = await Promise.all((data || []).map(async (doc) => {
-        // If the document doesn't have user_id, return the document as is
-        if (!doc.user_id) {
-          return {
-            ...doc,
-            author: "Unknown"
-          };
-        }
-
-        // Try to fetch user profile
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name, email')
-            .eq('id', doc.user_id)
-            .single();
-
-          return {
-            ...doc,
-            author: profile?.name || profile?.email?.split('@')[0] || "Unknown"
-          };
-        } catch (err) {
-          return {
-            ...doc,
-            author: "Unknown"
-          };
-        }
+        const author = await fetchDocumentAuthor(doc.user_id);
+        return { ...doc, author };
       }));
 
       setRecentDocuments(documentsWithAuthors);
