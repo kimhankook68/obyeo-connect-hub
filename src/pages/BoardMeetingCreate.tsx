@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { File, Trash2, Upload } from "lucide-react";
+import { BoardMeeting, BoardMeetingFile } from "@/types/boardMeetings";
 
 const BoardMeetingCreate = () => {
   const navigate = useNavigate();
@@ -63,16 +64,16 @@ const BoardMeetingCreate = () => {
       // Combine date and time
       const combinedDateTime = new Date(`${meetingDate}T${meetingTime}`);
       
-      // Insert board meeting
+      // Insert board meeting - using type assertion to overcome TypeScript error
       const { data: meetingData, error: meetingError } = await supabase
-        .from('board_meetings')
+        .from('board_meetings' as any)
         .insert({
           title,
           content,
           meeting_date: combinedDateTime.toISOString(),
           location,
           status
-        })
+        } as any)
         .select()
         .single();
       
@@ -91,14 +92,14 @@ const BoardMeetingCreate = () => {
           
           // 2. Create file record in database
           const { error: fileRecordError } = await supabase
-            .from('board_meeting_files')
+            .from('board_meeting_files' as any)
             .insert({
               board_meeting_id: meetingData.id,
               file_name: file.name,
               file_type: file.type,
               file_size: file.size,
               file_path: filePath
-            });
+            } as any);
           
           if (fileRecordError) throw fileRecordError;
         }

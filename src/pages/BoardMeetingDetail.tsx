@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,28 +17,7 @@ import {
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { File } from "lucide-react";
-
-interface BoardMeeting {
-  id: string;
-  title: string;
-  content?: string;
-  meeting_date: string;
-  location?: string;
-  created_at: string;
-  updated_at?: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
-  user_id?: string;
-}
-
-interface BoardMeetingFile {
-  id: string;
-  board_meeting_id: string;
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  file_path: string;
-  created_at: string;
-}
+import { BoardMeeting, BoardMeetingFile } from "@/types/boardMeetings";
 
 const BoardMeetingDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -50,13 +28,13 @@ const BoardMeetingDetail = () => {
     queryKey: ['boardMeeting', id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('board_meetings')
+        .from('board_meetings' as any)
         .select('*')
         .eq('id', id)
         .single();
       
       if (error) throw error;
-      return data as BoardMeeting;
+      return data as unknown as BoardMeeting;
     },
     enabled: !!id
   });
@@ -65,12 +43,12 @@ const BoardMeetingDetail = () => {
     queryKey: ['boardMeetingFiles', id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('board_meeting_files')
+        .from('board_meeting_files' as any)
         .select('*')
         .eq('board_meeting_id', id);
       
       if (error) throw error;
-      return data as BoardMeetingFile[];
+      return data as unknown as BoardMeetingFile[];
     },
     enabled: !!id
   });
@@ -78,7 +56,7 @@ const BoardMeetingDetail = () => {
   const handleDelete = async () => {
     try {
       const { error } = await supabase
-        .from('board_meetings')
+        .from('board_meetings' as any)
         .delete()
         .eq('id', id);
       

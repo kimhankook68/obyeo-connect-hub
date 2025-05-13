@@ -10,18 +10,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-
-interface BoardMeeting {
-  id: string;
-  title: string;
-  content?: string;
-  meeting_date: string;
-  location?: string;
-  created_at: string;
-  updated_at?: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
-  user_id?: string;
-}
+import { BoardMeeting } from "@/types/boardMeetings";
 
 const BoardMeetings = () => {
   const navigate = useNavigate();
@@ -31,12 +20,12 @@ const BoardMeetings = () => {
     queryKey: ['boardMeetings'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('board_meetings')
+        .from('board_meetings' as any)
         .select('*')
         .order('meeting_date', { ascending: false });
       
       if (error) throw error;
-      return data as BoardMeeting[];
+      return data as unknown as BoardMeeting[];
     }
   });
 
