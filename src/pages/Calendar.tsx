@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
@@ -74,18 +73,6 @@ const CalendarPage: React.FC = () => {
     );
   };
 
-  // 이벤트가 있는 날짜에 클래스 추가
-  const modifiersClassNames = useMemo(() => {
-    const modifiers: Record<string, string> = {};
-    
-    eventDates.forEach(eventDate => {
-      const dateKey = `${eventDate.getFullYear()}-${eventDate.getMonth()}-${eventDate.getDate()}`;
-      modifiers[dateKey] = "day_event";
-    });
-    
-    return modifiers;
-  }, [eventDates]);
-
   // 날짜에 따른 이벤트 필터링
   const filteredEvents = date
     ? events.filter((event) => {
@@ -126,7 +113,7 @@ const CalendarPage: React.FC = () => {
                       event: (date) => isDayWithEvent(date)
                     }}
                     modifiersClassNames={{
-                      event: "day_event"
+                      event: "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-primary after:rounded-full"
                     }}
                   />
                 </div>
