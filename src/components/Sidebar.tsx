@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -35,9 +36,9 @@ const navItems: NavItem[] = [
     icon: "👥"
   },
   {
-    name: "대화하기",
-    path: "/chat",
-    icon: "💬"
+    name: "이사회",
+    path: "/board-meetings",
+    icon: "🏢"
   }
 ];
 
