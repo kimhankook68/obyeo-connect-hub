@@ -1,5 +1,4 @@
 
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,9 @@ import NoticeBoard from "./pages/NoticeBoard";
 import NoticeDetail from "./pages/NoticeDetail";
 import NoticeCreate from "./pages/NoticeCreate";
 import NoticeEdit from "./pages/NoticeEdit";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,9 @@ const App = () => (
           <Route path="/notices/:id" element={<NoticeDetail />} />
           <Route path="/notices/create" element={<NoticeCreate />} />
           <Route path="/notices/edit/:id" element={<NoticeEdit />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/calendar" element={<Index />} />
           <Route path="/tasks" element={<Index />} />
           <Route path="/documents" element={<Index />} />
