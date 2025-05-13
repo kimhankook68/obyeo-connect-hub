@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -38,6 +38,7 @@ const NoticeCreate = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -50,7 +51,42 @@ const NoticeCreate = () => {
     },
   });
 
+  // Fetch current user on component mount
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUser(session.user);
+        // Auto-populate author field with user's name
+        const userName = session.user.user_metadata?.name || 
+                         session.user.email?.split('@')[0] || 
+                         '사용자';
+        form.setValue("author", userName);
+      } else {
+        // Redirect to login if no user
+        toast({
+          title: "로그인 필요",
+          description: "공지사항을 작성하려면 로그인이 필요합니다.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+      }
+    };
+
+    fetchCurrentUser();
+  }, [navigate, toast, form]);
+
   const onSubmit = async (data: FormData) => {
+    if (!currentUser) {
+      toast({
+        title: "로그인 필요",
+        description: "공지사항을 등록하려면 로그인이 필요합니다.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     try {
       setUploading(true);
       
@@ -86,8 +122,7 @@ const NoticeCreate = () => {
             category: data.category,
             content: data.content,
             attachment_url: attachmentUrl,
-            // 유효한 UUID 형식으로 수정 - 테스트용 임시 UUID 사용 
-            user_id: '00000000-0000-0000-0000-000000000000',
+            user_id: currentUser.id, // Use the actual user ID
           },
         ])
         .select('id')
@@ -167,7 +202,7 @@ const NoticeCreate = () => {
                         <FormItem>
                           <FormLabel>작성자</FormLabel>
                           <FormControl>
-                            <Input placeholder="작성자 이름" {...field} />
+                            <Input placeholder="작성자 이름" {...field} readOnly />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

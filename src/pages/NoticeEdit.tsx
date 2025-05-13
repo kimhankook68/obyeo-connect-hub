@@ -56,55 +56,85 @@ const NoticeEdit = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [currentAttachment, setCurrentAttachment] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   
   const form = useForm<FormData>();
 
   useEffect(() => {
-    if (id) {
-      fetchNotice(id);
-    }
-  }, [id]);
-
-  const fetchNotice = async (noticeId: string) => {
-    try {
+    // Get current user info
+    const fetchUserAndNotice = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('notices')
-        .select('*')
-        .eq('id', noticeId)
-        .single();
       
-      if (error) {
-        throw error;
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast({
+          title: "로그인 필요",
+          description: "공지사항을 수정하려면 로그인이 필요합니다.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
       }
-
-      setNotice(data);
-      setCurrentAttachment(data.attachment_url || null);
       
-      // 폼 초기값 설정
-      form.reset({
-        title: data.title,
-        author: data.author,
-        category: data.category,
-        content: data.content || "",
-      });
-    } catch (error) {
-      console.error('공지사항을 가져오는 중 오류가 발생했습니다:', error);
-      setError('공지사항을 불러올 수 없습니다.');
-      toast({
-        title: "데이터 로드 실패",
-        description: "공지사항을 불러오는 데 실패했습니다.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      setCurrentUser(session.user);
+      
+      // Get notice details
+      if (id) {
+        try {
+          const { data, error } = await supabase
+            .from('notices')
+            .select('*')
+            .eq('id', id)
+            .single();
+          
+          if (error) {
+            throw error;
+          }
+
+          // Check if current user is the author (using author field or user_id)
+          if (session.user.id !== data.user_id) {
+            toast({
+              title: "접근 권한 없음",
+              description: "자신이 작성한 공지사항만 수정할 수 있습니다.",
+              variant: "destructive",
+            });
+            navigate(`/notices/${id}`);
+            return;
+          }
+
+          setNotice(data);
+          setCurrentAttachment(data.attachment_url || null);
+          
+          // 폼 초기값 설정
+          form.reset({
+            title: data.title,
+            author: data.author,
+            category: data.category,
+            content: data.content || "",
+          });
+          
+          setLoading(false);
+        } catch (error) {
+          console.error('공지사항을 가져오는 중 오류가 발생했습니다:', error);
+          setError('공지사항을 불러올 수 없습니다.');
+          toast({
+            title: "데이터 로드 실패",
+            description: "공지사항을 불러오는 데 실패했습니다.",
+            variant: "destructive",
+          });
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUserAndNotice();
+  }, [id, navigate, toast, form]);
 
   const onSubmit = async (data: FormData) => {
-    if (!id || !notice) return;
+    if (!id || !notice || !currentUser) return;
     
     try {
       setSaving(true);
@@ -157,7 +187,7 @@ const NoticeEdit = () => {
         .from('notices')
         .update({
           title: data.title,
-          author: data.author,
+          author: data.author, // Keep the original author
           category: data.category,
           content: data.content,
           attachment_url: attachmentUrl,
@@ -251,7 +281,7 @@ const NoticeEdit = () => {
                           <FormItem>
                             <FormLabel>작성자</FormLabel>
                             <FormControl>
-                              <Input placeholder="작성자 이름" {...field} />
+                              <Input placeholder="작성자 이름" {...field} readOnly />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

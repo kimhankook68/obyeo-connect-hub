@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -102,6 +101,18 @@ const Index = () => {
     }
   };
 
+  // Get current user information
+  const [user, setUser] = useState<any>(null);
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+    
+    fetchUser();
+  }, []);
+
   return (
     <div className="flex h-screen">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
@@ -111,7 +122,9 @@ const Index = () => {
         
         <main className="flex-1 overflow-y-auto p-6 bg-background">
           <div className="mb-6">
-            <h1 className="text-2xl font-semibold mb-1">안녕하세요, 길현호님!</h1>
+            <h1 className="text-2xl font-semibold mb-1">
+              안녕하세요, {user?.user_metadata?.name || user?.email?.split('@')[0] || '방문자'}님!
+            </h1>
             <p className="text-muted-foreground">오늘도 좋은 하루 되세요.</p>
           </div>
           
