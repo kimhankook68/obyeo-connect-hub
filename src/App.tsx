@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Documents from "./pages/Documents";
 import Calendar from "./pages/Calendar";
+import Members from "./pages/Members";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +37,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/tasks" element={<Index />} />
-          <Route path="/members" element={<Index />} />
+          <Route path="/members" element={<Members />} />
           <Route path="/help" element={<Index />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
