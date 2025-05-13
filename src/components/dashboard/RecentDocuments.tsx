@@ -11,7 +11,7 @@ import { FileIcon } from "lucide-react";
 type Document = {
   id: string;
   title: string;
-  author?: string;
+  author?: string | null;
   file_type: string;
   created_at: string;
 };
@@ -31,7 +31,7 @@ const RecentDocuments = () => {
       setLoadingDocuments(true);
       const { data, error } = await supabase
         .from('documents')
-        .select('id, title, author, file_type, created_at')
+        .select('id, title, user_id, file_type, created_at')
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -39,7 +39,37 @@ const RecentDocuments = () => {
         throw error;
       }
 
-      setRecentDocuments(data || []);
+      // Process documents to add author information
+      const documentsWithAuthors = await Promise.all((data || []).map(async (doc) => {
+        // If the document doesn't have user_id, return the document as is
+        if (!doc.user_id) {
+          return {
+            ...doc,
+            author: "Unknown"
+          };
+        }
+
+        // Try to fetch user profile
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, email')
+            .eq('id', doc.user_id)
+            .single();
+
+          return {
+            ...doc,
+            author: profile?.name || profile?.email?.split('@')[0] || "Unknown"
+          };
+        } catch (err) {
+          return {
+            ...doc,
+            author: "Unknown"
+          };
+        }
+      }));
+
+      setRecentDocuments(documentsWithAuthors);
     } catch (error) {
       console.error('최근 자료를 가져오는 중 오류가 발생했습니다:', error);
       toast({
