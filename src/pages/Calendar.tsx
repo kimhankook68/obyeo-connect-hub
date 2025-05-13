@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
@@ -10,7 +10,7 @@ import EventForm from "@/components/calendar/EventForm";
 import EventItem from "@/components/calendar/EventItem";
 import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
 import { useCalendarEvents, CalendarEventFormData } from "@/hooks/useCalendarEvents";
-import { format, parseISO, isSameDay } from "date-fns";
+import { format, parseISO, isSameDay, isEqual } from "date-fns";
 import { ko } from "date-fns/locale";
 
 const CalendarPage: React.FC = () => {
@@ -52,6 +52,41 @@ const CalendarPage: React.FC = () => {
     }
   };
 
+  // 이벤트가 있는 날짜 계산
+  const eventDates = useMemo(() => {
+    return events.map(event => {
+      const eventDate = parseISO(event.start_time);
+      return new Date(
+        eventDate.getFullYear(),
+        eventDate.getMonth(),
+        eventDate.getDate()
+      );
+    });
+  }, [events]);
+
+  // 특정 날짜에 이벤트가 있는지 확인하는 함수
+  const isDayWithEvent = (day: Date) => {
+    return eventDates.some(eventDate => 
+      isEqual(
+        new Date(day.getFullYear(), day.getMonth(), day.getDate()),
+        eventDate
+      )
+    );
+  };
+
+  // 이벤트가 있는 날짜에 클래스 추가
+  const modifiersClassNames = useMemo(() => {
+    const modifiers: Record<string, string> = {};
+    
+    eventDates.forEach(eventDate => {
+      const dateKey = `${eventDate.getFullYear()}-${eventDate.getMonth()}-${eventDate.getDate()}`;
+      modifiers[dateKey] = "day_event";
+    });
+    
+    return modifiers;
+  }, [eventDates]);
+
+  // 날짜에 따른 이벤트 필터링
   const filteredEvents = date
     ? events.filter((event) => {
         const eventStartDate = parseISO(event.start_time);
@@ -80,13 +115,19 @@ const CalendarPage: React.FC = () => {
             
             <TabsContent value="calendar" className="space-y-4">
               <div className="flex flex-col md:flex-row gap-6">
-                <div className="md:w-1/2 bg-card p-4 rounded-lg border">
+                <div className="md:w-1/2 bg-card p-4 rounded-lg border w-full">
                   <Calendar
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    className="rounded-md border w-full"
+                    className="w-full rounded-md border"
                     locale={ko}
+                    modifiers={{
+                      event: (date) => isDayWithEvent(date)
+                    }}
+                    modifiersClassNames={{
+                      event: "day_event"
+                    }}
                   />
                 </div>
                 
