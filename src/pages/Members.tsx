@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import MembersList from "@/components/MembersList";
 import { MemberFormDialog, DEPARTMENTS } from "@/components/MemberFormDialog";
+import { MemberDeleteDialog } from "@/components/MemberDeleteDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, UserPlus, Filter, MoreVertical, Download } from "lucide-react";
@@ -49,6 +50,13 @@ const Members = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterByDepartment, setFilterByDepartment] = useState("");
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  
+  // 임직원 편집 상태 관리
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  
+  // 임직원 삭제 상태 관리
+  const [deletingMember, setDeletingMember] = useState<Member | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { data: members, isLoading, error, refetch } = useQuery({
     queryKey: ["members"],
@@ -64,6 +72,31 @@ const Members = () => {
   );
 
   const departments = DEPARTMENTS;
+
+  const handleEditMember = (member: Member) => {
+    setEditingMember(member);
+    setIsFormDialogOpen(true);
+  };
+
+  const handleDeleteMember = (member: Member) => {
+    setDeletingMember(member);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleAddNewMember = () => {
+    setEditingMember(null); // 새 임직원 등록 모드
+    setIsFormDialogOpen(true);
+  };
+
+  const handleFormDialogClose = () => {
+    setIsFormDialogOpen(false);
+    setEditingMember(null);
+  };
+
+  const handleDeleteDialogClose = () => {
+    setIsDeleteDialogOpen(false);
+    setDeletingMember(null);
+  };
 
   const handleExportCSV = () => {
     if (!members) return;
@@ -146,7 +179,7 @@ const Members = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                <Button onClick={() => setIsFormDialogOpen(true)}>
+                <Button onClick={handleAddNewMember}>
                   <UserPlus className="mr-2 h-4 w-4" />
                   임직원 등록
                 </Button>
@@ -180,12 +213,27 @@ const Members = () => {
                 사용자 정보를 불러오는 중 오류가 발생했습니다.
               </div>
             ) : (
-              <MembersList members={filteredMembers || []} />
+              <MembersList 
+                members={filteredMembers || []}
+                onEditMember={handleEditMember}
+                onDeleteMember={handleDeleteMember}
+              />
             )}
 
+            {/* 임직원 등록/편집 다이얼로그 */}
             <MemberFormDialog 
               open={isFormDialogOpen}
-              onOpenChange={setIsFormDialogOpen}
+              onOpenChange={handleFormDialogClose}
+              onSuccess={() => refetch()}
+              editMember={editingMember || undefined}
+            />
+
+            {/* 임직원 삭제 다이얼로그 */}
+            <MemberDeleteDialog
+              open={isDeleteDialogOpen}
+              onOpenChange={handleDeleteDialogClose}
+              memberId={deletingMember?.id || null}
+              memberName={deletingMember?.name || null}
               onSuccess={() => refetch()}
             />
           </div>

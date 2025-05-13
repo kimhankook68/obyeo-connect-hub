@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { v4 as uuidv4 } from "@supabase/supabase-js";
+// Remove incorrect import of v4
 
 // 부서 목록 정의
 export const DEPARTMENTS = [
@@ -58,49 +58,101 @@ interface MemberFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  editMember?: {
+    id: string;
+    name: string;
+    email: string;
+    department: string;
+    role: string;
+    phone?: string | null;
+  };
 }
 
 export function MemberFormDialog({
   open,
   onOpenChange,
   onSuccess,
+  editMember,
 }: MemberFormDialogProps) {
   const { toast } = useToast();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      department: undefined,
-      role: "",
-      phone: "",
+      name: editMember?.name || "",
+      email: editMember?.email || "",
+      department: editMember?.department as any || undefined,
+      role: editMember?.role || "",
+      phone: editMember?.phone || "",
     },
   });
+
+  // 폼 데이터 업데이트 (편집 모드일 때)
+  React.useEffect(() => {
+    if (editMember) {
+      form.reset({
+        name: editMember.name,
+        email: editMember.email,
+        department: editMember.department as any,
+        role: editMember.role,
+        phone: editMember.phone || "",
+      });
+    } else {
+      form.reset({
+        name: "",
+        email: "",
+        department: undefined,
+        role: "",
+        phone: "",
+      });
+    }
+  }, [editMember, form, open]);
 
   const isSubmitting = form.formState.isSubmitting;
 
   async function onSubmit(values: FormValues) {
     try {
-      // 새 UUID 생성 (Supabase에서 가져옴)
-      const newId = crypto.randomUUID();
-      
-      // Supabase에 새 임직원 데이터 삽입
-      const { error } = await supabase.from("profiles").insert({
-        id: newId, // 명시적으로 id 제공
-        name: values.name,
-        email: values.email,
-        department: values.department,
-        role: values.role,
-        phone: values.phone || null,
-      });
+      if (editMember) {
+        // 기존 임직원 데이터 수정
+        const { error } = await supabase
+          .from("profiles")
+          .update({
+            name: values.name,
+            email: values.email,
+            department: values.department,
+            role: values.role,
+            phone: values.phone || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", editMember.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "임직원 등록 완료",
-        description: "새 임직원이 성공적으로 등록되었습니다.",
-      });
+        toast({
+          title: "임직원 정보 수정 완료",
+          description: "임직원 정보가 성공적으로 수정되었습니다.",
+        });
+      } else {
+        // 새 UUID 생성
+        const newId = crypto.randomUUID();
+        
+        // 새 임직원 데이터 삽입
+        const { error } = await supabase.from("profiles").insert({
+          id: newId,
+          name: values.name,
+          email: values.email,
+          department: values.department,
+          role: values.role,
+          phone: values.phone || null,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "임직원 등록 완료",
+          description: "새 임직원이 성공적으로 등록되었습니다.",
+        });
+      }
 
       // 폼 초기화 및 대화상자 닫기
       form.reset();
@@ -111,22 +163,28 @@ export function MemberFormDialog({
         onSuccess();
       }
     } catch (error) {
-      console.error("임직원 등록 오류:", error);
+      console.error("임직원 등록/수정 오류:", error);
       toast({
         variant: "destructive",
-        title: "임직원 등록 실패",
-        description: "임직원 등록 중 오류가 발생했습니다.",
+        title: editMember ? "임직원 수정 실패" : "임직원 등록 실패",
+        description: "작업 중 오류가 발생했습니다.",
       });
     }
   }
+
+  const dialogTitle = editMember ? "임직원 정보 수정" : "임직원 등록";
+  const dialogDescription = editMember ? 
+    "임직원 정보를 수정하세요. 모든 필수 항목을 입력해야 합니다." : 
+    "새로운 임직원 정보를 입력하세요. 모든 필수 항목을 입력해야 합니다.";
+  const submitButtonText = editMember ? "수정" : "등록";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>임직원 등록</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
-            새로운 임직원 정보를 입력하세요. 모든 필수 항목을 입력해야 합니다.
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -169,6 +227,7 @@ export function MemberFormDialog({
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -221,7 +280,7 @@ export function MemberFormDialog({
                 취소
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "처리 중..." : "등록"}
+                {isSubmitting ? "처리 중..." : submitButtonText}
               </Button>
             </DialogFooter>
           </form>
