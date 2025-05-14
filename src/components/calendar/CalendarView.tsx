@@ -5,7 +5,9 @@ import { ko } from "date-fns/locale";
 import MonthView from "./MonthView";
 import WeekView from "./WeekView";
 import DayView from "./DayView";
+import ListView from "./ListView";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CalendarViewProps {
   date: Date | undefined;
@@ -49,9 +51,27 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     return Array.from({ length: 7 }).map((_, i) => addDays(start, i));
   }, [date]);
 
+  if (loading) {
+    return (
+      <div className="w-full h-[500px] space-y-4 p-4">
+        <Skeleton className="h-[50px] w-full" />
+        <div className="grid grid-cols-7 gap-2">
+          {Array(7).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-[70px]" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          {Array(6).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-[120px]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 overflow-auto flex flex-col">
-      <div className="flex-grow">
+    <div className="flex-1 overflow-auto flex flex-col h-full">
+      <div className="flex-grow h-full">
         {viewMode === "month" && (
           <MonthView 
             date={date} 
@@ -71,6 +91,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             setDate={setDate} 
             events={events} 
             weekDates={weekDates} 
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            isUserLoggedIn={isUserLoggedIn}
           />
         )}
         

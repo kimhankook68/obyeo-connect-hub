@@ -11,6 +11,7 @@ import EventForm from "@/components/calendar/EventForm";
 import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Calendar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -59,65 +60,99 @@ const Calendar = () => {
   const isUserLoggedIn = !!user;
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-muted/5">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="일정 관리" />
         
-        <main className="flex-1 overflow-y-auto p-6 bg-background">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold">일정 관리</h1>
-            
-            <div className="flex space-x-4">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-2xl font-bold">일정 관리</h1>
+              
               {isUserLoggedIn && (
-                <Button onClick={handleAdd} className="flex items-center gap-1">
+                <Button onClick={handleAdd} className="hidden md:flex items-center gap-1">
                   <Plus className="h-4 w-4" />
                   새 일정
                 </Button>
               )}
             </div>
-          </div>
-          
-          <Card className="mb-6">
+            
+            {/* 달력 헤더 */}
             <CalendarHeader 
               viewMode={viewMode} 
               setViewMode={setViewMode} 
               date={selectedDate} 
               setDate={setSelectedDate}
+              handleAddEvent={handleAdd}
+              isUserLoggedIn={isUserLoggedIn}
             />
-            <div className="p-4">
-              <CalendarView 
-                viewMode={viewMode} 
-                events={events} 
-                loading={loading}
-                date={selectedDate} 
-                setDate={setSelectedDate}
-                getEventCountForDay={getEventCountForDay}
-                handleEdit={handleEdit}
-                handleDelete={handleDelete}
-                formatEventDate={formatEventDate}
-                isUserLoggedIn={isUserLoggedIn}
-              />
-            </div>
-          </Card>
+            
+            {/* 달력 뷰 */}
+            <Card className="overflow-hidden shadow-sm mb-6">
+              {loading ? (
+                <div className="p-4 space-y-4">
+                  <Skeleton className="h-[40px] w-full" />
+                  <div className="grid grid-cols-7 gap-2">
+                    {Array(7).fill(0).map((_, i) => (
+                      <Skeleton key={i} className="h-[40px]" />
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {Array(35).fill(0).map((_, i) => (
+                      <Skeleton key={i} className="h-[80px]" />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4">
+                  <CalendarView 
+                    viewMode={viewMode} 
+                    events={events} 
+                    loading={loading}
+                    date={selectedDate} 
+                    setDate={setSelectedDate}
+                    getEventCountForDay={getEventCountForDay}
+                    handleEdit={handleEdit}
+                    handleDelete={handleDelete}
+                    formatEventDate={formatEventDate}
+                    isUserLoggedIn={isUserLoggedIn}
+                  />
+                </div>
+              )}
+            </Card>
+            
+            {/* 모바일용 버튼 */}
+            {isUserLoggedIn && (
+              <div className="fixed bottom-6 right-6 md:hidden">
+                <Button 
+                  size="icon" 
+                  onClick={handleAdd} 
+                  className="h-12 w-12 rounded-full shadow-lg"
+                >
+                  <Plus className="h-6 w-6" />
+                </Button>
+              </div>
+            )}
 
-          {/* Event form dialog */}
-          <EventForm 
-            open={modalOpen} 
-            onOpenChange={setModalOpen}
-            selectedEvent={selectedEvent}
-            createEvent={createEvent}
-            updateEvent={updateEvent}
-          />
-          
-          {/* Delete event dialog */}
-          <DeleteEventDialog
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            onConfirm={() => deleteEvent(selectedEvent?.id || '')}
-            event={selectedEvent}
-          />
+            {/* 일정 폼 다이얼로그 */}
+            <EventForm 
+              open={modalOpen} 
+              onOpenChange={setModalOpen}
+              selectedEvent={selectedEvent}
+              createEvent={createEvent}
+              updateEvent={updateEvent}
+            />
+            
+            {/* 삭제 확인 다이얼로그 */}
+            <DeleteEventDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              onConfirm={() => deleteEvent(selectedEvent?.id || '')}
+              event={selectedEvent}
+            />
+          </div>
         </main>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { ko } from "date-fns/locale";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MonthViewProps {
   date: Date | undefined;
@@ -47,21 +48,20 @@ const MonthView: React.FC<MonthViewProps> = ({
     setDate(day);
   };
 
-  // 이벤트가 있는 날짜 계산
-  const eventDates = useMemo(() => {
-    return events.map(event => {
-      const eventDate = parseISO(event.start_time);
-      return new Date(
-        eventDate.getFullYear(),
-        eventDate.getMonth(),
-        eventDate.getDate()
-      );
-    });
-  }, [events]);
+  // 이벤트 타입별 색상
+  const getEventTypeColor = (type: string): string => {
+    switch (type) {
+      case "meeting": return "bg-red-500 text-white";
+      case "training": return "bg-blue-500 text-white";
+      case "event": return "bg-amber-500 text-white";
+      case "volunteer": return "bg-green-500 text-white";
+      default: return "bg-gray-500 text-white";
+    }
+  };
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-[500px]">
-      <div className="flex justify-between items-center mb-2 px-2">
+    <div className="flex-1 flex flex-col h-full">
+      <div className="flex justify-between items-center mb-4 p-2 bg-muted/10 rounded-lg">
         <Button 
           variant="outline" 
           size="icon" 
@@ -83,7 +83,7 @@ const MonthView: React.FC<MonthViewProps> = ({
         </Button>
       </div>
       
-      <div className="grid grid-cols-7 text-center border-b font-medium py-2">
+      <div className="grid grid-cols-7 text-center border-b border-muted rounded-t-md bg-muted/10 font-medium py-2">
         <div className="text-red-500">일</div>
         <div>월</div>
         <div>화</div>
@@ -93,7 +93,7 @@ const MonthView: React.FC<MonthViewProps> = ({
         <div className="text-blue-500">토</div>
       </div>
       
-      <div className="flex-1 h-full">
+      <div className="flex-1 h-full border rounded-b-md shadow-sm">
         <Calendar
           mode="single"
           selected={date}
@@ -107,9 +107,9 @@ const MonthView: React.FC<MonthViewProps> = ({
             months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full h-full",
             month: "w-full h-full",
             row: "flex w-full flex-1 h-[calc(100%/6)]",
-            day: "h-full text-center p-1 relative border border-gray-100 hover:bg-blue-50 transition-colors duration-200 cursor-pointer",
-            day_today: "bg-blue-50 font-bold",
-            day_selected: "bg-primary/10 text-primary font-bold",
+            day: "h-full text-center p-1 relative border hover:bg-muted/10 transition-colors duration-200 cursor-pointer",
+            day_today: "bg-primary/10 font-bold",
+            day_selected: "bg-primary/20 text-primary font-bold",
             head_row: "hidden",
             head_cell: "hidden",
             caption_dropdowns: "hidden",
@@ -129,33 +129,44 @@ const MonthView: React.FC<MonthViewProps> = ({
                 return isSameDay(eventDate, date) && isCurrentMonth;
               });
 
+              // 이벤트 일 시 배경색 강조
+              const hasEvents = dayEvents.length > 0;
+
               return (
-                <div className="h-full w-full flex flex-col items-center" onClick={() => handleDateClick(date)}>
-                  <div className={`${
+                <div className="h-full w-full flex flex-col" onClick={() => handleDateClick(date)}>
+                  <div className={cn(
+                    "flex justify-center",
                     date.getDay() === 0 ? 'text-red-500' : 
-                    date.getDay() === 6 ? 'text-blue-500' : ''
-                  } ${isCurrentMonth ? '' : 'text-gray-300'} font-medium text-sm sm:text-base text-center`}>
-                    {dayNum}
+                    date.getDay() === 6 ? 'text-blue-500' : '',
+                    isCurrentMonth ? '' : 'text-gray-300'
+                  )}>
+                    <span className={cn(
+                      "flex items-center justify-center text-sm rounded-full w-7 h-7",
+                      isSameDay(date, new Date()) && "bg-primary text-primary-foreground"
+                    )}>
+                      {dayNum}
+                    </span>
                   </div>
                   
-                  {dayEvents.slice(0, 2).map((event, idx) => (
-                    <div 
-                      key={event.id}
-                      className="mt-1 truncate text-xs text-center w-full"
-                      style={{
-                        color: event.type === 'meeting' ? '#dc3545' : 
-                          event.type === 'training' ? '#0dcaf0' : 
-                          event.type === 'event' ? '#822409' : 
-                          event.type === 'volunteer' ? '#198754' : '#6c757d'
-                      }}
-                    >
-                      {event.title}
-                    </div>
-                  ))}
-                  
-                  {dayEvents.length > 2 && (
-                    <div className="text-xs text-primary mt-1 text-center">+ {dayEvents.length - 2}개 더보기</div>
-                  )}
+                  <div className="mt-1 flex-1">
+                    {dayEvents.slice(0, 3).map((event, idx) => (
+                      <div 
+                        key={event.id}
+                        className={cn(
+                          "mb-0.5 truncate text-xs p-0.5 rounded",
+                          getEventTypeColor(event.type)
+                        )}
+                      >
+                        {event.title}
+                      </div>
+                    ))}
+                    
+                    {dayEvents.length > 3 && (
+                      <div className="text-xs text-primary font-medium text-center">
+                        +{dayEvents.length - 3}개
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             }
