@@ -5,12 +5,17 @@ import { isSameDay, parseISO, format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
 import { Badge } from "@/components/ui/badge";
+import EventPopover from "./EventPopover";
 
 interface MonthViewProps {
   date: Date | undefined;
   setDate: (date: Date | undefined) => void;
   events: CalendarEvent[];
   getEventCountForDay: (day: Date) => number;
+  handleEdit: (event: CalendarEvent) => void;
+  handleDelete: (event: CalendarEvent) => void;
+  formatEventDate: (dateString: string) => string;
+  isUserLoggedIn: boolean;
 }
 
 const MonthView: React.FC<MonthViewProps> = ({
@@ -18,6 +23,10 @@ const MonthView: React.FC<MonthViewProps> = ({
   setDate,
   events,
   getEventCountForDay,
+  handleEdit,
+  handleDelete,
+  formatEventDate,
+  isUserLoggedIn
 }) => {
   // 이벤트가 있는 날짜 계산
   const eventDates = useMemo(() => {
@@ -69,57 +78,56 @@ const MonthView: React.FC<MonthViewProps> = ({
             DayContent: (props) => {
               const { date, displayMonth } = props;
               const dayNum = date.getDate();
-              const eventCount = getEventCountForDay(date);
               const isCurrentMonth = displayMonth;
               
-              return (
+              // 해당 날짜의 이벤트 필터링
+              const dayEvents = events.filter(event => {
+                const eventDate = parseISO(event.start_time);
+                return isSameDay(eventDate, date) && isCurrentMonth;
+              });
+
+              const DayContents = (
                 <div className="h-full w-full flex flex-col">
                   <div className={`${
                     date.getDay() === 0 ? 'text-red-500' : 
                     date.getDay() === 6 ? 'text-blue-500' : ''
-                  } ${isCurrentMonth ? '' : 'text-gray-300'} font-normal text-xs sm:text-sm`}>
+                  } ${isCurrentMonth ? '' : 'text-gray-300'} font-medium text-sm sm:text-base`}>
                     {dayNum}
                   </div>
                   
-                  {eventCount > 0 && isCurrentMonth && (
-                    <div className="absolute bottom-1 left-0 right-0 flex justify-center">
-                      {eventCount > 0 && (
-                        <div className="flex gap-1">
-                          {Array.from({ length: Math.min(eventCount, 3) }).map((_, idx) => (
-                            <Badge key={idx} variant="outline" className="h-1.5 w-1.5 p-0 rounded-full bg-primary border-0" />
-                          ))}
-                          {eventCount > 3 && (
-                            <span className="text-xs text-gray-500">+{eventCount - 3}</span>
-                          )}
-                        </div>
-                      )}
+                  {dayEvents.slice(0, 2).map((event, idx) => (
+                    <div 
+                      key={event.id}
+                      className="mt-1 truncate text-xs"
+                      style={{
+                        color: event.type === 'meeting' ? '#dc3545' : 
+                          event.type === 'training' ? '#0dcaf0' : 
+                          event.type === 'event' ? '#822409' : 
+                          event.type === 'volunteer' ? '#198754' : '#6c757d'
+                      }}
+                    >
+                      {event.title}
                     </div>
-                  )}
-                  
-                  {events.filter(event => {
-                    const eventDate = parseISO(event.start_time);
-                    return isSameDay(eventDate, date) && isCurrentMonth;
-                  }).map((event, idx) => (
-                    idx < 1 ? (
-                      <div 
-                        key={event.id}
-                        className="hidden sm:block absolute top-6 left-0 right-0 mx-1 h-5 overflow-hidden text-xs"
-                      >
-                        <div 
-                          className="bg-red-500 text-white px-1 truncate rounded-sm text-xs"
-                          style={{
-                            backgroundColor: event.type === 'meeting' ? '#dc3545' : 
-                            event.type === 'training' ? '#0dcaf0' : 
-                            event.type === 'event' ? '#ffc107' : 
-                            event.type === 'volunteer' ? '#198754' : '#dc3545'
-                          }}
-                        >
-                        </div>
-                      </div>
-                    ) : null
                   ))}
+                  
+                  {dayEvents.length > 2 && (
+                    <div className="text-xs text-primary mt-1">+ {dayEvents.length - 2}개 더보기</div>
+                  )}
                 </div>
               );
+              
+              return dayEvents.length > 0 ? (
+                <EventPopover
+                  date={date}
+                  events={dayEvents}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                  formatEventDate={formatEventDate}
+                  isUserLoggedIn={isUserLoggedIn}
+                >
+                  {DayContents}
+                </EventPopover>
+              ) : DayContents;
             }
           }}
         />
