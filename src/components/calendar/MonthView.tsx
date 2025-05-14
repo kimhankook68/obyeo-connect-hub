@@ -1,4 +1,3 @@
-
 import React, { useMemo } from "react";
 import { 
   isSameDay, 
@@ -97,7 +96,7 @@ const MonthView: React.FC<MonthViewProps> = ({
     }
   };
   
-  // 달력 헤더 요일 배열
+  // 달력 헤더 요일 배열 - Ensure this is defined
   const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 
   return (

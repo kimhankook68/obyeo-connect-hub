@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import { Card } from "@/components/ui/card";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { supabase } from "@/integrations/supabase/client";
-import CalendarHeader from "@/components/calendar/CalendarHeader";
+import CalendarWeekdayHeader from "@/components/calendar/CalendarHeader";
 import CalendarView from "@/components/calendar/CalendarView";
 import EventForm from "@/components/calendar/EventForm";
 import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
@@ -59,6 +59,9 @@ const Calendar = () => {
 
   const isUserLoggedIn = !!user;
 
+  // Define weekday labels here
+  const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
+
   return (
     <div className="flex h-screen bg-muted/5">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
@@ -74,15 +77,14 @@ const Calendar = () => {
               {/* Removed the top "새 일정" button */}
             </div>
             
-            {/* 달력 헤더 */}
-            <CalendarHeader 
-              viewMode={viewMode} 
-              setViewMode={setViewMode} 
-              date={selectedDate} 
-              setDate={setSelectedDate}
-              handleAddEvent={handleAdd}
-              isUserLoggedIn={isUserLoggedIn}
-            />
+            {/* Pass the weekdayLabels to the CalendarWeekdayHeader component */}
+            <div className="calendar-header">
+              {viewMode === "month" && (
+                <CalendarWeekdayHeader 
+                  weekdayLabels={weekdayLabels}
+                />
+              )}
+            </div>
             
             {/* 달력 뷰 */}
             <Card className="overflow-hidden shadow-sm mb-6">

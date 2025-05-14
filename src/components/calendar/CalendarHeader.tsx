@@ -3,11 +3,23 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 interface CalendarWeekdayHeaderProps {
-  weekdayLabels: string[];
+  weekdayLabels?: string[];
+  viewMode?: "month" | "week" | "day";
+  setViewMode?: (mode: "month" | "week" | "day") => void;
+  date?: Date;
+  setDate?: (date: Date | undefined) => void;
+  handleAddEvent?: () => void;
+  isUserLoggedIn?: boolean;
 }
 
 const CalendarWeekdayHeader: React.FC<CalendarWeekdayHeaderProps> = ({
-  weekdayLabels
+  weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"], // Default value for weekdayLabels
+  viewMode,
+  setViewMode,
+  date,
+  setDate,
+  handleAddEvent,
+  isUserLoggedIn
 }) => {
   return (
     <thead>
