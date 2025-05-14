@@ -8,5 +8,6 @@ export interface Member {
   phone?: string | null;
   image?: string | null;
   created_at: string;
+  updated_at?: string;
   user_id?: string | null;
 }
