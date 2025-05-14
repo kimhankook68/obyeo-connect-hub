@@ -35,7 +35,6 @@ const CalendarPage: React.FC = () => {
   } = useCalendarEvents();
 
   const handleCreateEvent = (data: any) => {
-    console.log("handleCreateEvent called with data:", data);
     // 일정 생성 시 현재 선택된 날짜가 있으면 설정
     if (date && !data.start_time) {
       const startDate = new Date(date);
@@ -51,7 +50,6 @@ const CalendarPage: React.FC = () => {
   };
 
   const handleUpdateEvent = (data: any) => {
-    console.log("handleUpdateEvent called with data:", data, "and selectedEvent:", selectedEvent);
     if (selectedEvent) {
       // 업데이트된 데이터 전송
       const updatedData = {
@@ -68,7 +66,6 @@ const CalendarPage: React.FC = () => {
   };
 
   const handleDeleteConfirm = () => {
-    console.log("handleDeleteConfirm called with selectedEvent:", selectedEvent);
     if (selectedEvent) {
       deleteEvent(selectedEvent.id);
     } else {
@@ -82,7 +79,6 @@ const CalendarPage: React.FC = () => {
 
   // 일정 추가 버튼 클릭 핸들러
   const handleAddEvent = () => {
-    console.log("handleAddEvent called with date:", date);
     handleAdd();
   };
 
