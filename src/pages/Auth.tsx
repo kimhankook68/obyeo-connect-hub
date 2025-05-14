@@ -138,25 +138,25 @@ const Auth = () => {
 
       console.log("Signup successful, user data:", signUpData);
       
-      // Add the user to members table after successful signup
+      // Add the user to profiles table after successful signup
       if (signUpData.user) {
-        console.log("Adding user to members table with ID:", signUpData.user.id);
-        const newMember = {
+        console.log("Adding user to profiles table with ID:", signUpData.user.id);
+        const newProfile = {
+          id: signUpData.user.id,
           name: data.name,
           email: data.email,
           department: "미지정",
           role: "일반회원",
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          user_id: signUpData.user.id
+          updated_at: new Date().toISOString()
         };
         
-        const { error: memberError } = await supabase.from("members").insert([newMember]);
+        const { error: profileError } = await supabase.from("profiles").insert([newProfile]);
         
-        if (memberError) {
-          console.error("Error adding member:", memberError);
+        if (profileError) {
+          console.error("Error adding profile:", profileError);
         } else {
-          console.log("Member added successfully");
+          console.log("Profile added successfully");
         }
       }
 

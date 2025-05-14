@@ -7,7 +7,7 @@ import { MemberDeleteDialog } from "@/components/MemberDeleteDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { PlusIcon, Search } from "lucide-react";
 import { Member } from "@/types/member";
 import Sidebar from "@/components/Sidebar";
@@ -29,13 +29,13 @@ const Members = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from("members")
+        .from("profiles")
         .select("*");
 
       if (error) throw error;
       setMembers(data || []);
     } catch (error: any) {
-      toast.error("멤버 데이터를 불러오는데 실패했습니다.");
+      toast.error("임직원 데이터를 불러오는데 실패했습니다.");
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -45,15 +45,15 @@ const Members = () => {
   const handleAddMember = async (member: Omit<Member, "id">) => {
     try {
       const { data, error } = await supabase
-        .from("members")
+        .from("profiles")
         .insert([member])
         .select();
 
       if (error) throw error;
       setMembers([...members, data[0]]);
-      toast.success("멤버가 추가되었습니다.");
+      toast.success("임직원이 추가되었습니다.");
     } catch (error: any) {
-      toast.error("멤버 추가에 실패했습니다.");
+      toast.error("임직원 추가에 실패했습니다.");
       console.error(error);
     } finally {
       setIsFormOpen(false);
@@ -63,16 +63,16 @@ const Members = () => {
   const handleEditMember = async (member: Member) => {
     try {
       const { error } = await supabase
-        .from("members")
+        .from("profiles")
         .update(member)
         .eq("id", member.id);
 
       if (error) throw error;
       
       setMembers(members.map(m => m.id === member.id ? member : m));
-      toast.success("멤버 정보가 수정되었습니다.");
+      toast.success("임직원 정보가 수정되었습니다.");
     } catch (error: any) {
-      toast.error("멤버 정보 수정에 실패했습니다.");
+      toast.error("임직원 정보 수정에 실패했습니다.");
       console.error(error);
     } finally {
       setSelectedMember(null);
@@ -85,16 +85,16 @@ const Members = () => {
     
     try {
       const { error } = await supabase
-        .from("members")
+        .from("profiles")
         .delete()
         .eq("id", selectedMember.id);
 
       if (error) throw error;
       
       setMembers(members.filter(m => m.id !== selectedMember.id));
-      toast.success("멤버가 삭제되었습니다.");
+      toast.success("임직원이 삭제되었습니다.");
     } catch (error: any) {
-      toast.error("멤버 삭제에 실패했습니다.");
+      toast.error("임직원 삭제에 실패했습니다.");
       console.error(error);
     } finally {
       setSelectedMember(null);

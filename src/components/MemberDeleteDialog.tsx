@@ -1,3 +1,4 @@
+
 import React from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -37,7 +38,7 @@ export function MemberDeleteDialog({
     try {
       setIsDeleting(true);
       const { error } = await supabase
-        .from("members")
+        .from("profiles")
         .delete()
         .eq("id", memberId);
 

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -113,7 +114,7 @@ export function MemberFormDialog({
       if (editMember) {
         // 기존 임직원 데이터 수정
         const { error } = await supabase
-          .from("members")
+          .from("profiles")
           .update({
             name: values.name,
             email: values.email,
@@ -132,7 +133,7 @@ export function MemberFormDialog({
         const newId = crypto.randomUUID();
         
         // 새 임직원 데이터 삽입
-        const { error } = await supabase.from("members").insert({
+        const { error } = await supabase.from("profiles").insert({
           id: newId,
           name: values.name,
           email: values.email,
