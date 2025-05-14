@@ -7,6 +7,8 @@ import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { MessageCircle } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -94,8 +96,10 @@ const FreeBoards = () => {
 
       if (postsError) throw postsError;
       
-      // Get author profiles separately if user_id exists
-      const postsWithAuthors = await Promise.all((postsData || []).map(async (post) => {
+      // Get author profiles separately and comment counts
+      const postsWithDetails = await Promise.all((postsData || []).map(async (post) => {
+        // Get author name
+        let authorName = post.author.split('@')[0];
         if (post.user_id) {
           const { data: profileData } = await supabase
             .from("profiles")
@@ -103,15 +107,29 @@ const FreeBoards = () => {
             .eq("id", post.user_id)
             .single();
             
-          return { 
-            ...post, 
-            authorName: profileData?.name || post.author.split('@')[0] 
-          };
+          if (profileData?.name) {
+            authorName = profileData.name;
+          }
         }
-        return { ...post, authorName: post.author.split('@')[0] };
+
+        // Get comment count
+        const { count: commentCount, error: commentError } = await supabase
+          .from("free_post_comments")
+          .select("*", { count: "exact", head: true })
+          .eq("post_id", post.id);
+        
+        if (commentError) {
+          console.error("Failed to get comment count:", commentError);
+        }
+        
+        return { 
+          ...post, 
+          authorName,
+          commentCount: commentCount || 0
+        };
       }));
       
-      setPosts(postsWithAuthors || []);
+      setPosts(postsWithDetails || []);
     } catch (error) {
       console.error("게시물 가져오기 실패:", error);
       toast({
@@ -216,7 +234,7 @@ const FreeBoards = () => {
           
           <Card>
             <CardHeader className="pb-0">
-              <CardTitle>전체 공지사항</CardTitle>
+              <CardTitle>전체 게시글</CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -238,7 +256,6 @@ const FreeBoards = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[80px] text-center">번호</TableHead>
-                        <TableHead className="w-[80px] text-center">분류</TableHead>
                         <TableHead>제목</TableHead>
                         <TableHead className="w-[120px] text-center">작성자</TableHead>
                         <TableHead className="w-[120px] text-center">등록일</TableHead>
@@ -255,10 +272,17 @@ const FreeBoards = () => {
                           <TableCell className="text-center">
                             {(currentPage - 1) * postsPerPage + index + 1}
                           </TableCell>
-                          <TableCell className="text-center">
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">공지</span>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {post.title}
+                              {post.commentCount > 0 && (
+                                <Badge variant="secondary" className="ml-2 flex items-center gap-1 bg-purple-100 text-purple-800">
+                                  <MessageCircle className="h-3 w-3" />
+                                  <span>{post.commentCount}</span>
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
-                          <TableCell>{post.title}</TableCell>
                           <TableCell className="text-center">
                             {post.authorName}
                           </TableCell>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
@@ -8,8 +7,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import CommentList from "@/components/CommentList";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, MessageCircle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -240,7 +240,15 @@ const FreeBoardDetail = () => {
               <Card>
                 <CardHeader className="border-b pb-3">
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-xl">{post.title}</CardTitle>
+                    <div>
+                      <CardTitle className="text-xl">{post.title}</CardTitle>
+                      {comments.length > 0 && (
+                        <Badge variant="comment" className="mt-2 flex items-center gap-1 w-fit">
+                          <MessageCircle className="h-3 w-3" />
+                          <span>댓글 {comments.length}개</span>
+                        </Badge>
+                      )}
+                    </div>
                     {canEditOrDelete() && (
                       <div className="flex space-x-2">
                         <Button 
