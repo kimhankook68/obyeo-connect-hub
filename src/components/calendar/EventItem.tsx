@@ -47,6 +47,9 @@ const EventItem: React.FC<EventItemProps> = ({
   formatEventDate,
   isUserLoggedIn,
 }) => {
+  // 현재 사용자가 이벤트 작성자인지 확인 (user_id가 있는 경우만)
+  const canManageEvent = isUserLoggedIn && event.user_id;
+  
   return (
     <Card className="overflow-hidden border-l-4" style={{
       borderLeftColor: event.type === 'meeting' ? '#dc3545' : 

@@ -80,6 +80,14 @@ export const useCalendarEvents = () => {
   // Update an existing event
   const updateEvent = async (id: string, eventData: Partial<CalendarEventFormData>) => {
     try {
+      // 권한 확인 (본인이 등록한 일정인지 확인)
+      const eventToUpdate = events.find(e => e.id === id);
+      
+      if (eventToUpdate?.user_id && user?.id !== eventToUpdate.user_id) {
+        toast.error("본인이 등록한 일정만 수정할 수 있습니다");
+        return null;
+      }
+      
       const updatedEvent = await updateCalendarEvent(id, eventData);
       
       // 로컬 상태 업데이트
@@ -98,6 +106,14 @@ export const useCalendarEvents = () => {
   // Delete an event
   const deleteEvent = async (id: string) => {
     try {
+      // 권한 확인 (본인이 등록한 일정인지 확인)
+      const eventToDelete = events.find(e => e.id === id);
+      
+      if (eventToDelete?.user_id && user?.id !== eventToDelete.user_id) {
+        toast.error("본인이 등록한 일정만 삭제할 수 있습니다");
+        return;
+      }
+      
       await deleteCalendarEvent(id);
       
       // 로컬 상태에서 제거
@@ -112,12 +128,24 @@ export const useCalendarEvents = () => {
   };
 
   const handleEdit = (event: CalendarEvent) => {
+    // 권한 확인
+    if (event.user_id && user?.id !== event.user_id) {
+      toast.error("본인이 등록한 일정만 수정할 수 있습니다");
+      return;
+    }
+    
     console.log("Editing event:", event);
     setSelectedEvent(event);
     setModalOpen(true);
   };
 
   const handleDelete = (event: CalendarEvent) => {
+    // 권한 확인
+    if (event.user_id && user?.id !== event.user_id) {
+      toast.error("본인이 등록한 일정만 삭제할 수 있습니다");
+      return;
+    }
+    
     console.log("Delete requested for event:", event);
     setSelectedEvent(event);
     setDeleteDialogOpen(true);
