@@ -8,10 +8,12 @@ import StatCards from "@/components/dashboard/StatCards";
 import RecentNotices from "@/components/dashboard/RecentNotices";
 import RecentDocuments from "@/components/dashboard/RecentDocuments";
 import UpcomingEvents from "@/components/dashboard/UpcomingEvents";
+import MonthlyCalendar from "@/components/dashboard/MonthlyCalendar";
 
 const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     const fetchUser = async () => {
@@ -44,7 +46,10 @@ const Index = () => {
             <RecentDocuments />
           </div>
           
-          <UpcomingEvents />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <UpcomingEvents />
+            <MonthlyCalendar />
+          </div>
         </main>
       </div>
     </div>

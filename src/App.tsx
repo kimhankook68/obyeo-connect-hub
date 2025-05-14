@@ -16,6 +16,10 @@ import Settings from "./pages/Settings";
 import Documents from "./pages/Documents";
 import Calendar from "./pages/Calendar";
 import Members from "./pages/Members";
+import Surveys from "./pages/Surveys";
+import SurveyDetail from "./pages/SurveyDetail";
+import FreeBoards from "./pages/FreeBoards";
+import FreeBoardDetail from "./pages/FreeBoardDetail";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +41,10 @@ const App = () => (
         <Route path="/settings" element={<Settings />} />
         <Route path="/tasks" element={<Index />} />
         <Route path="/members" element={<Members />} />
+        <Route path="/surveys" element={<Surveys />} />
+        <Route path="/surveys/:id" element={<SurveyDetail />} />
+        <Route path="/freeboards" element={<FreeBoards />} />
+        <Route path="/freeboards/:id" element={<FreeBoardDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </TooltipProvider>

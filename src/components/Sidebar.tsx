@@ -31,6 +31,16 @@ const navItems: NavItem[] = [
     icon: "📁"
   },
   {
+    name: "설문조사",
+    path: "/surveys",
+    icon: "📝"
+  },
+  {
+    name: "자유게시판",
+    path: "/freeboards",
+    icon: "💬"
+  },
+  {
     name: "임직원",
     path: "/members",
     icon: "👥"
