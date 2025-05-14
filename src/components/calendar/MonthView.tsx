@@ -137,7 +137,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                   {dayEvents.slice(0, 2).map((event, idx) => (
                     <div 
                       key={event.id}
-                      className="mt-1 truncate text-xs"
+                      className="mt-1 truncate text-xs text-center"
                       style={{
                         color: event.type === 'meeting' ? '#dc3545' : 
                           event.type === 'training' ? '#0dcaf0' : 
@@ -150,12 +150,13 @@ const MonthView: React.FC<MonthViewProps> = ({
                   ))}
                   
                   {dayEvents.length > 2 && (
-                    <div className="text-xs text-primary mt-1">+ {dayEvents.length - 2}개 더보기</div>
+                    <div className="text-xs text-primary mt-1 text-center">+ {dayEvents.length - 2}개 더보기</div>
                   )}
                 </div>
               );
               
-              return dayEvents.length > 0 ? (
+              // 모든 날짜에 EventPopover 적용 (이벤트가 있든 없든)
+              return (
                 <EventPopover
                   date={date}
                   events={dayEvents}
@@ -166,7 +167,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                 >
                   {DayContents}
                 </EventPopover>
-              ) : DayContents;
+              );
             }
           }}
         />

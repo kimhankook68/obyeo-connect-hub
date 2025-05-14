@@ -29,8 +29,6 @@ const EventPopover: React.FC<EventPopoverProps> = ({
   isUserLoggedIn,
   children
 }) => {
-  if (events.length === 0) return <>{children}</>;
-
   return (
     <Popover>
       <PopoverTrigger asChild>
