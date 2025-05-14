@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -56,128 +57,54 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     }
   };
 
-  // 이전 기간으로 이동
-  const navigatePrevious = () => {
-    if (!date) return;
-    
-    const newDate = new Date(date);
-    if (viewMode === "day") {
-      newDate.setDate(newDate.getDate() - 1);
-    } else if (viewMode === "week") {
-      newDate.setDate(newDate.getDate() - 7);
-    } else {
-      newDate.setMonth(newDate.getMonth() - 1);
-    }
-    setDate(newDate);
-  };
-  
-  // 다음 기간으로 이동
-  const navigateNext = () => {
-    if (!date) return;
-    
-    const newDate = new Date(date);
-    if (viewMode === "day") {
-      newDate.setDate(newDate.getDate() + 1);
-    } else if (viewMode === "week") {
-      newDate.setDate(newDate.getDate() + 7);
-    } else {
-      newDate.setMonth(newDate.getMonth() + 1);
-    }
-    setDate(newDate);
-  };
-  
   // 오늘로 이동
   const goToToday = () => {
     setDate(new Date());
   };
 
-  // 현재 달력 모드에 따른 헤더 타이틀
-  const getHeaderTitle = () => {
-    if (!date) return "";
-    
-    if (viewMode === "day") {
-      return dateFormat(date, "yyyy년 MM월 dd일", { locale: ko });
-    } else if (viewMode === "week") {
-      const start = new Date(date);
-      start.setDate(start.getDate() - start.getDay());
-      const end = new Date(start);
-      end.setDate(end.getDate() + 6);
-      
-      if (start.getMonth() === end.getMonth()) {
-        return `${dateFormat(start, "yyyy년 MM월", { locale: ko })}`;
-      } else {
-        return `${dateFormat(start, "yyyy년 MM월", { locale: ko })} - ${dateFormat(end, "MM월", { locale: ko })}`;
-      }
-    } else {
-      return dateFormat(date, "yyyy년 MM월", { locale: ko });
-    }
-  };
-
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm mb-4">
-      <div className="flex items-center space-x-2 w-full sm:w-auto">
-        <Button variant="outline" size="icon" onClick={navigatePrevious}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-left h-4 w-4">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </Button>
-        
+    <div className="flex items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm mb-4">
+      <div className="flex items-center space-x-2">
         <Button variant="outline" onClick={goToToday} className="min-w-[70px]">
           오늘
         </Button>
         
-        <Button variant="outline" size="icon" onClick={navigateNext}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right h-4 w-4">
-            <path d="m9 18 6-6-6-6"/>
-          </svg>
+        <Button variant="outline">
+          일정
         </Button>
-        
-        <h2 className="text-lg font-medium hidden md:block">
-          {getHeaderTitle()}
-        </h2>
       </div>
       
-      <h2 className="text-lg font-medium block md:hidden">
-        {getHeaderTitle()}
-      </h2>
-      
-      <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+      <div className="flex items-center space-x-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2">
               {getViewIcon()}
-              {getViewLabel()} 보기
+              {getViewLabel()}
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down h-4 w-4">
                 <path d="m6 9 6 6 6-6"/>
               </svg>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setViewMode("day")}>
-              <CalendarIcon className="h-4 w-4 mr-2" />
-              일간
+            <DropdownMenuItem onClick={() => setViewMode("month")}>
+              <CalendarCheck className="h-4 w-4 mr-2" />
+              월간
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setViewMode("week")}>
               <CalendarDays className="h-4 w-4 mr-2" />
               주간
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setViewMode("month")}>
-              <CalendarCheck className="h-4 w-4 mr-2" />
-              월간
+            <DropdownMenuItem onClick={() => setViewMode("day")}>
+              <CalendarIcon className="h-4 w-4 mr-2" />
+              일간
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         
         {isUserLoggedIn && handleAddEvent && (
-          <Button onClick={handleAddEvent} className="hidden sm:flex items-center gap-1">
+          <Button onClick={handleAddEvent} className="flex items-center gap-1">
             <Plus className="h-4 w-4" />
             새 일정
-          </Button>
-        )}
-        
-        {isUserLoggedIn && handleAddEvent && (
-          <Button onClick={handleAddEvent} size="icon" className="sm:hidden">
-            <Plus className="h-4 w-4" />
           </Button>
         )}
       </div>
