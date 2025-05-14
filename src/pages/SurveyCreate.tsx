@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +6,7 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,10 +47,8 @@ const SurveyCreate = () => {
       if (session?.user) {
         setUser(session.user);
       } else {
-        toast({
-          title: "로그인 필요",
+        toast.error("로그인 필요", {
           description: "설문을 생성하려면 로그인이 필요합니다.",
-          variant: "destructive",
         });
         navigate("/auth");
       }
@@ -173,27 +170,27 @@ const SurveyCreate = () => {
       
       const surveyId = surveyData[0].id;
       
-      // Create questions
-      const questionsToInsert = questions.map(q => ({
-        survey_id: surveyId,
-        question: q.question,
-        question_type: q.question_type,
-        options: q.options.length > 0 ? q.options : null,
-        required: q.required,
-        order_num: q.order_num
-      }));
+      // Create questions - fix the options type
+      for (const question of questions) {
+        const { error: questionError } = await supabase
+          .from("survey_questions")
+          .insert({
+            survey_id: surveyId,
+            question: question.question,
+            question_type: question.question_type,
+            options: question.options.length > 0 ? question.options : null,
+            required: question.required,
+            order_num: question.order_num
+          });
+          
+        if (questionError) throw questionError;
+      }
       
-      const { error: questionsError } = await supabase
-        .from("survey_questions")
-        .insert(questionsToInsert);
-        
-      if (questionsError) throw questionsError;
-      
-      toast("설문이 성공적으로 생성되었습니다.");
+      toast.success("설문이 성공적으로 생성되었습니다.");
       navigate(`/surveys/${surveyId}`);
     } catch (error: any) {
       console.error("설문 생성 실패:", error);
-      toast("설문 생성에 실패했습니다.");
+      toast.error("설문 생성에 실패했습니다.");
     } finally {
       setLoading(false);
     }

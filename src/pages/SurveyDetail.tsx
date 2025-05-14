@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +17,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 const SurveyDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [survey, setSurvey] = useState<any>(null);
   const [questions, setQuestions] = useState<any[]>([]);
@@ -81,16 +79,16 @@ const SurveyDetail = () => {
           if (responseData) {
             setHasResponded(true);
             // Pre-fill responses if they exist
-            setResponses(responseData.responses);
+            if (responseData.responses) {
+              setResponses(responseData.responses as { [key: string]: any });
+            }
           }
         }
       } catch (error) {
         if ((error as any).code !== "PGRST116") { // Not Found error code
           console.error("설문 가져오기 실패:", error);
-          toast({
-            title: "설문 로드 실패",
-            description: "설문 정보를 불러오는 데 실패했습니다.",
-            variant: "destructive",
+          toast.error("설문 로드 실패", {
+            description: "설문 정보를 불러오는 데 실패했습니다."
           });
           navigate("/surveys");
         }
@@ -105,7 +103,7 @@ const SurveyDetail = () => {
       // If not logged in, just fetch survey and questions without checking responses
       fetchSurvey();
     }
-  }, [id, navigate, toast, user]);
+  }, [id, navigate, user]);
 
   const handleResponseChange = (questionId: string, value: any) => {
     setResponses((prev) => ({
@@ -134,10 +132,8 @@ const SurveyDetail = () => {
 
   const handleSubmit = async () => {
     if (!user) {
-      toast({
-        title: "로그인 필요",
-        description: "설문에 응답하려면 로그인이 필요합니다.",
-        variant: "destructive",
+      toast.error("로그인 필요", {
+        description: "설문에 응답하려면 로그인이 필요합니다."
       });
       return;
     }
@@ -153,10 +149,8 @@ const SurveyDetail = () => {
       });
 
     if (unansweredRequiredQuestions.length > 0) {
-      toast({
-        title: "필수 항목 입력 필요",
-        description: "모든 필수 항목을 입력해주세요.",
-        variant: "destructive",
+      toast.error("필수 항목 입력 필요", {
+        description: "모든 필수 항목을 입력해주세요."
       });
       return;
     }
@@ -176,11 +170,11 @@ const SurveyDetail = () => {
 
       if (error) throw error;
       
-      toast("설문 응답이 성공적으로 제출되었습니다.");
+      toast.success("설문 응답이 성공적으로 제출되었습니다.");
       setHasResponded(true);
     } catch (error) {
       console.error("설문 응답 제출 실패:", error);
-      toast("설문 응답 제출에 실패했습니다.");
+      toast.error("설문 응답 제출에 실패했습니다.");
     } finally {
       setSubmitLoading(false);
     }

@@ -1,18 +1,17 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import CommentList from "@/components/CommentList";
 
 const FreeBoardDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -49,10 +48,8 @@ const FreeBoardDetail = () => {
         await fetchComments();
       } catch (error) {
         console.error("게시물 가져오기 실패:", error);
-        toast({
-          title: "게시물 로드 실패",
-          description: "게시물 정보를 불러오는 데 실패했습니다.",
-          variant: "destructive",
+        toast.error("게시물 로드 실패", {
+          description: "게시물 정보를 불러오는 데 실패했습니다."
         });
         navigate("/freeboards");
       } finally {
@@ -63,7 +60,7 @@ const FreeBoardDetail = () => {
     if (id) {
       fetchPost();
     }
-  }, [id, navigate, toast]);
+  }, [id, navigate]);
 
   const fetchComments = async () => {
     try {
@@ -82,10 +79,8 @@ const FreeBoardDetail = () => {
 
   const handleCommentSubmit = async () => {
     if (!user) {
-      toast({
-        title: "로그인 필요",
-        description: "댓글을 작성하려면 로그인이 필요합니다.",
-        variant: "destructive",
+      toast.error("로그인 필요", {
+        description: "댓글을 작성하려면 로그인이 필요합니다."
       });
       return;
     }
@@ -110,12 +105,12 @@ const FreeBoardDetail = () => {
 
       if (error) throw error;
 
-      toast("댓글이 성공적으로 작성되었습니다.");
+      toast.success("댓글이 성공적으로 작성되었습니다.");
       setNewComment("");
       await fetchComments(); // Refresh comments
     } catch (error) {
       console.error("댓글 작성 실패:", error);
-      toast("댓글 작성에 실패했습니다.");
+      toast.error("댓글 작성에 실패했습니다.");
     } finally {
       setCommentLoading(false);
     }

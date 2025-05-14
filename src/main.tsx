@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
@@ -42,17 +43,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const Main = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/*" element={
-          <ProtectedRoute>
-            <App />
-          </ProtectedRoute>
-        } />
-      </Routes>
-      <Toaster position="top-right" />
-    </BrowserRouter>
+    <React.StrictMode>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <App />
+            </ProtectedRoute>
+          } />
+        </Routes>
+        <Toaster position="top-right" />
+      </BrowserRouter>
+    </React.StrictMode>
   );
 };
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +6,7 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 const FreeBoardCreate = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -23,10 +22,8 @@ const FreeBoardCreate = () => {
       if (session?.user) {
         setUser(session.user);
       } else {
-        toast({
-          title: "로그인 필요",
+        toast.error("로그인 필요", {
           description: "게시물을 작성하려면 로그인이 필요합니다.",
-          variant: "destructive",
         });
         navigate("/auth");
       }
@@ -60,11 +57,11 @@ const FreeBoardCreate = () => {
 
       if (error) throw error;
       
-      toast("게시물이 성공적으로 작성되었습니다.");
+      toast.success("게시물이 성공적으로 작성되었습니다.");
       navigate("/freeboards");
     } catch (error: any) {
       console.error("게시물 작성 실패:", error);
-      toast("게시물 작성에 실패했습니다.");
+      toast.error("게시물 작성에 실패했습니다.");
     } finally {
       setLoading(false);
     }
