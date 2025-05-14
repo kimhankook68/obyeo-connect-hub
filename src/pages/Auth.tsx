@@ -101,12 +101,12 @@ const Auth = () => {
 
       // Explicitly navigate to dashboard after successful login
       navigate("/");
-      toast("로그인 성공", {
+      toast.success("로그인 성공", {
         description: "환영합니다!",
       });
 
     } catch (error: any) {
-      // Fix: Use the correct sonner toast API for error messages
+      // Use the correct sonner toast API for error messages
       toast.error("로그인 실패", {
         description: error.message || "로그인 중 오류가 발생했습니다.",
       });
@@ -134,10 +134,23 @@ const Auth = () => {
         throw error;
       }
 
+      // Add the user to members table after successful signup
+      const newMember = {
+        name: data.name,
+        email: data.email,
+        department: "미지정",
+        role: "일반회원",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user_id: signUpData.user?.id
+      };
+      
+      await supabase.from("members").insert([newMember]);
+
       // If signup was successful and we have a session, sign in automatically
       if (signUpData.session) {
         navigate("/");
-        toast("회원가입 성공", {
+        toast.success("회원가입 성공", {
           description: "환영합니다!",
         });
       } else {
@@ -152,12 +165,12 @@ const Auth = () => {
         }
         
         navigate("/");
-        toast("회원가입 성공", {
+        toast.success("회원가입 성공", {
           description: "환영합니다!",
         });
       }
     } catch (error: any) {
-      // Fix: Use the correct sonner toast API for error messages
+      // Use the correct sonner toast API for error messages
       toast.error("회원가입 실패", {
         description: error.message || "회원가입 중 오류가 발생했습니다.",
       });

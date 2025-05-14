@@ -28,8 +28,15 @@ const AuthStatus = () => {
       
       // Set up subscription for auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (_, session) => {
+        (event, session) => {
           setUser(session?.user || null);
+          
+          // Redirect to auth page on sign out
+          if (event === 'SIGNED_OUT') {
+            navigate('/auth');
+          } else if (event === 'SIGNED_IN') {
+            navigate('/');
+          }
         }
       );
       
@@ -37,13 +44,13 @@ const AuthStatus = () => {
     };
     
     fetchUser();
-  }, []);
+  }, [navigate]);
   
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
       toast.success("로그아웃 되었습니다.");
-      navigate("/auth");
+      // Redirection will be handled by onAuthStateChange
     } catch (error) {
       toast.error("로그아웃 중 오류가 발생했습니다.");
       console.error("Logout error:", error);
