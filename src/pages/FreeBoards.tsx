@@ -233,9 +233,7 @@ const FreeBoards = () => {
           </div>
           
           <Card>
-            <CardHeader className="pb-0">
-              <CardTitle>전체 게시글</CardTitle>
-            </CardHeader>
+            
             <CardContent>
               {loading ? (
                 <div className="space-y-2">
