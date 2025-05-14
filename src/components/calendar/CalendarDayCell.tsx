@@ -76,7 +76,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
                   <div 
                     key={event.id}
                     className={cn(
-                      "text-xs px-1 py-0.5 rounded text-white truncate",
+                      "text-xs px-1 py-0.5 rounded text-white truncate text-[11px]",
                       getEventColor(event.type)
                     )}
                   >
@@ -85,7 +85,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
                 ))}
                 
                 {dayEvents.length > 1 && (
-                  <div className="text-xs text-blue-600 font-medium px-1">
+                  <div className="text-[10px] text-blue-600 font-medium px-1">
                     +{dayEvents.length - 1}개 더보기
                   </div>
                 )}
