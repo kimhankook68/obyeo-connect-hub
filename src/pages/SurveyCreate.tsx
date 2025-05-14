@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Sidebar from "@/components/Sidebar";
@@ -10,9 +10,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarIcon, PlusIcon, Trash2Icon, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
+interface QuestionOption {
+  label: string;
+  value: string;
+}
+
+interface SurveyQuestion {
+  question: string;
+  question_type: 'text' | 'textarea' | 'single_choice' | 'multiple_choice';
+  options: QuestionOption[];
+  required: boolean;
+  order_num: number;
+}
 
 const SurveyCreate = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -20,7 +38,90 @@ const SurveyCreate = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        toast({
+          title: "로그인 필요",
+          description: "설문을 생성하려면 로그인이 필요합니다.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+      }
+    };
+
+    fetchUser();
+  }, [navigate]);
+
+  const addQuestion = () => {
+    setQuestions([
+      ...questions,
+      {
+        question: "",
+        question_type: "text",
+        options: [],
+        required: false,
+        order_num: questions.length
+      }
+    ]);
+  };
+
+  const removeQuestion = (index: number) => {
+    const updatedQuestions = questions.filter((_, i) => i !== index);
+    // Update order_num for remaining questions
+    const reorderedQuestions = updatedQuestions.map((q, i) => ({
+      ...q,
+      order_num: i
+    }));
+    setQuestions(reorderedQuestions);
+  };
+
+  const updateQuestion = (index: number, field: keyof SurveyQuestion, value: any) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions[index] = {
+      ...updatedQuestions[index],
+      [field]: value
+    };
+    setQuestions(updatedQuestions);
+  };
+
+  const addOption = (questionIndex: number) => {
+    const updatedQuestions = [...questions];
+    const newOption = { label: "", value: "" };
+    
+    updatedQuestions[questionIndex].options = [
+      ...updatedQuestions[questionIndex].options,
+      newOption
+    ];
+    
+    setQuestions(updatedQuestions);
+  };
+
+  const updateOption = (questionIndex: number, optionIndex: number, field: keyof QuestionOption, value: string) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions[questionIndex].options[optionIndex][field] = value;
+    
+    // Auto-fill value if empty when label is typed
+    if (field === 'label' && !updatedQuestions[questionIndex].options[optionIndex].value) {
+      updatedQuestions[questionIndex].options[optionIndex].value = value;
+    }
+    
+    setQuestions(updatedQuestions);
+  };
+
+  const removeOption = (questionIndex: number, optionIndex: number) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions[questionIndex].options = 
+      updatedQuestions[questionIndex].options.filter((_, i) => i !== optionIndex);
+    setQuestions(updatedQuestions);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,10 +131,34 @@ const SurveyCreate = () => {
       return;
     }
 
+    if (questions.length === 0) {
+      toast("최소 한 개 이상의 질문을 추가해주세요.");
+      return;
+    }
+
+    // Validate questions
+    const invalidQuestions = questions.filter(q => !q.question.trim());
+    if (invalidQuestions.length > 0) {
+      toast("모든 질문 내용을 입력해주세요.");
+      return;
+    }
+
+    // Validate options for choice questions
+    const invalidOptions = questions.filter(q => 
+      (q.question_type === 'single_choice' || q.question_type === 'multiple_choice') && 
+      (q.options.length < 2 || q.options.some(opt => !opt.label.trim()))
+    );
+    
+    if (invalidOptions.length > 0) {
+      toast("선택형 질문에는 최소 2개 이상의 유효한 선택지가 필요합니다.");
+      return;
+    }
+
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // Create survey
+      const { data: surveyData, error: surveyError } = await supabase
         .from("surveys")
         .insert([
           {
@@ -44,10 +169,28 @@ const SurveyCreate = () => {
         ])
         .select();
 
-      if (error) throw error;
+      if (surveyError) throw surveyError;
+      
+      const surveyId = surveyData[0].id;
+      
+      // Create questions
+      const questionsToInsert = questions.map(q => ({
+        survey_id: surveyId,
+        question: q.question,
+        question_type: q.question_type,
+        options: q.options.length > 0 ? q.options : null,
+        required: q.required,
+        order_num: q.order_num
+      }));
+      
+      const { error: questionsError } = await supabase
+        .from("survey_questions")
+        .insert(questionsToInsert);
+        
+      if (questionsError) throw questionsError;
       
       toast("설문이 성공적으로 생성되었습니다.");
-      navigate("/surveys");
+      navigate(`/surveys/${surveyId}`);
     } catch (error: any) {
       console.error("설문 생성 실패:", error);
       toast("설문 생성에 실패했습니다.");
@@ -115,12 +258,140 @@ const SurveyCreate = () => {
                     selected={endDate}
                     onSelect={setEndDate}
                     initialFocus
+                    disabled={(date) => date < new Date()}
                   />
                 </PopoverContent>
               </Popover>
             </div>
             
-            <div className="flex justify-end space-x-2">
+            <Separator className="my-6" />
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-medium">설문 질문</h2>
+                <Button type="button" onClick={addQuestion} variant="outline" size="sm">
+                  <PlusIcon className="h-4 w-4 mr-1" /> 질문 추가
+                </Button>
+              </div>
+              
+              {questions.length === 0 ? (
+                <div className="text-center py-6 border rounded-lg bg-muted/30">
+                  <p className="text-muted-foreground mb-4">질문을 추가해 주세요.</p>
+                  <Button type="button" onClick={addQuestion}>
+                    질문 추가하기
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {questions.map((question, index) => (
+                    <Card key={index} className="relative">
+                      <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
+                          <span className="font-medium">질문 {index + 1}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => removeQuestion(index)}
+                        >
+                          <Trash2Icon className="h-4 w-4" />
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-1">
+                          <label className="text-sm font-medium">질문 내용</label>
+                          <Input
+                            value={question.question}
+                            onChange={(e) => updateQuestion(index, 'question', e.target.value)}
+                            placeholder="질문을 입력하세요"
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1 flex-1">
+                            <label className="text-sm font-medium">질문 유형</label>
+                            <Select
+                              value={question.question_type}
+                              onValueChange={(value) => updateQuestion(index, 'question_type', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="text">짧은 답변</SelectItem>
+                                <SelectItem value="textarea">긴 답변</SelectItem>
+                                <SelectItem value="single_choice">단일 선택</SelectItem>
+                                <SelectItem value="multiple_choice">복수 선택</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 mt-6 ml-4">
+                            <Switch
+                              id={`required-${index}`}
+                              checked={question.required}
+                              onCheckedChange={(checked) => updateQuestion(index, 'required', checked)}
+                            />
+                            <Label htmlFor={`required-${index}`}>필수 질문</Label>
+                          </div>
+                        </div>
+                        
+                        {(question.question_type === 'single_choice' || question.question_type === 'multiple_choice') && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <label className="text-sm font-medium">선택지</label>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => addOption(index)}
+                              >
+                                <PlusIcon className="h-3 w-3 mr-1" /> 선택지 추가
+                              </Button>
+                            </div>
+                            
+                            {question.options.length === 0 ? (
+                              <div className="text-center py-2 border rounded bg-muted/20">
+                                <p className="text-sm text-muted-foreground">
+                                  최소 2개 이상의 선택지를 추가해주세요.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                {question.options.map((option, optionIndex) => (
+                                  <div key={optionIndex} className="flex items-center gap-2">
+                                    <Input
+                                      value={option.label}
+                                      onChange={(e) => updateOption(index, optionIndex, 'label', e.target.value)}
+                                      placeholder={`선택지 ${optionIndex + 1}`}
+                                      className="flex-1"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => removeOption(index, optionIndex)}
+                                    >
+                                      <Trash2Icon className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-4">
               <Button
                 type="button"
                 variant="outline"

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Sidebar from "@/components/Sidebar";
@@ -14,14 +14,32 @@ const FreeBoardCreate = () => {
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [author, setAuthor] = useState("");
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        toast({
+          title: "로그인 필요",
+          description: "게시물을 작성하려면 로그인이 필요합니다.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+      }
+    };
+
+    fetchUser();
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !content.trim() || !author.trim()) {
-      toast("모든 필드를 입력해주세요.");
+    if (!title.trim() || !content.trim()) {
+      toast("제목과 내용을 입력해주세요.");
       return;
     }
 
@@ -34,7 +52,8 @@ const FreeBoardCreate = () => {
           {
             title,
             content,
-            author
+            author: user.email, // Using email as author name
+            user_id: user.id // Storing the actual user ID
           }
         ])
         .select();
@@ -69,19 +88,6 @@ const FreeBoardCreate = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="게시물 제목을 입력하세요"
-                required
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <label htmlFor="author" className="text-sm font-medium">
-                작성자
-              </label>
-              <Input
-                id="author"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                placeholder="작성자 이름을 입력하세요"
                 required
               />
             </div>
