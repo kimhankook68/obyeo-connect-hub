@@ -81,23 +81,37 @@ const FreeBoards = () => {
       const calculatedTotalPages = Math.ceil((count || 0) / postsPerPage);
       setTotalPages(calculatedTotalPages || 1);
       
-      // Fetch paginated posts with author names
+      // Fetch paginated posts - modified query to avoid relationship error
       const from = (currentPage - 1) * postsPerPage;
       const to = from + postsPerPage - 1;
       
-      const { data, error } = await supabase
+      // First get posts
+      const { data: postsData, error: postsError } = await supabase
         .from("free_posts")
-        .select(`
-          *,
-          profiles:user_id (
-            name
-          )
-        `)
+        .select("*")
         .order("created_at", { ascending: false })
         .range(from, to);
 
-      if (error) throw error;
-      setPosts(data || []);
+      if (postsError) throw postsError;
+      
+      // Get author profiles separately if user_id exists
+      const postsWithAuthors = await Promise.all((postsData || []).map(async (post) => {
+        if (post.user_id) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("name")
+            .eq("id", post.user_id)
+            .single();
+            
+          return { 
+            ...post, 
+            authorName: profileData?.name || post.author.split('@')[0] 
+          };
+        }
+        return { ...post, authorName: post.author.split('@')[0] };
+      }));
+      
+      setPosts(postsWithAuthors || []);
     } catch (error) {
       console.error("게시물 가져오기 실패:", error);
       toast({
@@ -246,7 +260,7 @@ const FreeBoards = () => {
                           </TableCell>
                           <TableCell>{post.title}</TableCell>
                           <TableCell className="text-center">
-                            {post.profiles?.name || post.author.split('@')[0]}
+                            {post.authorName}
                           </TableCell>
                           <TableCell className="text-center">{formatDate(post.created_at)}</TableCell>
                           <TableCell className="text-center">{Math.floor(Math.random() * 10) + 1}</TableCell>

@@ -68,25 +68,33 @@ const FreeBoardDetail = () => {
     const fetchPost = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        // Fetch post details without using the relation
+        const { data: postData, error: postError } = await supabase
           .from("free_posts")
-          .select(`
-            *,
-            profiles:user_id (
-              name
-            )
-          `)
+          .select("*")
           .eq("id", id)
           .single();
 
-        if (error) throw error;
-        setPost(data);
+        if (postError) throw postError;
         
-        // Set author name
-        if (data.profiles?.name) {
-          setAuthorName(data.profiles.name);
+        // Set the post data
+        setPost(postData);
+        
+        // If there's a user_id, try to get the profile data separately
+        if (postData.user_id) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("name")
+            .eq("id", postData.user_id)
+            .single();
+            
+          if (profileData && profileData.name) {
+            setAuthorName(profileData.name);
+          } else {
+            setAuthorName(postData.author.split('@')[0]);
+          }
         } else {
-          setAuthorName(data.author.split('@')[0]);
+          setAuthorName(postData.author.split('@')[0]);
         }
 
         // Fetch comments
@@ -109,19 +117,33 @@ const FreeBoardDetail = () => {
 
   const fetchComments = async () => {
     try {
-      const { data, error } = await supabase
+      // Get comments first
+      const { data: commentsData, error: commentsError } = await supabase
         .from("free_post_comments")
-        .select(`
-          *,
-          profiles:user_id (
-            name
-          )
-        `)
+        .select("*")
         .eq("post_id", id)
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      setComments(data || []);
+      if (commentsError) throw commentsError;
+      
+      // Get profile names for each comment
+      const commentsWithAuthors = await Promise.all((commentsData || []).map(async (comment) => {
+        if (comment.user_id) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("name")
+            .eq("id", comment.user_id)
+            .single();
+            
+          return { 
+            ...comment, 
+            authorName: profileData?.name || comment.author.split('@')[0] 
+          };
+        }
+        return { ...comment, authorName: comment.author.split('@')[0] };
+      }));
+      
+      setComments(commentsWithAuthors || []);
     } catch (error) {
       console.error("댓글 가져오기 실패:", error);
     }
@@ -261,7 +283,7 @@ const FreeBoardDetail = () => {
                         <div key={comment.id} className="p-3 bg-muted/30 rounded-md">
                           <div className="flex justify-between text-sm mb-1">
                             <span className="font-medium">
-                              {comment.profiles?.name || comment.author.split('@')[0]}
+                              {comment.authorName}
                             </span>
                             <span className="text-muted-foreground">
                               {formatDate(comment.created_at)}
