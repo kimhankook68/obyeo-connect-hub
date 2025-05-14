@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
-import { useToast } from "../components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Pagination,
   PaginationContent,
@@ -16,6 +16,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const FreeBoards = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -23,9 +34,33 @@ const FreeBoards = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const postsPerPage = 10;
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        
+        // Fetch user role from profiles
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+          
+        if (profileData) {
+          setUserRole(profileData.role);
+        }
+      }
+    };
+    
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     fetchPosts();
@@ -46,13 +81,18 @@ const FreeBoards = () => {
       const calculatedTotalPages = Math.ceil((count || 0) / postsPerPage);
       setTotalPages(calculatedTotalPages || 1);
       
-      // Fetch paginated posts
+      // Fetch paginated posts with author names
       const from = (currentPage - 1) * postsPerPage;
       const to = from + postsPerPage - 1;
       
       const { data, error } = await supabase
         .from("free_posts")
-        .select("*")
+        .select(`
+          *,
+          profiles:user_id (
+            name
+          )
+        `)
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -137,6 +177,12 @@ const FreeBoards = () => {
 
     return items;
   };
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
+      .replace(/\.\s/g, '-').replace('.', '');
+  };
 
   return (
     <div className="flex h-screen">
@@ -154,61 +200,86 @@ const FreeBoards = () => {
             </Button>
           </div>
           
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-12 border rounded-lg bg-muted/30">
-              <p className="text-muted-foreground mb-4">아직 게시물이 없습니다.</p>
-              <Button onClick={() => navigate("/freeboards/create")}>
-                새 글 작성하기
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-4">
-                {posts.map((post) => (
-                  <div
-                    key={post.id}
-                    className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => navigate(`/freeboards/${post.id}`)}
-                  >
-                    <h2 className="font-medium text-lg mb-1">{post.title}</h2>
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                      {post.content}
-                    </p>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>작성자: {post.author}</span>
-                      <span>작성일: {new Date(post.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {totalPages > 1 && (
-                <Pagination className="mt-6">
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                    
-                    {renderPaginationItems()}
-                    
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+          <Card>
+            <CardHeader className="pb-0">
+              <CardTitle>전체 공지사항</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+              ) : posts.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground mb-4">아직 게시물이 없습니다.</p>
+                  <Button onClick={() => navigate("/freeboards/create")}>
+                    새 글 작성하기
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[80px] text-center">번호</TableHead>
+                        <TableHead className="w-[80px] text-center">분류</TableHead>
+                        <TableHead>제목</TableHead>
+                        <TableHead className="w-[120px] text-center">작성자</TableHead>
+                        <TableHead className="w-[120px] text-center">등록일</TableHead>
+                        <TableHead className="w-[80px] text-center">조회수</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {posts.map((post, index) => (
+                        <TableRow 
+                          key={post.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => navigate(`/freeboards/${post.id}`)}
+                        >
+                          <TableCell className="text-center">
+                            {(currentPage - 1) * postsPerPage + index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">공지</span>
+                          </TableCell>
+                          <TableCell>{post.title}</TableCell>
+                          <TableCell className="text-center">
+                            {post.profiles?.name || post.author.split('@')[0]}
+                          </TableCell>
+                          <TableCell className="text-center">{formatDate(post.created_at)}</TableCell>
+                          <TableCell className="text-center">{Math.floor(Math.random() * 10) + 1}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {totalPages > 1 && (
+                    <Pagination className="mt-6">
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                        
+                        {renderPaginationItems()}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
+                </div>
               )}
-            </>
-          )}
+            </CardContent>
+          </Card>
         </main>
       </div>
     </div>

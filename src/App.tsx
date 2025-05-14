@@ -23,6 +23,7 @@ import SurveyCreate from "./pages/SurveyCreate";
 import FreeBoards from "./pages/FreeBoards";
 import FreeBoardDetail from "./pages/FreeBoardDetail";
 import FreeBoardCreate from "./pages/FreeBoardCreate";
+import FreeBoardEdit from "./pages/FreeBoardEdit";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/freeboards" element={<FreeBoards />} />
           <Route path="/freeboards/:id" element={<FreeBoardDetail />} />
           <Route path="/freeboards/create" element={<FreeBoardCreate />} />
+          <Route path="/freeboards/edit/:id" element={<FreeBoardEdit />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>
