@@ -106,7 +106,7 @@ const CalendarPage: React.FC = () => {
           
           <div className="flex-1 overflow-hidden">
             <Tabs value={view} onValueChange={(value) => handleViewChange(value as "calendar" | "list")} className="h-full">
-              <TabsContent value="calendar" className="h-full overflow-y-auto">
+              <TabsContent value="calendar" className="h-full overflow-auto">
                 <CalendarView 
                   date={date}
                   setDate={setDate}
@@ -120,7 +120,7 @@ const CalendarPage: React.FC = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="list" className="h-full overflow-y-auto">
+              <TabsContent value="list" className="h-full overflow-auto">
                 <ListView 
                   events={events}
                   loading={loading}

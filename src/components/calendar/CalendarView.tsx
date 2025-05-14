@@ -140,78 +140,107 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           </div>
           
           {viewMode === "month" && (
-            <div className="flex-1 flex flex-col">
-              {/* 요일 표시 */}
-              <div className="grid grid-cols-7 text-center mb-2 font-medium">
-                <div className="text-red-500">일</div>
-                <div>월</div>
-                <div>화</div>
-                <div>수</div>
-                <div>목</div>
-                <div>금</div>
-                <div className="text-blue-500">토</div>
-              </div>
-              
-              <div className="flex-1 w-full h-full">
-                <AspectRatio ratio={7/5} className="h-full">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    className="w-full h-full rounded-md border"
-                    locale={ko}
-                    classNames={{
-                      month: "space-y-0 w-full h-full",
-                      row: "flex w-full flex-1",
-                      day: "h-full text-left p-1 relative border border-gray-100 hover:bg-blue-50 transition-colors duration-200",
-                      day_today: "bg-blue-50 font-bold",
-                      day_selected: "bg-primary/10 text-primary font-bold",
-                      head_row: "flex w-full",
-                      head_cell: "text-center text-muted-foreground w-10 h-10",
-                      caption_dropdowns: "hidden",
-                      nav: "hidden",
-                      caption: "hidden",
-                      table: "w-full h-full border-collapse"
-                    }}
-                    components={{
-                      DayContent: (props) => {
-                        const { date, displayMonth } = props;
-                        const dayNum = date.getDate();
-                        const eventCount = getEventCountForDay(date);
-                        const isCurrentMonth = displayMonth;
-                        
-                        return (
-                          <div className="h-full w-full flex flex-col justify-between">
-                            <div className={`${
-                              date.getDay() === 0 ? 'text-red-500' : 
-                              date.getDay() === 6 ? 'text-blue-500' : ''
-                            } ${isCurrentMonth ? '' : 'text-gray-300'} font-normal text-xs`}>
-                              {dayNum}
-                            </div>
-                            
-                            {eventCount > 0 && (
-                              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
-                                <Badge variant="outline" className="h-1.5 w-1.5 p-0 rounded-full bg-primary border-0" />
-                                {eventCount > 1 && (
-                                  <Badge variant="outline" className="h-1.5 w-1.5 p-0 rounded-full bg-primary border-0" />
-                                )}
-                                {eventCount > 2 && (
-                                  <Badge variant="outline" className="h-1.5 w-1.5 p-0 rounded-full bg-primary border-0" />
-                                )}
+            <div className="flex-1 flex flex-col h-full">
+              <div className="flex-1 w-full h-full min-h-[500px]">
+                <div className="w-full h-full" style={{ position: 'relative' }}>
+                  <div className="grid grid-cols-7 text-center border-b font-medium py-2">
+                    <div className="text-red-500">일</div>
+                    <div>월</div>
+                    <div>화</div>
+                    <div>수</div>
+                    <div>목</div>
+                    <div>금</div>
+                    <div className="text-blue-500">토</div>
+                  </div>
+                  
+                  <div className="h-[calc(100%-40px)] w-full">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      className="w-full h-full rounded-md border-0"
+                      locale={ko}
+                      hideHead={true}
+                      classNames={{
+                        month: "w-full h-full",
+                        row: "flex w-full flex-1 h-[calc(100%/6)]",
+                        day: "h-full text-left p-1 relative border border-gray-100 hover:bg-blue-50 transition-colors duration-200",
+                        day_today: "bg-blue-50 font-bold",
+                        day_selected: "bg-primary/10 text-primary font-bold",
+                        head_row: "hidden",
+                        head_cell: "hidden",
+                        caption_dropdowns: "hidden",
+                        nav: "hidden",
+                        caption: "hidden",
+                        table: "w-full h-full border-collapse"
+                      }}
+                      components={{
+                        DayContent: (props) => {
+                          const { date, displayMonth } = props;
+                          const dayNum = date.getDate();
+                          const eventCount = getEventCountForDay(date);
+                          const isCurrentMonth = displayMonth;
+                          
+                          return (
+                            <div className="h-full w-full flex flex-col justify-between">
+                              <div className={`${
+                                date.getDay() === 0 ? 'text-red-500' : 
+                                date.getDay() === 6 ? 'text-blue-500' : ''
+                              } ${isCurrentMonth ? '' : 'text-gray-300'} font-normal text-xs sm:text-sm`}>
+                                {dayNum}
                               </div>
-                            )}
-                          </div>
-                        );
-                      }
-                    }}
-                  />
-                </AspectRatio>
+                              
+                              {eventCount > 0 && isCurrentMonth && (
+                                <div className="absolute bottom-1 left-0 right-0 flex justify-center">
+                                  {eventCount > 0 && (
+                                    <div className="flex gap-1">
+                                      {Array.from({ length: Math.min(eventCount, 3) }).map((_, idx) => (
+                                        <Badge key={idx} variant="outline" className="h-1.5 w-1.5 p-0 rounded-full bg-primary border-0" />
+                                      ))}
+                                      {eventCount > 3 && (
+                                        <span className="text-xs text-gray-500">+{eventCount - 3}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* 일정 항목이 있으면 빨간색 바 표시 (실제 앱에서는 일정 제목을 표시하지 않음) */}
+                              {events.filter(event => {
+                                const eventDate = parseISO(event.start_time);
+                                return isSameDay(eventDate, date) && isCurrentMonth;
+                              }).map((event, idx) => (
+                                idx < 1 ? (
+                                  <div 
+                                    key={event.id}
+                                    className="hidden sm:block absolute top-6 left-0 right-0 mx-1 h-5 overflow-hidden text-xs"
+                                  >
+                                    <div 
+                                      className="bg-red-500 text-white px-1 truncate rounded-sm text-xs"
+                                      style={{
+                                        backgroundColor: event.type === 'meeting' ? '#dc3545' : 
+                                        event.type === 'training' ? '#0dcaf0' : 
+                                        event.type === 'event' ? '#ffc107' : 
+                                        event.type === 'volunteer' ? '#198754' : '#dc3545'
+                                      }}
+                                    >
+                                    </div>
+                                  </div>
+                                ) : null
+                              ))}
+                            </div>
+                          );
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
           
           {viewMode === "week" && (
-            <div className="border rounded-md w-full h-full flex-1 flex flex-col">
+            <div className="border rounded-md w-full h-full flex-1 flex flex-col min-h-[500px]">
               <div className="grid grid-cols-7 text-center bg-gray-50 py-2 border-b">
                 {weekDates.map((weekDay, idx) => (
                   <div 
@@ -242,13 +271,21 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       } ${isSameDay(day, date || new Date()) ? 'bg-primary/5' : ''}`}
                       onClick={() => setDate(day)}
                     >
-                      {dayEvents.length > 0 ? (
-                        <div className="flex justify-center mt-2">
-                          {dayEvents.length > 0 && (
-                            <Badge className="text-xs bg-primary">{dayEvents.length}개 일정</Badge>
-                          )}
+                      {dayEvents.map((event, eventIdx) => (
+                        <div 
+                          key={event.id} 
+                          className="mb-1 text-xs bg-red-500 text-white p-1 rounded truncate" 
+                          style={{
+                            backgroundColor: event.type === 'meeting' ? '#dc3545' : 
+                              event.type === 'training' ? '#0dcaf0' : 
+                              event.type === 'event' ? '#ffc107' : 
+                              event.type === 'volunteer' ? '#198754' : '#dc3545'
+                          }}
+                        >
+                          {format(parseISO(event.start_time), "HH:mm")} {event.title}
                         </div>
-                      ) : (
+                      ))}
+                      {dayEvents.length === 0 && (
                         <div className="text-center text-xs text-gray-400 mt-2">일정 없음</div>
                       )}
                     </div>
@@ -259,7 +296,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           )}
           
           {viewMode === "day" && (
-            <div className="border rounded-md w-full h-full flex-1 flex flex-col">
+            <div className="border rounded-md w-full h-full flex-1 flex flex-col min-h-[500px]">
               <div className="bg-gray-50 py-2 border-b text-center">
                 <div className="font-medium">
                   {date ? format(date, "yyyy년 MM월 dd일 EEEE", { locale: ko }) : ""}
