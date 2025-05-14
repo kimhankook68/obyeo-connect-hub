@@ -18,8 +18,10 @@ import Calendar from "./pages/Calendar";
 import Members from "./pages/Members";
 import Surveys from "./pages/Surveys";
 import SurveyDetail from "./pages/SurveyDetail";
+import SurveyCreate from "./pages/SurveyCreate";
 import FreeBoards from "./pages/FreeBoards";
 import FreeBoardDetail from "./pages/FreeBoardDetail";
+import FreeBoardCreate from "./pages/FreeBoardCreate";
 
 const queryClient = new QueryClient();
 
@@ -43,8 +45,10 @@ const App = () => (
         <Route path="/members" element={<Members />} />
         <Route path="/surveys" element={<Surveys />} />
         <Route path="/surveys/:id" element={<SurveyDetail />} />
+        <Route path="/surveys/create" element={<SurveyCreate />} />
         <Route path="/freeboards" element={<FreeBoards />} />
         <Route path="/freeboards/:id" element={<FreeBoardDetail />} />
+        <Route path="/freeboards/create" element={<FreeBoardCreate />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </TooltipProvider>
