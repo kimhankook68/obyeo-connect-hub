@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Json } from "@/integrations/supabase/types";
 
 interface QuestionOption {
   label: string;
@@ -170,7 +171,7 @@ const SurveyCreate = () => {
       
       const surveyId = surveyData[0].id;
       
-      // Create questions - fix the options type
+      // Create questions - Fix the type issue by converting options to a JSON-compatible format
       for (const question of questions) {
         const { error: questionError } = await supabase
           .from("survey_questions")
@@ -178,12 +179,16 @@ const SurveyCreate = () => {
             survey_id: surveyId,
             question: question.question,
             question_type: question.question_type,
-            options: question.options.length > 0 ? question.options : null,
+            // Convert the options array to a proper JSON object that matches the Json type
+            options: question.options.length > 0 ? question.options as unknown as Json : null,
             required: question.required,
             order_num: question.order_num
           });
           
-        if (questionError) throw questionError;
+        if (questionError) {
+          console.error("Question insertion error:", questionError);
+          throw questionError;
+        }
       }
       
       toast.success("설문이 성공적으로 생성되었습니다.");
