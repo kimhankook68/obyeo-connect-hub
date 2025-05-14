@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import EventPopover from "./EventPopover";
 
 interface MonthViewProps {
   date: Date | undefined;
@@ -101,30 +102,39 @@ const MonthView: React.FC<MonthViewProps> = ({
   // 달력 헤더 요일 배열
   const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 
+  // 해당 날짜의 이벤트 필터링
+  const getEventsForDay = (day: Date) => {
+    return events.filter(event => isSameDay(parseISO(event.start_time), day));
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">
-          {format(currentMonth, "yyyy.MM", { locale: ko })}
+        <h2 className="text-xl font-semibold text-center w-full">
+          {format(currentMonth, "yyyy년 M월", { locale: ko })}
         </h2>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={goToPreviousMonth} 
-            className="h-8 w-8"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={goToNextMonth}
-            className="h-8 w-8"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+      </div>
+      
+      <div className="flex justify-between items-center mb-4">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={goToPreviousMonth} 
+          className="h-8 w-8"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <div className="text-sm font-medium">
+          {format(currentMonth, "M월 yyyy", { locale: ko })}
         </div>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={goToNextMonth}
+          className="h-8 w-8"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
       
       {/* AspectRatio로 달력 컨테이너 감싸기 */}
@@ -132,13 +142,15 @@ const MonthView: React.FC<MonthViewProps> = ({
         <div className="w-full h-full">
           <table className="w-full h-full border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b">
+              <tr className="border-b">
                 {weekdayLabels.map((day, index) => (
                   <th 
                     key={day} 
                     className={cn(
-                      "py-2 text-center text-sm font-medium border-r last:border-r-0",
-                      index === 0 ? "text-red-500" : index === 6 ? "text-blue-500" : "text-gray-700"
+                      "py-2 text-center text-sm font-normal",
+                      index === 0 ? "text-red-500" : 
+                      index === 6 ? "text-blue-500" : 
+                      "text-gray-700"
                     )}
                   >
                     {day}
@@ -148,13 +160,9 @@ const MonthView: React.FC<MonthViewProps> = ({
             </thead>
             <tbody className="divide-y">
               {calendarDays.map((week, weekIndex) => (
-                <tr key={weekIndex} className="divide-x border-b last:border-b-0">
+                <tr key={weekIndex} className="divide-x h-[calc(100%/6)]">
                   {week.map((day, dayIndex) => {
-                    // 해당 날짜의 이벤트 필터링
-                    const dayEvents = events.filter(event => 
-                      isSameDay(parseISO(event.start_time), day)
-                    );
-                    
+                    const dayEvents = getEventsForDay(day);
                     const isToday = isSameDay(day, new Date());
                     const isCurrentMonth = isSameMonth(day, currentMonth);
                     const isSelected = date && isSameDay(day, date);
@@ -164,63 +172,58 @@ const MonthView: React.FC<MonthViewProps> = ({
                         key={dayIndex}
                         onClick={() => handleDateClick(day)}
                         className={cn(
-                          "relative align-top p-1 cursor-pointer hover:bg-gray-50 transition-colors",
-                          !isCurrentMonth && "bg-gray-50 text-gray-400",
+                          "relative p-0 align-top cursor-pointer hover:bg-gray-50 transition-colors h-full",
+                          !isCurrentMonth && "text-gray-400 bg-gray-50",
                           isSelected && "bg-blue-50"
                         )}
                       >
-                        <div className="flex flex-col h-full">
+                        <div className="flex flex-col h-full p-1">
                           {/* 날짜 번호 */}
                           <div className={cn(
-                            "flex items-start h-7",
+                            "flex justify-center items-center mb-1",
                             dayIndex === 0 ? "text-red-500" : 
-                            dayIndex === 6 ? "text-blue-500" : 
-                            "text-gray-700"
+                            dayIndex === 6 ? "text-blue-500" : "",
+                            !isCurrentMonth && "text-gray-400"
                           )}>
                             <span className={cn(
-                              "text-sm font-medium",
-                              !isCurrentMonth && "text-gray-400",
-                              isToday && "bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                              "text-center w-8 h-8 flex items-center justify-center",
+                              isToday && isCurrentMonth && "bg-blue-500 text-white rounded-full"
                             )}>
                               {format(day, "d")}
                             </span>
-                            
-                            {/* 휴일명 또는 기타 정보 */}
-                            {day.getDate() === 1 && (
-                              <span className="ml-1 text-xs text-gray-500">
-                                {format(day, "(E)", { locale: ko })}
-                              </span>
-                            )}
-                            {day.getDate() === 5 && day.getMonth() === 4 && (
-                              <span className="ml-1 text-xs text-red-500">
-                                어린이날
-                              </span>
-                            )}
-                            {day.getDate() === 15 && day.getMonth() === 4 && (
-                              <span className="ml-1 text-xs text-blue-500">
-                                스승의날
-                              </span>
-                            )}
                           </div>
                           
                           {/* 이벤트 표시 영역 */}
-                          <div className="flex-1 mt-1 overflow-hidden space-y-0.5">
-                            {dayEvents.slice(0, 2).map(event => (
-                              <div 
-                                key={event.id}
-                                className={cn(
-                                  "text-xs px-1 py-0.5 rounded text-white truncate",
-                                  getEventColor(event.type)
-                                )}
+                          <div className="flex-1 overflow-hidden">
+                            {isCurrentMonth && dayEvents.length > 0 && (
+                              <EventPopover
+                                date={day}
+                                events={dayEvents}
+                                handleEdit={handleEdit}
+                                handleDelete={handleDelete}
+                                formatEventDate={formatEventDate}
+                                isUserLoggedIn={isUserLoggedIn}
                               >
-                                {format(parseISO(event.start_time), "HH:mm")} {event.title}
-                              </div>
-                            ))}
-                            
-                            {dayEvents.length > 2 && (
-                              <div className="text-xs text-blue-600 font-medium">
-                                +{dayEvents.length - 2}개 더보기
-                              </div>
+                                <div className="space-y-1">
+                                  {dayEvents.slice(0, 1).map(event => (
+                                    <div 
+                                      key={event.id}
+                                      className={cn(
+                                        "text-xs px-1 py-0.5 rounded text-white truncate",
+                                        getEventColor(event.type)
+                                      )}
+                                    >
+                                      {format(parseISO(event.start_time), "HH:mm")} {event.title}
+                                    </div>
+                                  ))}
+                                  
+                                  {dayEvents.length > 1 && (
+                                    <div className="text-xs text-blue-600 font-medium px-1">
+                                      +{dayEvents.length - 1}개 더보기
+                                    </div>
+                                  )}
+                                </div>
+                              </EventPopover>
                             )}
                           </div>
                         </div>
