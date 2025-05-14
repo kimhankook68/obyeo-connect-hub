@@ -26,9 +26,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const FreeBoards = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -41,6 +50,12 @@ const FreeBoards = () => {
   const postsPerPage = 10;
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // New post dialog state
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newPostTitle, setNewPostTitle] = useState("");
+  const [newPostContent, setNewPostContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -125,7 +140,8 @@ const FreeBoards = () => {
         return { 
           ...post, 
           authorName,
-          commentCount: commentCount || 0
+          commentCount: commentCount || 0,
+          views: post.views || 0 // Use actual views count from DB
         };
       }));
       
@@ -139,6 +155,69 @@ const FreeBoards = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmitNewPost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "로그인 필요",
+        description: "게시물을 작성하려면 로그인이 필요합니다.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newPostTitle.trim() || !newPostContent.trim()) {
+      toast({
+        title: "입력 필요",
+        description: "제목과 내용을 모두 입력해주세요.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      const { data, error } = await supabase
+        .from("free_posts")
+        .insert([
+          {
+            title: newPostTitle,
+            content: newPostContent,
+            author: user.email,
+            user_id: user.id,
+            views: 0 // Initialize with 0 views
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+      
+      toast({
+        title: "게시물 작성 성공",
+        description: "게시물이 성공적으로 작성되었습니다.",
+      });
+      
+      // Reset form and close dialog
+      setNewPostTitle("");
+      setNewPostContent("");
+      setIsDialogOpen(false);
+      
+      // Refresh posts list
+      fetchPosts();
+    } catch (error: any) {
+      console.error("게시물 작성 실패:", error);
+      toast({
+        title: "게시물 작성 실패",
+        description: "게시물 작성 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -226,14 +305,72 @@ const FreeBoards = () => {
         <main className="flex-1 overflow-y-auto p-6 bg-background">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">자유게시판</h1>
-            <Button onClick={() => navigate("/freeboards/create")}>
-              <PlusIcon className="h-4 w-4 mr-2" />
-              새 글 작성
-            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  새 글 작성
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>새 게시물 작성</DialogTitle>
+                  <DialogDescription>
+                    자유게시판에 새 글을 작성합니다. 제목과 내용을 입력해주세요.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmitNewPost} className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <label htmlFor="title" className="text-sm font-medium">
+                      제목
+                    </label>
+                    <Input
+                      id="title"
+                      value={newPostTitle}
+                      onChange={(e) => setNewPostTitle(e.target.value)}
+                      placeholder="게시물 제목을 입력하세요"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="content" className="text-sm font-medium">
+                      내용
+                    </label>
+                    <Textarea
+                      id="content"
+                      value={newPostContent}
+                      onChange={(e) => setNewPostContent(e.target.value)}
+                      placeholder="게시물 내용을 입력하세요"
+                      className="min-h-[200px]"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                      disabled={isSubmitting}
+                    >
+                      취소
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent rounded-full"></div>
+                          저장 중...
+                        </>
+                      ) : (
+                        "저장"
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
           
           <Card>
-            
             <CardContent>
               {loading ? (
                 <div className="space-y-2">
@@ -244,7 +381,7 @@ const FreeBoards = () => {
               ) : posts.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground mb-4">아직 게시물이 없습니다.</p>
-                  <Button onClick={() => navigate("/freeboards/create")}>
+                  <Button onClick={() => setIsDialogOpen(true)}>
                     새 글 작성하기
                   </Button>
                 </div>
@@ -285,7 +422,7 @@ const FreeBoards = () => {
                             {post.authorName}
                           </TableCell>
                           <TableCell className="text-center">{formatDate(post.created_at)}</TableCell>
-                          <TableCell className="text-center">{Math.floor(Math.random() * 10) + 1}</TableCell>
+                          <TableCell className="text-center">{post.views}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

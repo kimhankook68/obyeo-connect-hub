@@ -41,6 +41,7 @@ const FreeBoardDetail = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [authorName, setAuthorName] = useState<string | null>(null);
+  const [viewIncremented, setViewIncremented] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -97,6 +98,12 @@ const FreeBoardDetail = () => {
           setAuthorName(postData.author.split('@')[0]);
         }
 
+        // Increment view count once per session
+        if (!viewIncremented) {
+          await incrementViewCount(postData.id);
+          setViewIncremented(true);
+        }
+
         // Fetch comments
         await fetchComments();
       } catch (error) {
@@ -113,7 +120,22 @@ const FreeBoardDetail = () => {
     if (id) {
       fetchPost();
     }
-  }, [id, navigate]);
+  }, [id, navigate, viewIncremented]);
+
+  const incrementViewCount = async (postId: string) => {
+    try {
+      const { error } = await supabase
+        .from("free_posts")
+        .update({ views: (post?.views || 0) + 1 })
+        .eq("id", postId);
+
+      if (error) {
+        console.error("조회수 업데이트 실패:", error);
+      }
+    } catch (error) {
+      console.error("조회수 업데이트 중 오류 발생:", error);
+    }
+  };
 
   const fetchComments = async () => {
     try {
@@ -243,7 +265,7 @@ const FreeBoardDetail = () => {
                     <div>
                       <CardTitle className="text-xl">{post.title}</CardTitle>
                       {comments.length > 0 && (
-                        <Badge variant="comment" className="mt-2 flex items-center gap-1 w-fit">
+                        <Badge variant="secondary" className="mt-2 flex items-center gap-1 w-fit bg-purple-100 text-purple-800">
                           <MessageCircle className="h-3 w-3" />
                           <span>댓글 {comments.length}개</span>
                         </Badge>
@@ -270,7 +292,10 @@ const FreeBoardDetail = () => {
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground mt-2">
                     <span>작성자: {authorName}</span>
-                    <span>작성일: {formatDate(post.created_at)}</span>
+                    <div className="flex space-x-4">
+                      <span>등록일: {formatDate(post.created_at)}</span>
+                      <span>조회수: {post.views || 0}</span>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-4">
