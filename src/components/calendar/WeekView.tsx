@@ -96,7 +96,6 @@ const WeekView: React.FC<WeekViewProps> = ({
                     }}
                   >
                     <div className="font-medium">{format(parseISO(event.start_time), "HH:mm")}</div>
-                    <div className="truncate">{event.title}</div>
                   </div>
                 ))}
                 {dayEvents.length === 0 && (

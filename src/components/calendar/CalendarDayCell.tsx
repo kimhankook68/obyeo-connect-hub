@@ -60,7 +60,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
           </span>
         </div>
         
-        {/* 이벤트 표시 영역 */}
+        {/* 이벤트 표시 영역 - 수정: 제목 제거, 시간만 표시 */}
         <div className="flex-1 overflow-hidden">
           {isCurrentMonth && dayEvents.length > 0 && (
             <EventPopover
@@ -80,7 +80,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
                       getEventColor(event.type)
                     )}
                   >
-                    {format(parseISO(event.start_time), "HH:mm")} {event.title}
+                    {format(parseISO(event.start_time), "HH:mm")}
                   </div>
                 ))}
                 
