@@ -141,9 +141,7 @@ const NoticeBoard = () => {
           </div>
           
           <Card>
-            <CardHeader>
-              <CardTitle>전체 공지사항</CardTitle>
-            </CardHeader>
+            
             <CardContent>
               {loading ? (
                 <div className="flex justify-center my-8">
