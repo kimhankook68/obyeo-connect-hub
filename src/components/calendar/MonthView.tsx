@@ -103,7 +103,7 @@ const MonthView: React.FC<MonthViewProps> = ({
             months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full h-full",
             month: "w-full h-full",
             row: "flex w-full flex-1 h-[calc(100%/6)]",
-            day: "h-full text-left p-1 relative border border-gray-100 hover:bg-blue-50 transition-colors duration-200",
+            day: "h-full text-center p-1 relative border border-gray-100 hover:bg-blue-50 transition-colors duration-200",
             day_today: "bg-blue-50 font-bold",
             day_selected: "bg-primary/10 text-primary font-bold",
             head_row: "hidden",
@@ -130,7 +130,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                   <div className={`${
                     date.getDay() === 0 ? 'text-red-500' : 
                     date.getDay() === 6 ? 'text-blue-500' : ''
-                  } ${isCurrentMonth ? '' : 'text-gray-300'} font-medium text-sm sm:text-base`}>
+                  } ${isCurrentMonth ? '' : 'text-gray-300'} font-medium text-sm sm:text-base w-full text-center`}>
                     {dayNum}
                   </div>
                   
