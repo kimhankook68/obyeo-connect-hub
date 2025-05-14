@@ -112,7 +112,6 @@ const WeeklyCalendar = () => {
               }`}
               onClick={() => {
                 setDate(day);
-                navigate(`/calendar?date=${format(day, 'yyyy-MM-dd')}`);
               }}
             >
               <div className="text-sm font-medium mb-1">{day.getDate()}</div>
@@ -147,41 +146,32 @@ const WeeklyCalendar = () => {
             {format(date, 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}의 일정
           </h3>
           
-          <div className="space-y-2 max-h-[180px] overflow-y-auto">
-            {getEventsForDate(date).length > 0 ? (
-              getEventsForDate(date).map(event => (
-                <div 
-                  key={event.id} 
-                  className="p-2 border rounded-md hover:bg-muted/50 cursor-pointer"
-                  onClick={() => navigate(`/calendar?event=${event.id}`)}
-                >
-                  <h4 className="font-medium line-clamp-1 text-sm">{event.title}</h4>
-                  <div className="flex items-center text-xs text-muted-foreground mt-1">
-                    <span className="mr-1">🕒</span>
-                    <span>{format(parseISO(event.start_time), 'HH:mm')}</span>
-                  </div>
-                  {event.location && (
-                    <div className="flex items-center text-xs text-muted-foreground mt-1">
-                      <span className="mr-1">📍</span>
-                      <span className="line-clamp-1">{event.location}</span>
-                    </div>
-                  )}
+          <div className="grid grid-cols-3 gap-2">
+            {getEventsForDate(date).slice(0, 6).map(event => (
+              <div 
+                key={event.id} 
+                className="p-2 border rounded-md hover:bg-muted/50 cursor-pointer"
+                onClick={() => navigate(`/calendar?event=${event.id}`)}
+              >
+                <h4 className="font-medium line-clamp-1 text-sm">{event.title}</h4>
+                <div className="flex items-center text-xs text-muted-foreground mt-1">
+                  <span className="mr-1">🕒</span>
+                  <span>{format(parseISO(event.start_time), 'HH:mm')}</span>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-4 text-muted-foreground text-sm">
+                {event.location && (
+                  <div className="flex items-center text-xs text-muted-foreground mt-1">
+                    <span className="mr-1">📍</span>
+                    <span className="line-clamp-1">{event.location}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+            {getEventsForDate(date).length === 0 && (
+              <div className="col-span-3 text-center py-4 text-muted-foreground text-sm">
                 해당 날짜에 일정이 없습니다.
               </div>
             )}
           </div>
-          
-          <Button 
-            variant="outline" 
-            className="w-full mt-4 text-sm" 
-            onClick={() => navigate('/calendar')}
-          >
-            모든 일정 보기
-          </Button>
         </div>
       </div>
     </DashboardCard>
