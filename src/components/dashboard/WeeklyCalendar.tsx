@@ -119,7 +119,7 @@ const WeeklyCalendar = () => {
                 {getEventsForDate(day).slice(0, 2).map(event => (
                   <div 
                     key={event.id} 
-                    className="text-xs p-1 rounded truncate"
+                    className="text-[10px] p-1 rounded truncate leading-tight"
                     style={{
                       backgroundColor: event.type === 'meeting' ? '#dc3545' : 
                         event.type === 'training' ? '#0dcaf0' : 
@@ -128,11 +128,11 @@ const WeeklyCalendar = () => {
                       color: 'white'
                     }}
                   >
-                    {format(parseISO(event.start_time), 'HH:mm')}
+                    {event.title}
                   </div>
                 ))}
                 {getEventsForDate(day).length > 2 && (
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-[9px] text-muted-foreground">
                     +{getEventsForDate(day).length - 2}개
                   </div>
                 )}

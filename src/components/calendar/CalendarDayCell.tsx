@@ -60,8 +60,8 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
           </span>
         </div>
         
-        {/* 이벤트 표시 영역 - 균등한 높이 분배를 위해 flex-1 사용 */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        {/* 이벤트 표시 영역 - 최소 높이 설정 */}
+        <div className="min-h-[1.75rem] max-h-[1.75rem] overflow-y-auto overflow-x-hidden">
           {isCurrentMonth && dayEvents.length > 0 && (
             <EventPopover
               date={day}
@@ -71,12 +71,12 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
               formatEventDate={formatEventDate}
               isUserLoggedIn={isUserLoggedIn}
             >
-              <div className="space-y-1">
+              <div className="space-y-[2px]">
                 {dayEvents.slice(0, 1).map(event => (
                   <div 
                     key={event.id}
                     className={cn(
-                      "text-xs px-1 py-0.5 rounded text-white truncate text-[11px]",
+                      "text-[10px] px-1 py-[1px] rounded text-white truncate leading-tight",
                       getEventColor(event.type)
                     )}
                   >
@@ -85,7 +85,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
                 ))}
                 
                 {dayEvents.length > 1 && (
-                  <div className="text-[10px] text-blue-600 font-medium px-1">
+                  <div className="text-[9px] text-blue-600 font-medium px-1 leading-tight">
                     +{dayEvents.length - 1}개 더보기
                   </div>
                 )}
