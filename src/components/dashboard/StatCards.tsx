@@ -61,7 +61,7 @@ const StatCards = () => {
 
   const cards = [
     { 
-      title: "진행 중인 업무", 
+      title: "진행 중인 설문", 
       count: stats.pendingTasks, 
       icon: "📄",
       color: "bg-blue-50",
