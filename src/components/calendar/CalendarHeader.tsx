@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -8,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar as CalendarIcon, CalendarDays, CalendarCheck, format } from "lucide-react";
+import { Calendar as CalendarIcon, CalendarDays, CalendarCheck } from "lucide-react";
 import { format as dateFormat } from "date-fns";
 import { ko } from "date-fns/locale";
 
