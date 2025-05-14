@@ -27,8 +27,8 @@ const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <div className="text-sm font-medium">
-        {format(currentMonth, "M월 yyyy", { locale: ko })}
+      <div className="text-lg font-medium">
+        {format(currentMonth, "yyyy년 M월", { locale: ko })}
       </div>
       <Button 
         variant="outline" 

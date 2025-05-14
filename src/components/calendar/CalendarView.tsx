@@ -53,16 +53,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   if (loading) {
     return (
-      <div className="w-full h-[500px] space-y-4 p-4">
+      <div className="w-full h-full space-y-4 p-4 flex flex-col">
         <Skeleton className="h-[50px] w-full" />
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-2 flex-grow">
           {Array(7).fill(0).map((_, i) => (
-            <Skeleton key={i} className="h-[70px]" />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          {Array(6).fill(0).map((_, i) => (
-            <Skeleton key={i} className="h-[120px]" />
+            <Skeleton key={i} className="h-full" />
           ))}
         </div>
       </div>

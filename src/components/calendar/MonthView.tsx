@@ -17,7 +17,6 @@ import { ko } from "date-fns/locale";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import CalendarNavigation from "./CalendarNavigation";
 import CalendarGrid from "./CalendarGrid";
 
@@ -102,12 +101,6 @@ const MonthView: React.FC<MonthViewProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      <div className="mb-2">
-        <h2 className="text-xl font-semibold text-center">
-          {format(currentMonth, "yyyy년 M월", { locale: ko })}
-        </h2>
-      </div>
-      
       <CalendarNavigation 
         currentMonth={currentMonth}
         goToPreviousMonth={goToPreviousMonth}
