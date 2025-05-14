@@ -18,8 +18,9 @@ import { ko } from "date-fns/locale";
 interface EventFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CalendarEventFormData) => void;
-  event?: CalendarEvent | null;
+  selectedEvent: CalendarEvent | null;
+  createEvent: (data: CalendarEventFormData) => Promise<CalendarEvent | null>;
+  updateEvent: (id: string, data: Partial<CalendarEventFormData>) => Promise<CalendarEvent | null>;
 }
 
 const eventTypes = [
@@ -41,7 +42,13 @@ const timeOptions = Array.from({ length: 24 * 4 }).map((_, i) => {
   };
 });
 
-const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, event }) => {
+const EventForm: React.FC<EventFormProps> = ({ 
+  open, 
+  onOpenChange, 
+  selectedEvent, 
+  createEvent, 
+  updateEvent 
+}) => {
   const form = useForm<CalendarEventFormData>({
     defaultValues: {
       title: "",
@@ -55,16 +62,16 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
 
   // 폼 초기화 - 깊은 복사와 null/undefined 처리 추가
   useEffect(() => {
-    if (event) {
+    if (selectedEvent) {
       try {
         // 이벤트 데이터의 깊은 복사본 생성 
         const formData = {
-          title: event.title || "",
-          description: event.description || "",
-          start_time: event.start_time || new Date().toISOString(),
-          end_time: event.end_time || new Date().toISOString(),
-          location: event.location || "",
-          type: event.type || "meeting",
+          title: selectedEvent.title || "",
+          description: selectedEvent.description || "",
+          start_time: selectedEvent.start_time || new Date().toISOString(),
+          end_time: selectedEvent.end_time || new Date().toISOString(),
+          location: selectedEvent.location || "",
+          type: selectedEvent.type || "meeting",
         };
         
         form.reset(formData);
@@ -81,7 +88,7 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
         type: "meeting",
       });
     }
-  }, [event, form, open]);
+  }, [selectedEvent, form, open]);
 
   const handleSubmit = (data: CalendarEventFormData) => {
     try {
@@ -97,7 +104,11 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
       }
       
       // 폼 데이터 전송
-      onSubmit(data);
+      if (selectedEvent?.id) {
+        updateEvent(selectedEvent.id, data);
+      } else {
+        createEvent(data);
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
     }

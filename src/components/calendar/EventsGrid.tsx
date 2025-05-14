@@ -87,7 +87,7 @@ const EventsGrid: React.FC<EventsGridProps> = ({
               {event.user_id && (
                 <div className="text-xs text-gray-500 flex items-center">
                   <User className="h-3 w-3 mr-1" />
-                  {event.user_name || "사용자"}
+                  사용자
                 </div>
               )}
             </div>

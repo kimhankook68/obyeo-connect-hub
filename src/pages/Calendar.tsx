@@ -17,7 +17,7 @@ import { ko } from "date-fns/locale";
 
 const Calendar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [viewMode, setViewMode] = useState<"month" | "week" | "day" | "list">("month");
+  const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [user, setUser] = useState<any>(null);
   
   const {
@@ -126,7 +126,7 @@ const Calendar = () => {
           {/* Event form dialog */}
           <EventForm 
             open={modalOpen} 
-            setOpen={setModalOpen}
+            onOpenChange={setModalOpen}
             selectedEvent={selectedEvent}
             createEvent={createEvent}
             updateEvent={updateEvent}
@@ -135,9 +135,9 @@ const Calendar = () => {
           {/* Delete event dialog */}
           <DeleteEventDialog
             open={deleteDialogOpen}
-            setOpen={setDeleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            onConfirm={() => deleteEvent(selectedEvent?.id || '')}
             event={selectedEvent}
-            onDelete={deleteEvent}
           />
         </main>
       </div>
