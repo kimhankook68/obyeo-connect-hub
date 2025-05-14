@@ -20,6 +20,7 @@ import { CalendarEvent } from "@/hooks/useCalendarEvents";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface MonthViewProps {
   date: Date | undefined;
@@ -126,110 +127,112 @@ const MonthView: React.FC<MonthViewProps> = ({
         </div>
       </div>
       
-      {/* 테이블 형태의 달력 */}
-      <div className="border rounded-md overflow-hidden h-full">
-        <table className="w-full h-full table-fixed border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b">
-              {weekdayLabels.map((day, index) => (
-                <th 
-                  key={day} 
-                  className={cn(
-                    "py-2 text-center text-sm font-medium border-r last:border-r-0",
-                    index === 0 ? "text-red-500" : index === 6 ? "text-blue-500" : "text-gray-700"
-                  )}
-                >
-                  {day}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {calendarDays.map((week, weekIndex) => (
-              <tr key={weekIndex} className="h-[calc(100%/6)] divide-y border-b last:border-b-0">
-                {week.map((day, dayIndex) => {
-                  // 해당 날짜의 이벤트 필터링
-                  const dayEvents = events.filter(event => 
-                    isSameDay(parseISO(event.start_time), day)
-                  );
-                  
-                  const isToday = isSameDay(day, new Date());
-                  const isCurrentMonth = isSameMonth(day, currentMonth);
-                  const isSelected = date && isSameDay(day, date);
-                  
-                  return (
-                    <td 
-                      key={dayIndex}
-                      onClick={() => handleDateClick(day)}
-                      className={cn(
-                        "relative align-top border-r last:border-r-0 p-1 cursor-pointer hover:bg-gray-50 transition-colors",
-                        !isCurrentMonth && "bg-gray-50 text-gray-400",
-                        isSelected && "bg-blue-50"
-                      )}
-                    >
-                      <div className="flex flex-col h-full">
-                        {/* 날짜 번호 */}
-                        <div className={cn(
-                          "flex items-start h-7",
-                          dayIndex === 0 ? "text-red-500" : 
-                          dayIndex === 6 ? "text-blue-500" : 
-                          "text-gray-700"
-                        )}>
-                          <span className={cn(
-                            "text-sm font-medium",
-                            !isCurrentMonth && "text-gray-400",
-                            isToday && "bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                          )}>
-                            {format(day, "d")}
-                          </span>
-                          
-                          {/* 휴일명 또는 기타 정보 */}
-                          {day.getDate() === 1 && (
-                            <span className="ml-1 text-xs text-gray-500">
-                              {format(day, "(E)", { locale: ko })}
-                            </span>
-                          )}
-                          {day.getDate() === 5 && day.getMonth() === 4 && (
-                            <span className="ml-1 text-xs text-red-500">
-                              어린이날
-                            </span>
-                          )}
-                          {day.getDate() === 15 && day.getMonth() === 4 && (
-                            <span className="ml-1 text-xs text-blue-500">
-                              스승의날
-                            </span>
-                          )}
-                        </div>
-                        
-                        {/* 이벤트 표시 영역 */}
-                        <div className="flex-1 mt-1 overflow-hidden space-y-0.5">
-                          {dayEvents.slice(0, 2).map(event => (
-                            <div 
-                              key={event.id}
-                              className={cn(
-                                "text-xs px-1 py-0.5 rounded text-white truncate",
-                                getEventColor(event.type)
-                              )}
-                            >
-                              {format(parseISO(event.start_time), "HH:mm")} {event.title}
-                            </div>
-                          ))}
-                          
-                          {dayEvents.length > 2 && (
-                            <div className="text-xs text-blue-600 font-medium">
-                              +{dayEvents.length - 2}개 더보기
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                  );
-                })}
+      {/* AspectRatio로 달력 컨테이너 감싸기 */}
+      <AspectRatio ratio={1} className="w-full border rounded-md overflow-hidden">
+        <div className="w-full h-full">
+          <table className="w-full h-full border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b">
+                {weekdayLabels.map((day, index) => (
+                  <th 
+                    key={day} 
+                    className={cn(
+                      "py-2 text-center text-sm font-medium border-r last:border-r-0",
+                      index === 0 ? "text-red-500" : index === 6 ? "text-blue-500" : "text-gray-700"
+                    )}
+                  >
+                    {day}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y">
+              {calendarDays.map((week, weekIndex) => (
+                <tr key={weekIndex} className="divide-x border-b last:border-b-0">
+                  {week.map((day, dayIndex) => {
+                    // 해당 날짜의 이벤트 필터링
+                    const dayEvents = events.filter(event => 
+                      isSameDay(parseISO(event.start_time), day)
+                    );
+                    
+                    const isToday = isSameDay(day, new Date());
+                    const isCurrentMonth = isSameMonth(day, currentMonth);
+                    const isSelected = date && isSameDay(day, date);
+                    
+                    return (
+                      <td 
+                        key={dayIndex}
+                        onClick={() => handleDateClick(day)}
+                        className={cn(
+                          "relative align-top p-1 cursor-pointer hover:bg-gray-50 transition-colors",
+                          !isCurrentMonth && "bg-gray-50 text-gray-400",
+                          isSelected && "bg-blue-50"
+                        )}
+                      >
+                        <div className="flex flex-col h-full">
+                          {/* 날짜 번호 */}
+                          <div className={cn(
+                            "flex items-start h-7",
+                            dayIndex === 0 ? "text-red-500" : 
+                            dayIndex === 6 ? "text-blue-500" : 
+                            "text-gray-700"
+                          )}>
+                            <span className={cn(
+                              "text-sm font-medium",
+                              !isCurrentMonth && "text-gray-400",
+                              isToday && "bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                            )}>
+                              {format(day, "d")}
+                            </span>
+                            
+                            {/* 휴일명 또는 기타 정보 */}
+                            {day.getDate() === 1 && (
+                              <span className="ml-1 text-xs text-gray-500">
+                                {format(day, "(E)", { locale: ko })}
+                              </span>
+                            )}
+                            {day.getDate() === 5 && day.getMonth() === 4 && (
+                              <span className="ml-1 text-xs text-red-500">
+                                어린이날
+                              </span>
+                            )}
+                            {day.getDate() === 15 && day.getMonth() === 4 && (
+                              <span className="ml-1 text-xs text-blue-500">
+                                스승의날
+                              </span>
+                            )}
+                          </div>
+                          
+                          {/* 이벤트 표시 영역 */}
+                          <div className="flex-1 mt-1 overflow-hidden space-y-0.5">
+                            {dayEvents.slice(0, 2).map(event => (
+                              <div 
+                                key={event.id}
+                                className={cn(
+                                  "text-xs px-1 py-0.5 rounded text-white truncate",
+                                  getEventColor(event.type)
+                                )}
+                              >
+                                {format(parseISO(event.start_time), "HH:mm")} {event.title}
+                              </div>
+                            ))}
+                            
+                            {dayEvents.length > 2 && (
+                              <div className="text-xs text-blue-600 font-medium">
+                                +{dayEvents.length - 2}개 더보기
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </AspectRatio>
     </div>
   );
 };
