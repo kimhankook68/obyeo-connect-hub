@@ -175,6 +175,7 @@ export type Database = {
       free_posts: {
         Row: {
           author: string
+          category: string | null
           content: string
           created_at: string
           id: string
@@ -185,6 +186,7 @@ export type Database = {
         }
         Insert: {
           author: string
+          category?: string | null
           content: string
           created_at?: string
           id?: string
@@ -195,6 +197,7 @@ export type Database = {
         }
         Update: {
           author?: string
+          category?: string | null
           content?: string
           created_at?: string
           id?: string

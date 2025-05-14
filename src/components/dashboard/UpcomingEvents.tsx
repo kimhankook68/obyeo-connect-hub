@@ -34,7 +34,11 @@ const UpcomingEvents = () => {
           .order("created_at", { ascending: false })
           .limit(5);
         
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching posts:", error);
+          throw error;
+        }
+        
         setPosts(data || []);
         
         // Collect unique user IDs to fetch member data
@@ -42,7 +46,7 @@ const UpcomingEvents = () => {
           ?.map(post => post.user_id)
           .filter(id => id !== null && id !== undefined) as string[];
         
-        if (userIds.length > 0) {
+        if (userIds && userIds.length > 0) {
           const uniqueUserIds = [...new Set(userIds)];
           const { data: membersData } = await supabase
             .from("members")
