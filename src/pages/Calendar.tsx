@@ -149,7 +149,7 @@ const CalendarPage: React.FC = () => {
           
           {/* 저작권 메시지 추가 */}
           <div className="w-full text-center py-3 text-xs text-gray-500 border-t mt-4">
-            © {new Date().getFullYear()} 커뮤니티 캘린더 시스템. All rights reserved.
+            © {new Date().getFullYear()} 사회복지법인 오병이어복지재단. All rights reserved.
           </div>
         </main>
       </div>
