@@ -1,93 +1,68 @@
 
-import React, { useState } from "react";
-import Sidebar from "@/components/Sidebar";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import EventForm from "@/components/calendar/EventForm";
-import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
+import Sidebar from "@/components/Sidebar";
+import { Card } from "@/components/ui/card";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import { supabase } from "@/integrations/supabase/client";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarView from "@/components/calendar/CalendarView";
-import ListView from "@/components/calendar/ListView";
+import EventForm from "@/components/calendar/EventForm";
+import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import EventsGrid from "@/components/calendar/EventsGrid";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
-const CalendarPage: React.FC = () => {
+const Calendar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [view, setView] = useState<"calendar" | "list">("calendar");
-  const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
+  const [viewMode, setViewMode] = useState<"month" | "week" | "day" | "list">("month");
+  const [user, setUser] = useState<any>(null);
   
   const {
     events,
     loading,
     selectedEvent,
+    selectedDate,
+    setSelectedDate,
     modalOpen,
     setModalOpen,
     deleteDialogOpen,
     setDeleteDialogOpen,
-    user,
     handleAdd,
     handleEdit,
     handleDelete,
     createEvent,
     updateEvent,
     deleteEvent,
-    fetchEvents,
+    getSelectedDateEvents,
     formatEventDate
   } = useCalendarEvents();
 
-  const handleCreateEvent = (data: any) => {
-    // 일정 생성 시 현재 선택된 날짜가 있으면 설정
-    if (date && !data.start_time) {
-      const startDate = new Date(date);
-      startDate.setHours(9, 0, 0); // 기본값으로 오전 9시 설정
-      data.start_time = startDate.toISOString();
-      
-      const endDate = new Date(date);
-      endDate.setHours(10, 0, 0); // 기본값으로 오전 10시 설정
-      data.end_time = endDate.toISOString();
-    }
-    
-    createEvent(data);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+    fetchUser();
+  }, []);
+
+  const getEventCountForDay = (day: Date) => {
+    return events.filter(event => {
+      const eventDate = new Date(event.start_time);
+      return (
+        eventDate.getDate() === day.getDate() &&
+        eventDate.getMonth() === day.getMonth() &&
+        eventDate.getFullYear() === day.getFullYear()
+      );
+    }).length;
   };
 
-  const handleUpdateEvent = (data: any) => {
-    if (selectedEvent) {
-      // 업데이트된 데이터 전송
-      const updatedData = {
-        title: data.title,
-        description: data.description,
-        start_time: data.start_time,
-        end_time: data.end_time, 
-        location: data.location,
-        type: data.type
-      };
-      
-      updateEvent(selectedEvent.id, updatedData);
-    }
-  };
+  const isUserLoggedIn = !!user;
 
-  const handleDeleteConfirm = () => {
-    if (selectedEvent) {
-      deleteEvent(selectedEvent.id);
-    } else {
-      console.error("Cannot delete: No event selected");
-    }
-  };
-
-  const handleViewChange = (newView: "calendar" | "list") => {
-    setView(newView);
-  };
-
-  // 보기 모드 변경 핸들러 (월간, 주간, 일간)
-  const handleViewModeChange = (newMode: "month" | "week" | "day") => {
-    setViewMode(newMode);
-  };
-
-  // 일정 추가 버튼 클릭 핸들러
-  const handleAddEvent = () => {
-    handleAdd();
-  };
-
+  const selectedDateEvents = getSelectedDateEvents();
+  
   return (
     <div className="flex h-screen">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
@@ -95,66 +70,79 @@ const CalendarPage: React.FC = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="일정 관리" />
         
-        <main className="flex-1 flex flex-col overflow-hidden p-6 bg-background relative">
-          <CalendarHeader 
-            onAddEvent={handleAddEvent} 
-            view={view} 
-            onViewChange={handleViewChange}
-            viewMode={viewMode}
-            onViewModeChange={handleViewModeChange}
-          />
-          
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <Tabs value={view} onValueChange={(value) => handleViewChange(value as "calendar" | "list")} className="h-full flex-1 flex flex-col">
-              <TabsContent value="calendar" className="h-full flex-1 overflow-auto flex flex-col">
-                <CalendarView 
-                  date={date}
-                  setDate={setDate}
-                  events={events}
-                  loading={loading}
-                  handleEdit={handleEdit}
-                  handleDelete={handleDelete}
-                  formatEventDate={formatEventDate}
-                  isUserLoggedIn={!!user}
-                  viewMode={viewMode}
-                />
-              </TabsContent>
-              
-              <TabsContent value="list" className="h-full flex-1 overflow-auto">
-                <ListView 
-                  events={events}
-                  loading={loading}
-                  handleEdit={handleEdit}
-                  handleDelete={handleDelete}
-                  formatEventDate={formatEventDate}
-                  isUserLoggedIn={!!user}
-                />
-              </TabsContent>
-            </Tabs>
+        <main className="flex-1 overflow-y-auto p-6 bg-background">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold">일정 관리</h1>
+            
+            <div className="flex space-x-4">
+              {isUserLoggedIn && (
+                <Button onClick={handleAdd} className="flex items-center gap-1">
+                  <Plus className="h-4 w-4" />
+                  새 일정
+                </Button>
+              )}
+            </div>
           </div>
           
-          <EventForm
-            open={modalOpen}
-            onOpenChange={setModalOpen}
-            onSubmit={selectedEvent ? handleUpdateEvent : handleCreateEvent}
-            event={selectedEvent}
+          <Card className="mb-6">
+            <CalendarHeader 
+              viewMode={viewMode} 
+              setViewMode={setViewMode} 
+              date={selectedDate || new Date()} 
+              setDate={setSelectedDate}
+            />
+            <div className="p-4">
+              <CalendarView 
+                viewMode={viewMode} 
+                events={events} 
+                loading={loading}
+                date={selectedDate} 
+                setDate={setSelectedDate}
+                getEventCountForDay={getEventCountForDay}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                formatEventDate={formatEventDate}
+                isUserLoggedIn={isUserLoggedIn}
+              />
+            </div>
+          </Card>
+          
+          {selectedDate && (
+            <div className="mt-6">
+              <h2 className="text-xl font-medium mb-4">
+                {format(selectedDate, "yyyy년 MM월 dd일", { locale: ko })} 일정 목록
+              </h2>
+              <EventsGrid
+                events={selectedDateEvents}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                formatEventDate={formatEventDate}
+                isUserLoggedIn={isUserLoggedIn}
+                selectedDate={selectedDate}
+              />
+            </div>
+          )}
+
+          {/* Event form dialog */}
+          <EventForm 
+            open={modalOpen} 
+            setOpen={setModalOpen}
+            selectedEvent={selectedEvent}
+            createEvent={createEvent}
+            updateEvent={updateEvent}
           />
           
+          {/* Delete event dialog */}
           <DeleteEventDialog
             open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            onConfirm={handleDeleteConfirm}
+            setOpen={setDeleteDialogOpen}
             event={selectedEvent}
+            onDelete={deleteEvent}
           />
-          
-          {/* 저작권 메시지 추가 */}
-          <div className="w-full text-center py-3 text-xs text-gray-500 border-t mt-4">
-            Copyright {new Date().getFullYear()}. 사회복지법인 오병이어복지재단. All rights reserved.
-          </div>
         </main>
       </div>
     </div>
   );
 };
 
-export default CalendarPage;
+export default Calendar;

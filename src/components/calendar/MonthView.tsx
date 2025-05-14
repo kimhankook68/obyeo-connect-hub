@@ -1,10 +1,9 @@
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { isSameDay, parseISO, format, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -30,7 +29,7 @@ const MonthView: React.FC<MonthViewProps> = ({
   isUserLoggedIn
 }) => {
   // 현재 달력에 표시되는 월
-  const [currentMonth, setCurrentMonth] = useState<Date>(date || new Date());
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(date || new Date());
   
   // 이전 달로 이동
   const goToPreviousMonth = () => {
@@ -43,7 +42,8 @@ const MonthView: React.FC<MonthViewProps> = ({
   };
 
   // 날짜 클릭 핸들러 - 선택된 날짜를 업데이트하여 일정 목록 표시
-  const handleDateClick = (day: Date) => {
+  const handleDateClick = (day: Date | undefined) => {
+    console.log("Date clicked:", day);
     setDate(day);
   };
 

@@ -12,6 +12,7 @@ import {
   deleteCalendarEvent
 } from "@/api/calendarApi";
 import { formatEventDate } from "@/utils/dateUtils";
+import { isSameDay, parseISO } from "date-fns";
 
 export type { CalendarEvent, CalendarEventFormData };
 
@@ -21,6 +22,7 @@ export const useCalendarEvents = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const { toast: uiToast } = useToast();
   const [user, setUser] = useState<any>(null);
 
@@ -58,6 +60,16 @@ export const useCalendarEvents = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Get events for selected date
+  const getSelectedDateEvents = () => {
+    if (!selectedDate) return [];
+    
+    return events.filter(event => {
+      const eventDate = parseISO(event.start_time);
+      return isSameDay(eventDate, selectedDate);
+    });
   };
 
   // Create a new event
@@ -166,6 +178,8 @@ export const useCalendarEvents = () => {
     events,
     loading,
     selectedEvent,
+    selectedDate,
+    setSelectedDate,
     modalOpen,
     setModalOpen,
     deleteDialogOpen,
@@ -178,6 +192,7 @@ export const useCalendarEvents = () => {
     updateEvent,
     deleteEvent,
     fetchEvents,
-    formatEventDate
+    formatEventDate,
+    getSelectedDateEvents
   };
 };
