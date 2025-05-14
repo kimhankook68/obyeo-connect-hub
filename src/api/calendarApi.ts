@@ -14,7 +14,7 @@ export interface CalendarEvent {
   created_at: string;
 }
 
-export type CalendarEventFormData = Omit<CalendarEvent, "id" | "created_at" | "user_id">;
+export type CalendarEventFormData = Omit<CalendarEvent, "id" | "created_at">;
 
 // Fetch all calendar events
 export const fetchCalendarEvents = async () => {
@@ -49,7 +49,8 @@ export const createCalendarEvent = async (eventData: CalendarEventFormData) => {
       start_time: eventData.start_time,
       end_time: eventData.end_time,
       location: eventData.location || null,
-      type: eventData.type
+      type: eventData.type,
+      user_id: eventData.user_id || null
     };
     
     const { data, error } = await supabase

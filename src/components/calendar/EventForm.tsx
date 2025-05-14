@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,7 +12,7 @@ import { format, parseISO } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Clock } from "lucide-react";
+import { CalendarIcon, Clock, X } from "lucide-react";
 import { ko } from "date-fns/locale";
 
 interface EventFormProps {
@@ -52,12 +53,9 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
     },
   });
 
-  console.log("EventForm rendering with event:", event);
-
   // 폼 초기화 - 깊은 복사와 null/undefined 처리 추가
   useEffect(() => {
     if (event) {
-      console.log("Setting form values from event:", event);
       try {
         // 이벤트 데이터의 깊은 복사본 생성 
         const formData = {
@@ -69,13 +67,11 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
           type: event.type || "meeting",
         };
         
-        console.log("Form reset with data:", formData);
         form.reset(formData);
       } catch (error) {
         console.error("Error resetting form with event data:", error);
       }
     } else {
-      console.log("Resetting form to empty values");
       form.reset({
         title: "",
         description: "",
@@ -88,8 +84,6 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
   }, [event, form, open]);
 
   const handleSubmit = (data: CalendarEventFormData) => {
-    console.log("Form submit with data:", data);
-    
     try {
       // 모든 필수 필드가 있는지 확인
       if (!data.title) {
@@ -138,86 +132,99 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>{event ? "일정 수정" : "새 일정 추가"}</DialogTitle>
+      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
+        <DialogHeader className="px-6 py-4 border-b flex flex-row justify-between items-center">
+          <DialogTitle className="text-lg font-bold">새 일정 추가</DialogTitle>
+          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+            <X className="h-4 w-4" />
+          </Button>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>제목</FormLabel>
-                  <FormControl>
-                    <Input placeholder="일정 제목을 입력하세요" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <div className="p-6">
+          <p className="text-sm text-muted-foreground mb-4">
+            새로운 일정을 추가하려면 아래 양식을 작성하세요.
+          </p>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>설명</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="일정에 대한 설명을 입력하세요" {...field} value={field.value || ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              {/* 제목 */}
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">제목</FormLabel>
+                    <FormControl>
+                      <Input placeholder="일정 제목" {...field} className="h-12" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="grid grid-cols-1 gap-4">
+              {/* 날짜 */}
               <FormField
                 control={form.control}
                 name="start_time"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>시작 일시</FormLabel>
-                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "pl-3 text-left font-normal flex-1",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(parseISO(field.value), "yyyy년 MM월 dd일", { locale: ko })
-                              ) : (
-                                <span>날짜 선택</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? parseISO(field.value) : undefined}
-                            onSelect={(date) => {
-                              if (date) {
-                                const timeString = getTimeFromDate(field.value) || '00:00';
-                                const newDateTime = combineDateTime(date, timeString);
-                                field.onChange(newDateTime);
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">날짜</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "h-12 pl-3 text-left font-normal w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(parseISO(field.value), "yyyy년 MM월 dd일", { locale: ko })
+                            ) : (
+                              <span>날짜 선택</span>
+                            )}
+                            <CalendarIcon className="h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? parseISO(field.value) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              const timeString = getTimeFromDate(field.value) || '09:00';
+                              const newDateTime = combineDateTime(date, timeString);
+                              field.onChange(newDateTime);
+                              
+                              // Also update end_time to be the same date if not set
+                              const endTimeValue = form.getValues("end_time");
+                              if (!endTimeValue) {
+                                const endTime = combineDateTime(date, '10:00');
+                                form.setValue("end_time", endTime);
                               }
-                            }}
-                            initialFocus
-                            locale={ko}
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
+                            }
+                          }}
+                          initialFocus
+                          locale={ko}
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
+              <div className="grid grid-cols-2 gap-4">
+                {/* 시작 시간 */}
+                <FormField
+                  control={form.control}
+                  name="start_time"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">시작 시간</FormLabel>
                       <Select 
                         value={getTimeFromDate(field.value)}
                         onValueChange={(time) => {
@@ -231,8 +238,8 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
                         }}
                       >
                         <FormControl>
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="시간 선택" />
+                          <SelectTrigger className="h-12">
+                            <SelectValue placeholder="-- --:--" />
                             <Clock className="h-4 w-4 opacity-50" />
                           </SelectTrigger>
                         </FormControl>
@@ -244,138 +251,118 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, onSubmit, eve
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                {/* 종료 시간 */}
+                <FormField
+                  control={form.control}
+                  name="end_time"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">종료 시간</FormLabel>
+                      <Select 
+                        value={getTimeFromDate(field.value)}
+                        onValueChange={(time) => {
+                          if (field.value) {
+                            const date = parseISO(field.value);
+                            field.onChange(combineDateTime(date, time));
+                          } else {
+                            const startTime = form.getValues("start_time");
+                            const date = startTime ? parseISO(startTime) : new Date();
+                            field.onChange(combineDateTime(date, time));
+                          }
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-12">
+                            <SelectValue placeholder="-- --:--" />
+                            <Clock className="h-4 w-4 opacity-50" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="h-[300px]">
+                          {timeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* 장소 */}
               <FormField
                 control={form.control}
-                name="end_time"
+                name="location"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>종료 일시</FormLabel>
-                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "pl-3 text-left font-normal flex-1",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(parseISO(field.value), "yyyy년 MM월 dd일", { locale: ko })
-                              ) : (
-                                <span>날짜 선택</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? parseISO(field.value) : undefined}
-                            onSelect={(date) => {
-                              if (date) {
-                                const timeString = getTimeFromDate(field.value) || '00:00';
-                                const newDateTime = combineDateTime(date, timeString);
-                                field.onChange(newDateTime);
-                              }
-                            }}
-                            initialFocus
-                            locale={ko}
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-
-                      <Select 
-                        value={getTimeFromDate(field.value)}
-                        onValueChange={(time) => {
-                          if (field.value) {
-                            const date = parseISO(field.value);
-                            field.onChange(combineDateTime(date, time));
-                          } else {
-                            const today = new Date();
-                            field.onChange(combineDateTime(today, time));
-                          }
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="시간 선택" />
-                            <Clock className="h-4 w-4 opacity-50" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="h-[300px]">
-                          {timeOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">장소</FormLabel>
+                    <FormControl>
+                      <Input placeholder="일정 장소" {...field} value={field.value || ""} className="h-12" />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>장소</FormLabel>
-                  <FormControl>
-                    <Input placeholder="장소를 입력하세요" {...field} value={field.value || ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* 일정 유형 */}
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">일정 유형</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="일정 유형 선택" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {eventTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>일정 유형</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+              {/* 설명 */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">설명</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="일정 유형을 선택하세요" />
-                      </SelectTrigger>
+                      <Textarea 
+                        placeholder="일정에 대한 상세 설명" 
+                        {...field} 
+                        value={field.value || ""} 
+                        className="min-h-[80px]"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {eventTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-                취소
+              <Button type="submit" className="w-full h-12 mt-4 bg-blue-500 hover:bg-blue-600">
+                일정 추가
               </Button>
-              <Button type="submit">
-                {event ? "수정" : "추가"}
-              </Button>
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

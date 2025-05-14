@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -31,6 +31,15 @@ export const useCalendarEvents = () => {
       setUser(session?.user || null);
     };
     fetchUser();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Fetch all calendar events
@@ -54,7 +63,10 @@ export const useCalendarEvents = () => {
   // Create a new event
   const createEvent = async (eventData: CalendarEventFormData) => {
     try {
-      const data = await createCalendarEvent(eventData);
+      // Associate event with current user if logged in
+      const dataWithUserId = user ? { ...eventData, user_id: user.id } : eventData;
+      
+      const data = await createCalendarEvent(dataWithUserId);
       toast.success("일정이 추가되었습니다");
       setEvents(prev => [...prev, data]);
       setModalOpen(false);
