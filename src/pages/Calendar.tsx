@@ -95,7 +95,7 @@ const CalendarPage: React.FC = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="일정 관리" />
         
-        <main className="flex-1 flex flex-col overflow-hidden p-6 bg-background">
+        <main className="flex-1 flex flex-col overflow-hidden p-6 bg-background relative">
           <CalendarHeader 
             onAddEvent={handleAddEvent} 
             view={view} 
@@ -146,6 +146,11 @@ const CalendarPage: React.FC = () => {
             onConfirm={handleDeleteConfirm}
             event={selectedEvent}
           />
+          
+          {/* 저작권 메시지 추가 */}
+          <div className="w-full text-center py-3 text-xs text-gray-500 border-t mt-4">
+            © {new Date().getFullYear()} 커뮤니티 캘린더 시스템. All rights reserved.
+          </div>
         </main>
       </div>
     </div>

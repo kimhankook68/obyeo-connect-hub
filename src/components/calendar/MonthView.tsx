@@ -1,11 +1,13 @@
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { isSameDay, parseISO, format } from "date-fns";
+import { isSameDay, parseISO, format, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
 import { Badge } from "@/components/ui/badge";
 import EventPopover from "./EventPopover";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface MonthViewProps {
   date: Date | undefined;
@@ -28,6 +30,19 @@ const MonthView: React.FC<MonthViewProps> = ({
   formatEventDate,
   isUserLoggedIn
 }) => {
+  // 현재 달력에 표시되는 월
+  const [currentMonth, setCurrentMonth] = useState<Date>(date || new Date());
+  
+  // 이전 달로 이동
+  const goToPreviousMonth = () => {
+    setCurrentMonth(prevMonth => subMonths(prevMonth, 1));
+  };
+  
+  // 다음 달로 이동
+  const goToNextMonth = () => {
+    setCurrentMonth(prevMonth => addMonths(prevMonth, 1));
+  };
+
   // 이벤트가 있는 날짜 계산
   const eventDates = useMemo(() => {
     return events.map(event => {
@@ -42,6 +57,28 @@ const MonthView: React.FC<MonthViewProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full min-h-[500px]">
+      <div className="flex justify-between items-center mb-2 px-2">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={goToPreviousMonth} 
+          className="h-8 w-8"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <h2 className="text-lg font-medium">
+          {format(currentMonth, "yyyy년 MM월", { locale: ko })}
+        </h2>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={goToNextMonth}
+          className="h-8 w-8"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      
       <div className="grid grid-cols-7 text-center border-b font-medium py-2">
         <div className="text-red-500">일</div>
         <div>월</div>
@@ -57,6 +94,8 @@ const MonthView: React.FC<MonthViewProps> = ({
           mode="single"
           selected={date}
           onSelect={setDate}
+          month={currentMonth}
+          onMonthChange={setCurrentMonth}
           className="w-full h-full rounded-md border-0"
           locale={ko}
           hideHead={true}
