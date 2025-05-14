@@ -1,9 +1,11 @@
 
 import React, { useMemo } from "react";
 import { format, startOfWeek, endOfWeek, addDays, isSameDay, parseISO, startOfDay } from "date-fns";
+import { ko } from "date-fns/locale";
 import MonthView from "./MonthView";
 import WeekView from "./WeekView";
 import DayView from "./DayView";
+import EventsList from "./EventsList";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
 
 interface CalendarViewProps {
@@ -55,35 +57,52 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-auto">
-      {viewMode === "month" && (
-        <MonthView 
-          date={date} 
-          setDate={setDate} 
-          events={events} 
-          getEventCountForDay={getEventCountForDay}
-          handleEdit={handleEdit}
-          handleDelete={handleDelete}
-          formatEventDate={formatEventDate}
-          isUserLoggedIn={isUserLoggedIn}
-        />
-      )}
+    <div className="flex-1 overflow-auto flex flex-col">
+      <div className="flex-grow">
+        {viewMode === "month" && (
+          <MonthView 
+            date={date} 
+            setDate={setDate} 
+            events={events} 
+            getEventCountForDay={getEventCountForDay}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            formatEventDate={formatEventDate}
+            isUserLoggedIn={isUserLoggedIn}
+          />
+        )}
+        
+        {viewMode === "week" && (
+          <WeekView 
+            date={date} 
+            setDate={setDate} 
+            events={events} 
+            weekDates={weekDates} 
+          />
+        )}
+        
+        {viewMode === "day" && (
+          <DayView 
+            date={date} 
+            loading={loading} 
+            filteredEvents={filteredEvents} 
+          />
+        )}
+      </div>
       
-      {viewMode === "week" && (
-        <WeekView 
-          date={date} 
-          setDate={setDate} 
-          events={events} 
-          weekDates={weekDates} 
-        />
-      )}
-      
-      {viewMode === "day" && (
-        <DayView 
-          date={date} 
-          loading={loading} 
-          filteredEvents={filteredEvents} 
-        />
+      {/* 선택된 날짜의 이벤트 목록 */}
+      {date && viewMode === "month" && (
+        <div className="mt-4">
+          <EventsList 
+            date={date}
+            loading={loading}
+            filteredEvents={filteredEvents}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            formatEventDate={formatEventDate}
+            isUserLoggedIn={isUserLoggedIn}
+          />
+        </div>
       )}
     </div>
   );

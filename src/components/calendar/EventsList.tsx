@@ -25,7 +25,7 @@ const EventsList: React.FC<EventsListProps> = ({
   isUserLoggedIn,
 }) => {
   return (
-    <div className="bg-white p-4 rounded-lg border">
+    <div className="bg-white p-4 rounded-lg border shadow-sm">
       <h2 className="text-lg font-medium mb-4 flex items-center">
         <div className="w-1 h-5 bg-primary mr-2"></div>
         {date ? format(date, "yyyy년 MM월 dd일", { locale: ko }) : "전체"} 일정
@@ -40,7 +40,7 @@ const EventsList: React.FC<EventsListProps> = ({
           해당 날짜에 등록된 일정이 없습니다.
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
           {filteredEvents.map((event) => (
             <EventItem
               key={event.id}

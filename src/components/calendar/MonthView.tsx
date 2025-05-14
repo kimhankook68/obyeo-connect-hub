@@ -5,7 +5,6 @@ import { isSameDay, parseISO, format, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
 import { Badge } from "@/components/ui/badge";
-import EventPopover from "./EventPopover";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -41,6 +40,11 @@ const MonthView: React.FC<MonthViewProps> = ({
   // 다음 달로 이동
   const goToNextMonth = () => {
     setCurrentMonth(prevMonth => addMonths(prevMonth, 1));
+  };
+
+  // 날짜 클릭 핸들러 - 선택된 날짜를 업데이트하여 일정 목록 표시
+  const handleDateClick = (day: Date) => {
+    setDate(day);
   };
 
   // 이벤트가 있는 날짜 계산
@@ -93,7 +97,7 @@ const MonthView: React.FC<MonthViewProps> = ({
         <Calendar
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={handleDateClick}
           month={currentMonth}
           onMonthChange={setCurrentMonth}
           className="w-full h-full rounded-md border-0"
@@ -103,7 +107,7 @@ const MonthView: React.FC<MonthViewProps> = ({
             months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full h-full",
             month: "w-full h-full",
             row: "flex w-full flex-1 h-[calc(100%/6)]",
-            day: "h-full text-center p-1 relative border border-gray-100 hover:bg-blue-50 transition-colors duration-200",
+            day: "h-full text-center p-1 relative border border-gray-100 hover:bg-blue-50 transition-colors duration-200 cursor-pointer",
             day_today: "bg-blue-50 font-bold",
             day_selected: "bg-primary/10 text-primary font-bold",
             head_row: "hidden",
@@ -125,19 +129,19 @@ const MonthView: React.FC<MonthViewProps> = ({
                 return isSameDay(eventDate, date) && isCurrentMonth;
               });
 
-              const DayContents = (
-                <div className="h-full w-full flex flex-col">
+              return (
+                <div className="h-full w-full flex flex-col items-center" onClick={() => handleDateClick(date)}>
                   <div className={`${
                     date.getDay() === 0 ? 'text-red-500' : 
                     date.getDay() === 6 ? 'text-blue-500' : ''
-                  } ${isCurrentMonth ? '' : 'text-gray-300'} font-medium text-sm sm:text-base w-full text-center`}>
+                  } ${isCurrentMonth ? '' : 'text-gray-300'} font-medium text-sm sm:text-base text-center`}>
                     {dayNum}
                   </div>
                   
                   {dayEvents.slice(0, 2).map((event, idx) => (
                     <div 
                       key={event.id}
-                      className="mt-1 truncate text-xs text-center"
+                      className="mt-1 truncate text-xs text-center w-full"
                       style={{
                         color: event.type === 'meeting' ? '#dc3545' : 
                           event.type === 'training' ? '#0dcaf0' : 
@@ -153,20 +157,6 @@ const MonthView: React.FC<MonthViewProps> = ({
                     <div className="text-xs text-primary mt-1 text-center">+ {dayEvents.length - 2}개 더보기</div>
                   )}
                 </div>
-              );
-              
-              // 모든 날짜에 EventPopover 적용 (이벤트가 있든 없든)
-              return (
-                <EventPopover
-                  date={date}
-                  events={dayEvents}
-                  handleEdit={handleEdit}
-                  handleDelete={handleDelete}
-                  formatEventDate={formatEventDate}
-                  isUserLoggedIn={isUserLoggedIn}
-                >
-                  {DayContents}
-                </EventPopover>
               );
             }
           }}
