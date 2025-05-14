@@ -88,7 +88,7 @@ const Calendar = () => {
             <CalendarHeader 
               viewMode={viewMode} 
               setViewMode={setViewMode} 
-              date={selectedDate || new Date()} 
+              date={selectedDate} 
               setDate={setSelectedDate}
             />
             <div className="p-4">

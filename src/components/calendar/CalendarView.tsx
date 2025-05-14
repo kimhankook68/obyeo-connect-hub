@@ -18,6 +18,7 @@ interface CalendarViewProps {
   formatEventDate: (dateString: string) => string;
   isUserLoggedIn: boolean;
   viewMode: "month" | "week" | "day";
+  getEventCountForDay: (day: Date) => number;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
@@ -29,7 +30,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   handleDelete,
   formatEventDate,
   isUserLoggedIn,
-  viewMode
+  viewMode,
+  getEventCountForDay
 }) => {
   // 해당 날짜의 이벤트 필터링
   const filteredEvents = useMemo(() => {
@@ -47,14 +49,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     const start = startOfWeek(date, { weekStartsOn: 0 });
     return Array.from({ length: 7 }).map((_, i) => addDays(start, i));
   }, [date]);
-  
-  // 해당 날짜의 이벤트 개수 반환
-  const getEventCountForDay = (day: Date) => {
-    return events.filter(event => {
-      const eventDate = parseISO(event.start_time);
-      return isSameDay(eventDate, day);
-    }).length;
-  };
 
   return (
     <div className="flex-1 overflow-auto flex flex-col">
