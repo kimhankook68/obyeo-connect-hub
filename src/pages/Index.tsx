@@ -8,7 +8,7 @@ import StatCards from "@/components/dashboard/StatCards";
 import RecentNotices from "@/components/dashboard/RecentNotices";
 import RecentDocuments from "@/components/dashboard/RecentDocuments";
 import RecentPosts from "@/components/dashboard/UpcomingEvents";
-import MonthlyCalendar from "@/components/dashboard/MonthlyCalendar";
+import WeeklyCalendar from "@/components/dashboard/WeeklyCalendar";
 
 const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -48,7 +48,7 @@ const Index = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <RecentPosts />
-            <MonthlyCalendar />
+            <WeeklyCalendar />
           </div>
           
           <footer className="mt-auto pt-4 border-t border-border text-center text-xs text-muted-foreground">
