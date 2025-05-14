@@ -17,6 +17,7 @@ interface EventPopoverProps {
   handleDelete: (event: CalendarEvent) => void;
   formatEventDate: (dateString: string) => string;
   isUserLoggedIn: boolean;
+  children: React.ReactNode; // Added children prop to the interface
 }
 
 const EventPopover: React.FC<EventPopoverProps> = ({
