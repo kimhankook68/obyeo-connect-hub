@@ -71,12 +71,7 @@ const Calendar = () => {
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl font-bold">일정 관리</h1>
               
-              {isUserLoggedIn && (
-                <Button onClick={handleAdd} className="hidden md:flex items-center gap-1">
-                  <Plus className="h-4 w-4" />
-                  새 일정
-                </Button>
-              )}
+              {/* Removed the top "새 일정" button */}
             </div>
             
             {/* 달력 헤더 */}
