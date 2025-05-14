@@ -35,7 +35,7 @@ const Members = () => {
       if (error) throw error;
       setMembers(data || []);
     } catch (error: any) {
-      toast({ title: "임직원 데이터를 불러오는데 실패했습니다.", variant: "destructive" });
+      toast("임직원 데이터를 불러오는데 실패했습니다.");
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -63,9 +63,9 @@ const Members = () => {
 
       if (error) throw error;
       setMembers([...members, data[0]]);
-      toast({ title: "임직원이 추가되었습니다." });
+      toast("임직원이 추가되었습니다.");
     } catch (error: any) {
-      toast({ title: "임직원 추가에 실패했습니다.", variant: "destructive" });
+      toast("임직원 추가에 실패했습니다.");
       console.error(error);
     } finally {
       setIsFormOpen(false);
@@ -89,9 +89,9 @@ const Members = () => {
       if (error) throw error;
       
       setMembers(members.map(m => m.id === member.id ? member : m));
-      toast({ title: "임직원 정보가 수정되었습니다." });
+      toast("임직원 정보가 수정되었습니다.");
     } catch (error: any) {
-      toast({ title: "임직원 정보 수정에 실패했습니다.", variant: "destructive" });
+      toast("임직원 정보 수정에 실패했습니다.");
       console.error(error);
     } finally {
       setSelectedMember(null);
@@ -111,9 +111,9 @@ const Members = () => {
       if (error) throw error;
       
       setMembers(members.filter(m => m.id !== selectedMember.id));
-      toast({ title: "임직원이 삭제되었습니다." });
+      toast("임직원이 삭제되었습니다.");
     } catch (error: any) {
-      toast({ title: "임직원 삭제에 실패했습니다.", variant: "destructive" });
+      toast("임직원 삭제에 실패했습니다.");
       console.error(error);
     } finally {
       setSelectedMember(null);
