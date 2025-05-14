@@ -24,6 +24,7 @@ import FreeBoards from "./pages/FreeBoards";
 import FreeBoardDetail from "./pages/FreeBoardDetail";
 import FreeBoardCreate from "./pages/FreeBoardCreate";
 import FreeBoardEdit from "./pages/FreeBoardEdit";
+import Footer from "./components/Footer";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -34,28 +35,33 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/notices" element={<NoticeBoard />} />
-          <Route path="/notices/:id" element={<NoticeDetail />} />
-          <Route path="/notices/create" element={<NoticeCreate />} />
-          <Route path="/notices/edit/:id" element={<NoticeEdit />} />
-          <Route path="/documents" element={<Documents />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/tasks" element={<Index />} />
-          <Route path="/members" element={<Members />} />
-          <Route path="/surveys" element={<Surveys />} />
-          <Route path="/surveys/:id" element={<SurveyDetail />} />
-          <Route path="/surveys/create" element={<SurveyCreate />} />
-          <Route path="/freeboards" element={<FreeBoards />} />
-          <Route path="/freeboards/:id" element={<FreeBoardDetail />} />
-          <Route path="/freeboards/create" element={<FreeBoardCreate />} />
-          <Route path="/freeboards/edit/:id" element={<FreeBoardEdit />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <div className="flex flex-col min-h-screen">
+          <div className="flex-grow">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/notices" element={<NoticeBoard />} />
+              <Route path="/notices/:id" element={<NoticeDetail />} />
+              <Route path="/notices/create" element={<NoticeCreate />} />
+              <Route path="/notices/edit/:id" element={<NoticeEdit />} />
+              <Route path="/documents" element={<Documents />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/tasks" element={<Index />} />
+              <Route path="/members" element={<Members />} />
+              <Route path="/surveys" element={<Surveys />} />
+              <Route path="/surveys/:id" element={<SurveyDetail />} />
+              <Route path="/surveys/create" element={<SurveyCreate />} />
+              <Route path="/freeboards" element={<FreeBoards />} />
+              <Route path="/freeboards/:id" element={<FreeBoardDetail />} />
+              <Route path="/freeboards/create" element={<FreeBoardCreate />} />
+              <Route path="/freeboards/edit/:id" element={<FreeBoardEdit />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+          <Footer />
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   </React.StrictMode>

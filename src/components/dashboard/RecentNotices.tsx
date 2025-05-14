@@ -1,116 +1,124 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import DashboardCard from "@/components/DashboardCard";
-import NoticeCard from "@/components/NoticeCard";
 import { supabase } from "@/integrations/supabase/client";
-import { format, isAfter, subDays } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type Notice = {
+interface Notice {
   id: string;
   title: string;
-  author: string;
-  category?: string;
   created_at: string;
-  views: number;
-};
+  is_important?: boolean;
+}
 
 const RecentNotices = () => {
-  const [recentNotices, setRecentNotices] = useState<Notice[]>([]);
-  const [loadingNotices, setLoadingNotices] = useState(true);
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    fetchRecentNotices();
+    const fetchNotices = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("notices")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        if (error) throw error;
+        setNotices(data || []);
+      } catch (error) {
+        console.error("Error fetching notices:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotices();
   }, []);
-  
-  const fetchRecentNotices = async () => {
+
+  const formatDate = (dateStr: string) => {
     try {
-      setLoadingNotices(true);
-      const { data, error } = await supabase
-        .from('notices')
-        .select('id, title, author, category, created_at, views')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) {
-        throw error;
-      }
-
-      setRecentNotices(data || []);
-    } catch (error) {
-      console.error('최근 공지사항을 가져오는 중 오류가 발생했습니다:', error);
-      toast({
-        title: "데이터 로드 실패",
-        description: "최근 공지사항을 불러오는 데 실패했습니다.",
-        variant: "destructive",
+      return formatDistanceToNow(new Date(dateStr), {
+        addSuffix: true,
+        locale: ko,
       });
-    } finally {
-      setLoadingNotices(false);
-    }
-  };
-  
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'yyyy-MM-dd');
     } catch (error) {
-      return dateString;
+      return "날짜 오류";
     }
   };
 
-  const isNew = (dateString: string) => {
-    try {
-      return isAfter(new Date(dateString), subDays(new Date(), 3));
-    } catch (error) {
-      return false;
-    }
+  const renderNoticeTitle = (notice: Notice) => {
+    // Create Badge separately with correct typings
+    const badge = notice.is_important ? (
+      <Badge variant="destructive" className="ml-2">
+        중요
+      </Badge>
+    ) : (
+      // Check if the notice is new (less than 24 hours old)
+      isNewNotice(notice.created_at) && (
+        <Badge variant="secondary" className="ml-2">
+          N
+        </Badge>
+      )
+    );
+
+    return (
+      <div className="flex items-center">
+        <span className="truncate">{notice.title}</span>
+        {badge}
+      </div>
+    );
   };
-  
+
+  const isNewNotice = (dateStr: string) => {
+    const noticeDate = new Date(dateStr);
+    const now = new Date();
+    const diffInHours = (now.getTime() - noticeDate.getTime()) / (1000 * 60 * 60);
+    return diffInHours < 24;
+  };
+
   return (
-    <DashboardCard 
-      title="공지사항" 
-      action={
-        <Button variant="ghost" size="sm" onClick={() => navigate('/notices')}>
-          더보기
-        </Button>
-      }
-    >
-      {loadingNotices ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+    <Card className="shadow-sm">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg">최근 공지사항</CardTitle>
+          <Link to="/notices" className="text-xs text-muted-foreground hover:underline">
+            모두 보기
+          </Link>
         </div>
-      ) : recentNotices.length > 0 ? (
-        <div className="space-y-0">
-          {recentNotices.map(notice => (
-            <div key={notice.id} onClick={() => navigate(`/notices/${notice.id}`)} className="cursor-pointer">
-              <NoticeCard
-                title={
-                  <div className="flex items-center">
-                    <span>{notice.title}</span>
-                    {isNew(notice.created_at) && (
-                      <Badge variant="secondary" className="ml-1 bg-red-500 text-white text-xs h-4 w-4 rounded-full p-0 flex items-center justify-center">
-                        N
-                      </Badge>
-                    )}
-                  </div>
-                }
-                date={formatDate(notice.created_at)}
-                author={notice.author}
-                category={notice.category}
-              />
+      </CardHeader>
+      <CardContent className="divide-y">
+        {loading ? (
+          <>
+            {Array(5).fill(0).map((_, i) => (
+              <div key={i} className="py-3 flex justify-between items-center">
+                <Skeleton className="h-4 w-[70%]" />
+                <Skeleton className="h-4 w-[20%]" />
+              </div>
+            ))}
+          </>
+        ) : notices.length > 0 ? (
+          notices.map((notice) => (
+            <div key={notice.id} className="py-3 flex justify-between items-center">
+              <Link to={`/notices/${notice.id}`} className="hover:text-primary truncate max-w-[70%]">
+                {renderNoticeTitle(notice)}
+              </Link>
+              <span className="text-xs text-muted-foreground flex-shrink-0">
+                {formatDate(notice.created_at)}
+              </span>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-8 text-muted-foreground">
-          공지사항이 없습니다.
-        </div>
-      )}
-    </DashboardCard>
+          ))
+        ) : (
+          <div className="py-8 text-center text-muted-foreground">
+            공지사항이 없습니다
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
