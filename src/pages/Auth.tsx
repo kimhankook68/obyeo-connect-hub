@@ -106,9 +106,9 @@ const Auth = () => {
       });
 
     } catch (error: any) {
-      toast("로그인 실패", {
+      // Fix: Use the correct sonner toast API for error messages
+      toast.error("로그인 실패", {
         description: error.message || "로그인 중 오류가 발생했습니다.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -157,9 +157,9 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
-      toast("회원가입 실패", {
+      // Fix: Use the correct sonner toast API for error messages
+      toast.error("회원가입 실패", {
         description: error.message || "회원가입 중 오류가 발생했습니다.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
