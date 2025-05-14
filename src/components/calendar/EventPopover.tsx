@@ -36,7 +36,7 @@ const EventPopover: React.FC<EventPopoverProps> = ({
           {children}
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 z-50" align="start">
+      <PopoverContent className="w-80 p-0 z-[100] pointer-events-auto" align="start">
         <div className="bg-primary text-white p-3 font-medium rounded-t-md">
           {format(date, "yyyy년 MM월 dd일 EEEE", { locale: ko })}
         </div>
