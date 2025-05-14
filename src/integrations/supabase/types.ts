@@ -181,6 +181,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string | null
+          views: number
         }
         Insert: {
           author: string
@@ -190,6 +191,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id?: string | null
+          views?: number
         }
         Update: {
           author?: string
@@ -199,6 +201,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string | null
+          views?: number
         }
         Relationships: []
       }

@@ -100,7 +100,7 @@ const FreeBoardDetail = () => {
 
         // Increment view count once per session
         if (!viewIncremented) {
-          await incrementViewCount(postData.id);
+          await incrementViewCount(postData.id, postData.views || 0);
           setViewIncremented(true);
         }
 
@@ -122,11 +122,11 @@ const FreeBoardDetail = () => {
     }
   }, [id, navigate, viewIncremented]);
 
-  const incrementViewCount = async (postId: string) => {
+  const incrementViewCount = async (postId: string, currentViews: number) => {
     try {
       const { error } = await supabase
         .from("free_posts")
-        .update({ views: (post?.views || 0) + 1 })
+        .update({ views: currentViews + 1 })
         .eq("id", postId);
 
       if (error) {

@@ -26,6 +26,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 type FormData = {
   title: string;
@@ -39,6 +47,8 @@ const NoticeCreate = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<FormData | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -86,14 +96,19 @@ const NoticeCreate = () => {
     fetchCurrentUser();
   }, [navigate, toast, form]);
 
-  const onSubmit = async (data: FormData) => {
-    if (!currentUser) {
+  const handlePreSubmit = (data: FormData) => {
+    // Store the form data and open confirmation dialog
+    setFormData(data);
+    setIsDialogOpen(true);
+  };
+
+  const onSubmit = async () => {
+    if (!formData || !currentUser) {
       toast({
-        title: "로그인 필요",
-        description: "공지사항을 등록하려면 로그인이 필요합니다.",
+        title: "오류 발생",
+        description: "폼 데이터 또는 사용자 정보가 없습니다.",
         variant: "destructive",
       });
-      navigate("/auth");
       return;
     }
 
@@ -127,10 +142,10 @@ const NoticeCreate = () => {
         .from('notices')
         .insert([
           {
-            title: data.title,
-            author: data.author,
-            category: data.category,
-            content: data.content,
+            title: formData.title,
+            author: formData.author,
+            category: formData.category,
+            content: formData.content,
             attachment_url: attachmentUrl,
             user_id: currentUser.id, // Use the actual user ID
             views: 0, // Initialize views to 0
@@ -147,6 +162,9 @@ const NoticeCreate = () => {
         title: "작성 완료",
         description: "공지사항이 등록되었습니다.",
       });
+      
+      // Close dialog and redirect to the created notice
+      setIsDialogOpen(false);
       
       // 작성된 공지사항 상세 페이지로 이동
       navigate(`/notices/${notice.id}`);
@@ -188,7 +206,7 @@ const NoticeCreate = () => {
             </CardHeader>
             <CardContent className="pt-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(handlePreSubmit)} className="space-y-6">
                   <FormField
                     control={form.control}
                     name="title"
@@ -292,24 +310,54 @@ const NoticeCreate = () => {
                     >
                       취소
                     </Button>
-                    <Button type="submit" disabled={uploading}>
-                      {uploading ? (
-                        <>
-                          <div className="animate-spin mr-2 h-4 w-4 border-b-2 border-white rounded-full"></div>
-                          저장 중...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="mr-2 h-4 w-4" />
-                          등록
-                        </>
-                      )}
+                    <Button type="submit">
+                      <Upload className="mr-2 h-4 w-4" />
+                      등록하기
                     </Button>
                   </div>
                 </form>
               </Form>
             </CardContent>
           </Card>
+          
+          {/* Confirmation Dialog */}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>공지사항 등록 확인</DialogTitle>
+                <DialogDescription>
+                  작성한 공지사항을 등록하시겠습니까?
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="py-4">
+                <div className="space-y-2">
+                  <h4 className="font-semibold">제목</h4>
+                  <p className="text-sm text-muted-foreground">{formData?.title}</p>
+                </div>
+                <div className="mt-3 space-y-2">
+                  <h4 className="font-semibold">분류</h4>
+                  <p className="text-sm text-muted-foreground">{formData?.category}</p>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  취소
+                </Button>
+                <Button onClick={onSubmit} disabled={uploading}>
+                  {uploading ? (
+                    <>
+                      <div className="animate-spin mr-2 h-4 w-4 border-b-2 border-white rounded-full"></div>
+                      등록 중...
+                    </>
+                  ) : (
+                    '등록'
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>

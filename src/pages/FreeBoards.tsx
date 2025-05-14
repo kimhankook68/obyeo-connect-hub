@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -140,8 +139,7 @@ const FreeBoards = () => {
         return { 
           ...post, 
           authorName,
-          commentCount: commentCount || 0,
-          views: post.views || 0 // Use actual views count from DB
+          commentCount: commentCount || 0
         };
       }));
       
@@ -422,7 +420,7 @@ const FreeBoards = () => {
                             {post.authorName}
                           </TableCell>
                           <TableCell className="text-center">{formatDate(post.created_at)}</TableCell>
-                          <TableCell className="text-center">{post.views}</TableCell>
+                          <TableCell className="text-center">{post.views || 0}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
