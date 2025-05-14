@@ -80,7 +80,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
                       getEventColor(event.type)
                     )}
                   >
-                    {format(parseISO(event.start_time), "HH:mm")}
+                    {event.title}
                   </div>
                 ))}
                 
