@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import StatCards from "@/components/dashboard/StatCards";
 import RecentNotices from "@/components/dashboard/RecentNotices";
 import RecentDocuments from "@/components/dashboard/RecentDocuments";
-import UpcomingEvents from "@/components/dashboard/UpcomingEvents";
+import RecentPosts from "@/components/dashboard/UpcomingEvents";
 import MonthlyCalendar from "@/components/dashboard/MonthlyCalendar";
 
 const Index = () => {
@@ -47,7 +47,7 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <UpcomingEvents />
+            <RecentPosts />
             <MonthlyCalendar />
           </div>
         </main>

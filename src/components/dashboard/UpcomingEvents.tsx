@@ -5,6 +5,7 @@ import DashboardCard from "@/components/DashboardCard";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 type FreePost = {
   id: string;
@@ -53,8 +54,8 @@ const UpcomingEvents = () => {
   
   return (
     <DashboardCard 
-      title="최근 게시물" 
-      action={<Button variant="ghost" size="sm" onClick={() => navigate("/boards")}>모두 보기</Button>}
+      title="자유게시판" 
+      action={<Button variant="ghost" size="sm" onClick={() => navigate("/freeboards")}>더보기</Button>}
     >
       {loading ? (
         <div className="flex justify-center py-8">
@@ -65,20 +66,31 @@ const UpcomingEvents = () => {
           최근 게시물이 없습니다.
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="divide-y divide-gray-100">
           {posts.map(post => (
             <div 
               key={post.id} 
-              className="p-4 border border-border rounded-md cursor-pointer hover:bg-muted/50"
-              onClick={() => navigate(`/boards/${post.id}`)}
+              className="flex items-center py-3 cursor-pointer hover:bg-muted/20 transition-colors px-2"
+              onClick={() => navigate(`/freeboards/${post.id}`)}
             >
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium">{post.title}</h4>
-                <span className="text-xs text-muted-foreground">조회 {post.views}</span>
+              <div className="flex-shrink-0 w-8 text-xs text-gray-500 text-center">
+                <Badge variant="outline" className="bg-gray-50">공지</Badge>
               </div>
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>{post.author}</span>
-                <span>{formatPostDate(post.created_at)}</span>
+              <div className="flex-grow ml-2">
+                <p className="font-medium text-sm line-clamp-1">
+                  {post.title}
+                  {(new Date().getTime() - new Date(post.created_at).getTime()) < 86400000 && (
+                    <Badge variant="secondary" className="ml-2 bg-red-500 text-white text-xs h-4 w-4 rounded-full p-0 flex items-center justify-center">
+                      N
+                    </Badge>
+                  )}
+                </p>
+              </div>
+              <div className="flex-shrink-0 text-xs text-gray-500 ml-2">
+                {post.author.split('@')[0]}
+              </div>
+              <div className="flex-shrink-0 text-xs text-gray-500 ml-4">
+                {formatPostDate(post.created_at)}
               </div>
             </div>
           ))}
