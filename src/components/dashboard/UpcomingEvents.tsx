@@ -73,10 +73,7 @@ const UpcomingEvents = () => {
               className="flex items-center py-3 cursor-pointer hover:bg-muted/20 transition-colors px-2"
               onClick={() => navigate(`/freeboards/${post.id}`)}
             >
-              <div className="flex-shrink-0 w-8 text-xs text-gray-500 text-center">
-                <Badge variant="outline" className="bg-gray-50">공지</Badge>
-              </div>
-              <div className="flex-grow ml-2">
+              <div className="flex-grow">
                 <p className="font-medium text-sm line-clamp-1">
                   {post.title}
                   {(new Date().getTime() - new Date(post.created_at).getTime()) < 86400000 && (

@@ -50,6 +50,10 @@ const Index = () => {
             <RecentPosts />
             <MonthlyCalendar />
           </div>
+          
+          <footer className="mt-auto pt-4 border-t border-border text-center text-xs text-muted-foreground">
+            <p>© {new Date().getFullYear()} 인트라넷 시스템. All Rights Reserved.</p>
+          </footer>
         </main>
       </div>
     </div>
