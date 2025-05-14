@@ -104,9 +104,9 @@ const CalendarPage: React.FC = () => {
             onViewModeChange={handleViewModeChange}
           />
           
-          <div className="flex-1 overflow-hidden">
-            <Tabs value={view} onValueChange={(value) => handleViewChange(value as "calendar" | "list")} className="h-full">
-              <TabsContent value="calendar" className="h-full overflow-auto">
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <Tabs value={view} onValueChange={(value) => handleViewChange(value as "calendar" | "list")} className="h-full flex-1 flex flex-col">
+              <TabsContent value="calendar" className="h-full flex-1 overflow-auto flex flex-col">
                 <CalendarView 
                   date={date}
                   setDate={setDate}
@@ -120,7 +120,7 @@ const CalendarPage: React.FC = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="list" className="h-full overflow-auto">
+              <TabsContent value="list" className="h-full flex-1 overflow-auto">
                 <ListView 
                   events={events}
                   loading={loading}
