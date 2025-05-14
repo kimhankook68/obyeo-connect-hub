@@ -14,6 +14,7 @@ const CalendarPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [view, setView] = useState<"calendar" | "list">("calendar");
+  const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   
   const {
     events,
@@ -77,6 +78,11 @@ const CalendarPage: React.FC = () => {
     setView(newView);
   };
 
+  // 보기 모드 변경 핸들러 (월간, 주간, 일간)
+  const handleViewModeChange = (newMode: "month" | "week" | "day") => {
+    setViewMode(newMode);
+  };
+
   // 일정 추가 버튼 클릭 핸들러
   const handleAddEvent = () => {
     handleAdd();
@@ -94,6 +100,8 @@ const CalendarPage: React.FC = () => {
             onAddEvent={handleAddEvent} 
             view={view} 
             onViewChange={handleViewChange}
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
           />
           
           <Tabs value={view} onValueChange={(value) => handleViewChange(value as "calendar" | "list")}>
@@ -107,6 +115,7 @@ const CalendarPage: React.FC = () => {
                 handleDelete={handleDelete}
                 formatEventDate={formatEventDate}
                 isUserLoggedIn={!!user}
+                viewMode={viewMode}
               />
             </TabsContent>
             

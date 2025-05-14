@@ -1,28 +1,43 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, ChevronDown, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CalendarDays, CalendarMonth, Calendar as CalendarIcon } from "lucide-react";
 
 interface CalendarHeaderProps {
   onAddEvent: () => void;
   view: "calendar" | "list";
   onViewChange: (view: "calendar" | "list") => void;
+  viewMode: "month" | "week" | "day";
+  onViewModeChange: (mode: "month" | "week" | "day") => void;
 }
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({ 
   onAddEvent, 
   view, 
-  onViewChange 
+  onViewChange,
+  viewMode,
+  onViewModeChange
 }) => {
-  const [viewFilter, setViewFilter] = useState<string>("월간");
-  
+  const getViewLabel = () => {
+    switch (viewMode) {
+      case "day":
+        return "일간";
+      case "week":
+        return "주간";
+      case "month":
+        return "월간";
+      default:
+        return "월간";
+    }
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -39,18 +54,23 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
-                보기: {viewFilter}
-                <ChevronDown className="h-4 w-4" />
+                보기: {getViewLabel()}
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down h-4 w-4">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => setViewFilter("일간")}>
+              <DropdownMenuItem onClick={() => onViewModeChange("day")}>
+                <CalendarIcon className="h-4 w-4 mr-2" />
                 일간
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setViewFilter("주간")}>
+              <DropdownMenuItem onClick={() => onViewModeChange("week")}>
+                <CalendarDays className="h-4 w-4 mr-2" />
                 주간
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setViewFilter("월간")}>
+              <DropdownMenuItem onClick={() => onViewModeChange("month")}>
+                <CalendarMonth className="h-4 w-4 mr-2" />
                 월간
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -62,7 +82,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             className={view === "calendar" ? "bg-primary text-white" : ""}
             onClick={() => onViewChange("calendar")}
           >
-            <Calendar className="h-4 w-4 mr-1" />
+            <CalendarIcon className="h-4 w-4 mr-1" />
             캘린더
           </Button>
           
