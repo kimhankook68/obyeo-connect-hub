@@ -44,20 +44,20 @@ const WeekView: React.FC<WeekViewProps> = ({
   };
 
   return (
-    <div className="border rounded-lg shadow-sm overflow-hidden">
+    <div className="border rounded-lg shadow-sm overflow-hidden h-full flex flex-col">
       <div className="grid grid-cols-7 text-center bg-muted/10 border-b">
         {weekDates.map((weekDay, idx) => (
           <div 
             key={idx}
             className={cn(
-              "p-3 font-medium",
+              "p-2 font-medium",
               weekDay.getDay() === 0 ? "text-red-500" : 
               weekDay.getDay() === 6 ? "text-blue-500" : ""
             )}
           >
-            <div className="text-sm lg:text-base">{format(weekDay, "EEE", { locale: ko })}</div>
+            <div className="text-sm">{format(weekDay, "EEE", { locale: ko })}</div>
             <div className={cn(
-              "inline-flex items-center justify-center w-8 h-8 rounded-full mt-1",
+              "inline-flex items-center justify-center w-6 h-6 rounded-full",
               isToday(weekDay) ? "bg-primary text-primary-foreground" : ""
             )}>
               {format(weekDay, "d", { locale: ko })}
@@ -66,7 +66,7 @@ const WeekView: React.FC<WeekViewProps> = ({
         ))}
       </div>
       
-      <div className="grid grid-cols-7 min-h-[500px]">
+      <div className="grid grid-cols-7 flex-1">
         {weekDates.map((day, idx) => {
           const dayEvents = events.filter(event => {
             const eventDate = parseISO(event.start_time);
@@ -77,17 +77,17 @@ const WeekView: React.FC<WeekViewProps> = ({
             <div 
               key={idx} 
               className={cn(
-                "border-r min-h-[80px] h-full p-1 transition-colors cursor-pointer",
+                "border-r p-1 transition-colors cursor-pointer overflow-y-auto",
                 getDayBackground(day)
               )}
               onClick={() => setDate(day)}
             >
-              <div className="space-y-1 h-full overflow-y-auto">
+              <div className="space-y-1">
                 {dayEvents.map((event) => (
                   <div 
                     key={event.id} 
                     className={cn(
-                      "text-xs text-white p-1.5 rounded-md truncate mb-1 cursor-pointer hover:opacity-90",
+                      "text-xs text-white p-1 rounded-md truncate mb-1 cursor-pointer hover:opacity-90",
                       getEventTypeColor(event.type)
                     )}
                     onClick={(e) => {

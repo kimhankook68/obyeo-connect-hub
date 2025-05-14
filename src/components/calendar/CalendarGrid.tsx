@@ -42,7 +42,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
       <CalendarWeekdayHeader weekdayLabels={weekdayLabels} />
       <tbody className="divide-y">
         {calendarDays.map((week, weekIndex) => (
-          <tr key={weekIndex} className="divide-x h-[calc(100%/6)]">
+          <tr key={weekIndex} className="divide-x" style={{ height: `calc(100% / ${calendarDays.length})` }}>
             {week.map((day, dayIndex) => {
               const dayEvents = getEventsForDay(day);
               const isSelected = date && isSameDay(day, date);

@@ -39,7 +39,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     <td 
       onClick={() => handleDateClick(day)}
       className={cn(
-        "relative p-0 align-top cursor-pointer hover:bg-gray-50 transition-colors h-full",
+        "relative p-0 align-top cursor-pointer hover:bg-gray-50 transition-colors",
         !isCurrentMonth && "text-gray-400 bg-gray-50",
         isSelected && "bg-blue-50"
       )}
@@ -47,21 +47,21 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
       <div className="flex flex-col h-full p-1">
         {/* 날짜 번호 */}
         <div className={cn(
-          "flex justify-center items-center mb-1",
+          "flex justify-center items-center",
           dayIndex === 0 ? "text-red-500" : 
           dayIndex === 6 ? "text-blue-500" : "",
           !isCurrentMonth && "text-gray-400"
         )}>
           <span className={cn(
-            "text-center w-8 h-8 flex items-center justify-center",
+            "text-center w-6 h-6 flex items-center justify-center",
             isToday && isCurrentMonth && "bg-blue-500 text-white rounded-full"
           )}>
             {format(day, "d")}
           </span>
         </div>
         
-        {/* 이벤트 표시 영역 - 수정: 제목 제거, 시간만 표시 */}
-        <div className="flex-1 overflow-hidden">
+        {/* 이벤트 표시 영역 - 균등한 높이 분배를 위해 flex-1 사용 */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {isCurrentMonth && dayEvents.length > 0 && (
             <EventPopover
               date={day}
