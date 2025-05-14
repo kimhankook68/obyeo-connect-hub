@@ -5,16 +5,25 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Building2, Mail, Phone, UserRound } from "lucide-react";
-import { Member } from "@/types/member";
 import { useNavigate } from "react-router-dom";
 
 interface ProfileViewProps {
-  member: Member;
+  profile: {
+    id: string;
+    email?: string;
+    name?: string;
+    role?: string;
+    department?: string;
+    phone?: string;
+    image?: string;
+    updated_at?: string;
+    created_at?: string;
+  };
   isOwnProfile: boolean;
-  onEdit: () => void;
+  onEdit?: () => void;
 }
 
-const ProfileView = ({ member, isOwnProfile, onEdit }: ProfileViewProps) => {
+const ProfileView = ({ profile, isOwnProfile, onEdit }: ProfileViewProps) => {
   const navigate = useNavigate();
   
   return (
@@ -22,14 +31,14 @@ const ProfileView = ({ member, isOwnProfile, onEdit }: ProfileViewProps) => {
       <CardHeader>
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={member.image || ""} />
+            <AvatarImage src={profile.image || ""} />
             <AvatarFallback>
-              {member.name ? member.name.substring(0, 2).toUpperCase() : "??"}
+              {profile.name ? profile.name.substring(0, 2).toUpperCase() : "??"}
             </AvatarFallback>
           </Avatar>
           <div>
-            <CardTitle>{member.name}</CardTitle>
-            <p className="text-muted-foreground">{member.role}</p>
+            <CardTitle>{profile.name}</CardTitle>
+            <p className="text-muted-foreground">{profile.role}</p>
           </div>
         </div>
       </CardHeader>
@@ -41,7 +50,7 @@ const ProfileView = ({ member, isOwnProfile, onEdit }: ProfileViewProps) => {
               <UserRound className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-sm text-muted-foreground">이름</p>
-                <p>{member.name || "-"}</p>
+                <p>{profile.name || "-"}</p>
               </div>
             </div>
             
@@ -49,7 +58,7 @@ const ProfileView = ({ member, isOwnProfile, onEdit }: ProfileViewProps) => {
               <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-sm text-muted-foreground">이메일</p>
-                <p>{member.email || "-"}</p>
+                <p>{profile.email || "-"}</p>
               </div>
             </div>
             
@@ -57,7 +66,7 @@ const ProfileView = ({ member, isOwnProfile, onEdit }: ProfileViewProps) => {
               <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-sm text-muted-foreground">연락처</p>
-                <p>{member.phone || "-"}</p>
+                <p>{profile.phone || "-"}</p>
               </div>
             </div>
           </div>
@@ -69,7 +78,7 @@ const ProfileView = ({ member, isOwnProfile, onEdit }: ProfileViewProps) => {
               <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-sm text-muted-foreground">부서</p>
-                <p>{member.department || "-"}</p>
+                <p>{profile.department || "-"}</p>
               </div>
             </div>
             
@@ -77,7 +86,7 @@ const ProfileView = ({ member, isOwnProfile, onEdit }: ProfileViewProps) => {
               <UserRound className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-sm text-muted-foreground">직책</p>
-                <p>{member.role || "-"}</p>
+                <p>{profile.role || "-"}</p>
               </div>
             </div>
           </div>
@@ -86,10 +95,10 @@ const ProfileView = ({ member, isOwnProfile, onEdit }: ProfileViewProps) => {
       
       <CardFooter className="flex justify-between border-t px-6 py-4">
         <div className="text-xs text-muted-foreground">
-          최종 수정일: {new Date(member.created_at).toLocaleDateString('ko-KR')}
+          최종 수정일: {profile.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : "-"}
         </div>
         <div className="flex gap-2">
-          {isOwnProfile && (
+          {isOwnProfile && onEdit && (
             <Button onClick={onEdit}>수정</Button>
           )}
           <Button variant="outline" size="sm" onClick={() => navigate('/members')}>

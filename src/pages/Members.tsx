@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import MembersList from "@/components/MembersList";
-import MemberFormDialog from "@/components/MemberFormDialog";
-import MemberDeleteDialog from "@/components/MemberDeleteDialog";
+import { MemberFormDialog } from "@/components/MemberFormDialog";
+import { MemberDeleteDialog } from "@/components/MemberDeleteDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,12 +136,11 @@ const Members = () => {
               
               return searchFilter;
             })}
-            isLoading={isLoading}
-            onEdit={(member) => {
+            onEditMember={(member) => {
               setSelectedMember(member);
               setIsFormOpen(true);
             }}
-            onDelete={(member) => {
+            onDeleteMember={(member) => {
               setSelectedMember(member);
               setIsDeleteDialogOpen(true);
             }}
@@ -149,16 +148,17 @@ const Members = () => {
 
           <MemberFormDialog
             open={isFormOpen}
-            member={selectedMember}
+            editMember={selectedMember}
             onOpenChange={setIsFormOpen}
-            onSubmit={selectedMember ? handleEditMember : handleAddMember}
+            onSuccess={fetchMembers}
           />
 
           <MemberDeleteDialog
             open={isDeleteDialogOpen}
             onOpenChange={setIsDeleteDialogOpen}
-            onDelete={handleDeleteMember}
-            memberName={selectedMember?.name || ""}
+            memberId={selectedMember?.id || null}
+            memberName={selectedMember?.name || null}
+            onSuccess={fetchMembers}
           />
         </main>
       </div>

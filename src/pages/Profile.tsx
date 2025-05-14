@@ -143,7 +143,7 @@ const Profile = () => {
                 onCancel={() => setEditing(false)} 
               />
             ) : (
-              <ProfileView profile={profile} isOwnProfile={true} />
+              <ProfileView profile={profile} isOwnProfile={true} onEdit={() => setEditing(true)} />
             )}
           </div>
         </main>
