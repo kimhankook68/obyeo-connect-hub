@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,11 @@ const navItems: NavItem[] = [
     name: "임직원",
     path: "/members",
     icon: "👥"
+  },
+  {
+    name: "대화하기",
+    path: "/chat",
+    icon: "💬"
   }
 ];
 

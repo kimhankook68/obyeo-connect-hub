@@ -96,7 +96,9 @@ const Chat = () => {
   return (
     <div className="flex h-screen bg-background">
       <div className="flex-1 flex flex-col">
-        <Header title="대화하기" subtitle="임직원들과 대화를 나눠보세요." />
+        <Header 
+          title="대화하기"
+        />
         
         <div className="flex flex-1 overflow-hidden">
           <div className="w-80 border-r border-border overflow-y-auto bg-muted/30">
