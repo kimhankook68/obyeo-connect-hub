@@ -2,6 +2,7 @@
 import React, { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import AuthStatus from "./AuthStatus";
 
 interface HeaderProps {
   title: string;
@@ -23,11 +24,10 @@ const Header = ({ title, rightContent }: HeaderProps) => {
           </Button>
           <h1 className="text-xl font-semibold">{title}</h1>
         </div>
-        {rightContent && (
-          <div>
-            {rightContent}
-          </div>
-        )}
+        <div className="flex items-center space-x-4">
+          {rightContent}
+          <AuthStatus />
+        </div>
       </div>
     </header>
   );
