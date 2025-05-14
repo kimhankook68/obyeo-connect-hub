@@ -11,9 +11,6 @@ import EventForm from "@/components/calendar/EventForm";
 import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import EventsGrid from "@/components/calendar/EventsGrid";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
 
 const Calendar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -61,8 +58,6 @@ const Calendar = () => {
 
   const isUserLoggedIn = !!user;
 
-  const selectedDateEvents = getSelectedDateEvents();
-  
   return (
     <div className="flex h-screen">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
@@ -106,22 +101,6 @@ const Calendar = () => {
               />
             </div>
           </Card>
-          
-          {selectedDate && (
-            <div className="mt-6">
-              <h2 className="text-xl font-medium mb-4">
-                {format(selectedDate, "yyyy년 MM월 dd일", { locale: ko })} 일정 목록
-              </h2>
-              <EventsGrid
-                events={selectedDateEvents}
-                handleEdit={handleEdit}
-                handleDelete={handleDelete}
-                formatEventDate={formatEventDate}
-                isUserLoggedIn={isUserLoggedIn}
-                selectedDate={selectedDate}
-              />
-            </div>
-          )}
 
           {/* Event form dialog */}
           <EventForm 

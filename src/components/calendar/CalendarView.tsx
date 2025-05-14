@@ -5,7 +5,6 @@ import { ko } from "date-fns/locale";
 import MonthView from "./MonthView";
 import WeekView from "./WeekView";
 import DayView from "./DayView";
-import EventsList from "./EventsList";
 import { CalendarEvent } from "@/hooks/useCalendarEvents";
 
 interface CalendarViewProps {
@@ -79,25 +78,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           <DayView 
             date={date} 
             loading={loading} 
-            filteredEvents={filteredEvents} 
-          />
-        )}
-      </div>
-      
-      {/* 선택된 날짜의 이벤트 목록 */}
-      {date && viewMode === "month" && (
-        <div className="mt-4">
-          <EventsList 
-            date={date}
-            loading={loading}
             filteredEvents={filteredEvents}
             handleEdit={handleEdit}
             handleDelete={handleDelete}
-            formatEventDate={formatEventDate}
             isUserLoggedIn={isUserLoggedIn}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
