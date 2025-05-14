@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ const AuthStatus = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -31,11 +32,9 @@ const AuthStatus = () => {
         (event, session) => {
           setUser(session?.user || null);
           
-          // Redirect to auth page on sign out
-          if (event === 'SIGNED_OUT') {
+          // Redirect to auth page on sign out, but only if we're not already there
+          if (event === 'SIGNED_OUT' && location.pathname !== '/auth') {
             navigate('/auth');
-          } else if (event === 'SIGNED_IN') {
-            navigate('/');
           }
         }
       );
@@ -44,13 +43,13 @@ const AuthStatus = () => {
     };
     
     fetchUser();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
   
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
       toast.success("로그아웃 되었습니다.");
-      // Redirection will be handled by onAuthStateChange
+      navigate('/auth');
     } catch (error) {
       toast.error("로그아웃 중 오류가 발생했습니다.");
       console.error("Logout error:", error);

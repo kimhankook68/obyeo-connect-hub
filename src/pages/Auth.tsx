@@ -99,17 +99,18 @@ const Auth = () => {
         throw error;
       }
 
-      // Explicitly navigate to dashboard after successful login
-      navigate("/");
+      // Login successful - navigate to dashboard
       toast.success("로그인 성공", {
         description: "환영합니다!",
       });
+      navigate("/");
 
     } catch (error: any) {
       // Use the correct sonner toast API for error messages
       toast.error("로그인 실패", {
         description: error.message || "로그인 중 오류가 발생했습니다.",
       });
+      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -119,6 +120,7 @@ const Auth = () => {
   const onSignupSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
     try {
+      console.log("Starting signup process with data:", data);
       const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -126,54 +128,58 @@ const Auth = () => {
           data: {
             name: data.name,
           },
-          emailRedirectTo: window.location.origin,
         },
       });
 
       if (error) {
+        console.error("Signup error:", error);
         throw error;
       }
 
-      // Add the user to members table after successful signup
-      const newMember = {
-        name: data.name,
-        email: data.email,
-        department: "미지정",
-        role: "일반회원",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user_id: signUpData.user?.id
-      };
+      console.log("Signup successful, user data:", signUpData);
       
-      await supabase.from("members").insert([newMember]);
+      // Add the user to members table after successful signup
+      if (signUpData.user) {
+        console.log("Adding user to members table with ID:", signUpData.user.id);
+        const newMember = {
+          name: data.name,
+          email: data.email,
+          department: "미지정",
+          role: "일반회원",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user_id: signUpData.user.id
+        };
+        
+        const { error: memberError } = await supabase.from("members").insert([newMember]);
+        
+        if (memberError) {
+          console.error("Error adding member:", memberError);
+        } else {
+          console.log("Member added successfully");
+        }
+      }
 
       // If signup was successful and we have a session, sign in automatically
       if (signUpData.session) {
-        navigate("/");
         toast.success("회원가입 성공", {
           description: "환영합니다!",
         });
+        navigate("/");
       } else {
         // In case there's no session but signup worked
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password,
-        });
-        
-        if (signInError) {
-          throw signInError;
-        }
-        
-        navigate("/");
         toast.success("회원가입 성공", {
-          description: "환영합니다!",
+          description: "로그인해주세요.",
         });
+        // Switch to login tab
+        setActiveTab("login");
       }
     } catch (error: any) {
       // Use the correct sonner toast API for error messages
       toast.error("회원가입 실패", {
         description: error.message || "회원가입 중 오류가 발생했습니다.",
       });
+      console.error("Signup error:", error);
     } finally {
       setIsLoading(false);
     }

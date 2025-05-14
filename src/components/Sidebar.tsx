@@ -39,10 +39,6 @@ const navItems: NavItem[] = [
 
 const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean, setCollapsed: (value: boolean) => void }) => {
   const navigate = useNavigate();
-
-  const handleNavClick = (path: string) => {
-    navigate(path);
-  };
   
   return (
     <aside
