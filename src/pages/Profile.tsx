@@ -107,7 +107,7 @@ const Profile = () => {
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header>내 프로필</Header>
+        <Header title="내 프로필" />
         
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-3xl mx-auto">
