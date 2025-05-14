@@ -14,7 +14,6 @@ import { Member } from "@/types/member";
 const Members = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -101,6 +100,14 @@ const Members = () => {
     }
   };
 
+  const filteredMembers = members.filter(member => {
+    return !searchTerm || 
+      member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -127,15 +134,8 @@ const Members = () => {
           </div>
 
           <MembersList
-            members={members.filter(member => {
-              // 검색어 필터링
-              const searchFilter = !searchTerm || 
-                member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                member.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                member.role?.toLowerCase().includes(searchTerm.toLowerCase());
-              
-              return searchFilter;
-            })}
+            members={filteredMembers}
+            isLoading={isLoading}
             onEditMember={(member) => {
               setSelectedMember(member);
               setIsFormOpen(true);

@@ -52,8 +52,8 @@ const ProfileEditForm = ({ profile, onSubmit, onCancel }: ProfileEditFormProps) 
             </AvatarFallback>
           </Avatar>
           <div>
-            <CardTitle>{profile.name}</CardTitle>
-            <p className="text-muted-foreground">{profile.role}</p>
+            <CardTitle>프로필 수정</CardTitle>
+            <p className="text-muted-foreground">임직원 정보 수정하기</p>
           </div>
         </div>
       </CardHeader>

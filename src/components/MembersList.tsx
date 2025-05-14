@@ -3,19 +3,27 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Member } from "@/types/member";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, User } from "lucide-react";
 
 interface MembersListProps {
   members: Member[];
+  isLoading?: boolean;
   onEditMember: (member: Member) => void;
   onDeleteMember: (member: Member) => void;
 }
 
-const MembersList = ({ members, onEditMember, onDeleteMember }: MembersListProps) => {
+const MembersList = ({ members, isLoading, onEditMember, onDeleteMember }: MembersListProps) => {
   const navigate = useNavigate();
+  
+  if (isLoading) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-muted-foreground">임직원 정보를 불러오는 중...</p>
+      </div>
+    );
+  }
   
   if (members.length === 0) {
     return (
@@ -26,63 +34,64 @@ const MembersList = ({ members, onEditMember, onDeleteMember }: MembersListProps
   }
 
   return (
-    <Card>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[250px]">이름</TableHead>
-              <TableHead>이메일</TableHead>
-              <TableHead>부서</TableHead>
-              <TableHead>직책</TableHead>
-              <TableHead>연락처</TableHead>
-              <TableHead className="w-[150px] text-right">작업</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.image || ""} />
-                      <AvatarFallback>
-                        {member.name ? member.name.substring(0, 2).toUpperCase() : "??"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span>{member.name || "이름 없음"}</span>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {members.map((member) => (
+        <Card key={member.id} className="overflow-hidden hover:shadow-md transition-shadow">
+          <CardContent className="p-0">
+            <div className="flex flex-col">
+              <div className="bg-gray-50 p-4 flex items-center space-x-4">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={member.image || ""} />
+                  <AvatarFallback>
+                    {member.name ? member.name.substring(0, 2).toUpperCase() : "??"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{member.name || "이름 없음"}</p>
+                  <p className="text-sm text-muted-foreground">{member.role || "-"}</p>
+                </div>
+              </div>
+              
+              <div className="p-4 border-t">
+                <div className="flex flex-col space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">부서</span>
+                    <span className="font-medium">{member.department || "-"}</span>
                   </div>
-                </TableCell>
-                <TableCell>{member.email || "-"}</TableCell>
-                <TableCell>{member.department || "-"}</TableCell>
-                <TableCell>{member.role || "-"}</TableCell>
-                <TableCell>{member.phone || "-"}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => navigate(`/profile?id=${member.id}`)}
-                    >
-                      <User className="h-4 w-4" />
-                      <span className="sr-only">프로필</span>
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onEditMember(member)}>
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">수정</span>
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDeleteMember(member)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                      <span className="sr-only">삭제</span>
-                    </Button>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">이메일</span>
+                    <span className="font-medium">{member.email || "-"}</span>
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">연락처</span>
+                    <span className="font-medium">{member.phone || "-"}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t p-3 bg-gray-50 flex justify-end space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => navigate(`/profile?id=${member.id}`)}
+                >
+                  <User className="h-4 w-4 mr-1" />
+                  <span>프로필</span>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onEditMember(member)}>
+                  <Edit className="h-4 w-4 mr-1" />
+                  <span>수정</span>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDeleteMember(member)}>
+                  <Trash2 className="h-4 w-4 mr-1 text-destructive" />
+                  <span className="text-destructive">삭제</span>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 

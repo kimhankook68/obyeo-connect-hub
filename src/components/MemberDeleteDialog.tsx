@@ -38,7 +38,7 @@ export function MemberDeleteDialog({
     try {
       setIsDeleting(true);
       const { error } = await supabase
-        .from("profiles")
+        .from("members")
         .delete()
         .eq("id", memberId);
 

@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// Remove incorrect import of v4
 
 // 부서 목록 정의
 export const DEPARTMENTS = [
@@ -115,7 +114,7 @@ export function MemberFormDialog({
       if (editMember) {
         // 기존 임직원 데이터 수정
         const { error } = await supabase
-          .from("profiles")
+          .from("members")
           .update({
             name: values.name,
             email: values.email,
@@ -137,13 +136,15 @@ export function MemberFormDialog({
         const newId = crypto.randomUUID();
         
         // 새 임직원 데이터 삽입
-        const { error } = await supabase.from("profiles").insert({
+        const { error } = await supabase.from("members").insert({
           id: newId,
           name: values.name,
           email: values.email,
           department: values.department,
           role: values.role,
           phone: values.phone || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         });
 
         if (error) throw error;

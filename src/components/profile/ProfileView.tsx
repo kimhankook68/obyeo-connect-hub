@@ -37,8 +37,8 @@ const ProfileView = ({ profile, isOwnProfile, onEdit }: ProfileViewProps) => {
             </AvatarFallback>
           </Avatar>
           <div>
-            <CardTitle>{profile.name}</CardTitle>
-            <p className="text-muted-foreground">{profile.role}</p>
+            <CardTitle>{profile.name || "이름 없음"}</CardTitle>
+            <p className="text-muted-foreground">{profile.role || "직책 정보 없음"}</p>
           </div>
         </div>
       </CardHeader>
@@ -95,10 +95,10 @@ const ProfileView = ({ profile, isOwnProfile, onEdit }: ProfileViewProps) => {
       
       <CardFooter className="flex justify-between border-t px-6 py-4">
         <div className="text-xs text-muted-foreground">
-          최종 수정일: {profile.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : "-"}
+          최종 수정일: {profile.updated_at ? new Date(profile.updated_at).toLocaleDateString('ko-KR') : "-"}
         </div>
         <div className="flex gap-2">
-          {isOwnProfile && onEdit && (
+          {(isOwnProfile && onEdit) && (
             <Button onClick={onEdit}>수정</Button>
           )}
           <Button variant="outline" size="sm" onClick={() => navigate('/members')}>

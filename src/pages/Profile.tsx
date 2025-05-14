@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import ProfileView from "@/components/profile/ProfileView";
@@ -21,6 +21,7 @@ interface Profile {
   phone?: string;
   image?: string;
   updated_at?: string;
+  created_at?: string;
 }
 
 const Profile = () => {
@@ -29,6 +30,8 @@ const Profile = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [editing, setEditing] = useState<boolean>(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const profileId = searchParams.get('id');
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
@@ -37,19 +40,33 @@ const Profile = () => {
         const { data: userData } = await supabase.auth.getUser();
         setUser(userData.user);
 
-        // 프로필 정보 가져오기 (실제로는 URL 파라미터나 다른 방식으로 다른 사람의 프로필도 볼 수 있게 할 수 있음)
-        if (userData.user) {
-          const { data: profileData, error } = await supabase
-            .from('profiles')
+        // 프로필 정보 가져오기
+        const id = profileId || userData.user?.id;
+        
+        if (id) {
+          // 먼저 members 테이블에서 확인
+          let { data: memberData, error: memberError } = await supabase
+            .from('members')
             .select('*')
-            .eq('id', userData.user.id)
+            .eq('id', id)
             .single();
 
-          if (error && error.code !== 'PGRST116') {
-            throw error;
-          }
+          // members 테이블에 없으면 profiles 테이블에서 확인
+          if (memberError) {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', id)
+              .single();
 
-          setProfile(profileData || { id: userData.user.id, email: userData.user.email });
+            if (profileError && profileError.code !== 'PGRST116') {
+              throw profileError;
+            }
+            
+            setProfile(profileData || (id === userData.user?.id ? { id, email: userData.user.email } : null));
+          } else {
+            setProfile(memberData);
+          }
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -60,29 +77,30 @@ const Profile = () => {
     };
 
     fetchUserAndProfile();
-  }, []);
+  }, [profileId]);
 
   const handleSaveProfile = async (updatedProfile: Partial<Profile>) => {
-    if (!user) return;
+    if (!profile) return;
     
     try {
+      const tableName = profileId ? 'members' : 'profiles';
+      
       // 기존 프로필이 없으면 생성, 있으면 업데이트
-      const { error } = profile && profile.updated_at 
-        ? await supabase
-            .from('profiles')
-            .update(updatedProfile)
-            .eq('id', user.id)
-        : await supabase
-            .from('profiles')
-            .insert([{ ...updatedProfile, id: user.id }]);
+      const { error } = await supabase
+        .from(tableName)
+        .update({
+          ...updatedProfile,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', profile.id);
 
       if (error) throw error;
 
       // 업데이트된 프로필 정보 다시 로드
       const { data: refreshedProfile, error: refreshError } = await supabase
-        .from('profiles')
+        .from(tableName)
         .select('*')
-        .eq('id', user.id)
+        .eq('id', profile.id)
         .single();
 
       if (refreshError) throw refreshError;
@@ -104,10 +122,14 @@ const Profile = () => {
     }
   };
 
+  // 현재 로그인한 사용자의 프로필인지 확인
+  const isOwnProfile = !profileId || (user && profileId === user.id);
+  const title = isOwnProfile ? "내 프로필" : (profile?.name ? `${profile.name}님의 프로필` : "사용자 프로필");
+
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="내 프로필" />
+        <Header title={title} />
         
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-3xl mx-auto">
@@ -121,7 +143,7 @@ const Profile = () => {
                 {editing ? '취소' : '돌아가기'}
               </Button>
               
-              {!editing && !loading && profile && (
+              {!editing && !loading && profile && (isOwnProfile || user?.email?.endsWith('@admin.com')) && (
                 <Button 
                   onClick={() => setEditing(true)}
                   variant="outline"
@@ -143,7 +165,11 @@ const Profile = () => {
                 onCancel={() => setEditing(false)} 
               />
             ) : (
-              <ProfileView profile={profile} isOwnProfile={true} onEdit={() => setEditing(true)} />
+              <ProfileView 
+                profile={profile} 
+                isOwnProfile={isOwnProfile} 
+                onEdit={() => setEditing(true)} 
+              />
             )}
           </div>
         </main>
