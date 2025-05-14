@@ -5,12 +5,11 @@ import Sidebar from "@/components/Sidebar";
 import { Card } from "@/components/ui/card";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { supabase } from "@/integrations/supabase/client";
-import CalendarWeekdayHeader from "@/components/calendar/CalendarHeader";
 import CalendarView from "@/components/calendar/CalendarView";
 import EventForm from "@/components/calendar/EventForm";
 import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Calendar = () => {
@@ -59,9 +58,6 @@ const Calendar = () => {
 
   const isUserLoggedIn = !!user;
 
-  // Define weekday labels here
-  const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
-
   return (
     <div className="flex h-screen bg-muted/5">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
@@ -69,41 +65,40 @@ const Calendar = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="일정 관리" />
         
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col">
+          <div className="max-w-7xl mx-auto w-full flex flex-col h-full">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl font-bold">일정 관리</h1>
               
-              {/* Removed the top "새 일정" button */}
-            </div>
-            
-            {/* Pass the weekdayLabels to the CalendarWeekdayHeader component */}
-            <div className="calendar-header">
-              {viewMode === "month" && (
-                <CalendarWeekdayHeader 
-                  weekdayLabels={weekdayLabels}
-                />
+              {/* 일정 추가 버튼 (복원) */}
+              {isUserLoggedIn && (
+                <Button 
+                  onClick={handleAdd} 
+                  className="hidden md:inline-flex"
+                >
+                  <Plus className="mr-1 h-4 w-4" /> 새 일정
+                </Button>
               )}
             </div>
             
-            {/* 달력 뷰 */}
-            <Card className="overflow-hidden shadow-sm mb-6">
+            {/* 달력 뷰 - h-full을 추가하여 사이드바와 높이를 맞춤 */}
+            <Card className="overflow-hidden shadow-sm mb-6 flex-grow">
               {loading ? (
-                <div className="p-4 space-y-4">
+                <div className="p-4 space-y-4 h-full">
                   <Skeleton className="h-[40px] w-full" />
                   <div className="grid grid-cols-7 gap-2">
                     {Array(7).fill(0).map((_, i) => (
                       <Skeleton key={i} className="h-[40px]" />
                     ))}
                   </div>
-                  <div className="grid grid-cols-7 gap-1">
+                  <div className="grid grid-cols-7 gap-1 h-full">
                     {Array(35).fill(0).map((_, i) => (
                       <Skeleton key={i} className="h-[80px]" />
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="p-4">
+                <div className="p-4 h-full">
                   <CalendarView 
                     viewMode={viewMode} 
                     events={events} 

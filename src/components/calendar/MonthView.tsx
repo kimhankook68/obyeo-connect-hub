@@ -1,3 +1,4 @@
+
 import React, { useMemo } from "react";
 import { 
   isSameDay, 
@@ -96,13 +97,13 @@ const MonthView: React.FC<MonthViewProps> = ({
     }
   };
   
-  // 달력 헤더 요일 배열 - Ensure this is defined
+  // 달력 헤더 요일 배열
   const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-center w-full">
+      <div className="mb-2">
+        <h2 className="text-xl font-semibold text-center">
           {format(currentMonth, "yyyy년 M월", { locale: ko })}
         </h2>
       </div>
@@ -113,8 +114,8 @@ const MonthView: React.FC<MonthViewProps> = ({
         goToNextMonth={goToNextMonth}
       />
       
-      {/* AspectRatio로 달력 컨테이너 감싸기 */}
-      <AspectRatio ratio={1} className="w-full border rounded-md overflow-hidden">
+      {/* 달력 컨테이너를 flex-grow로 변경하여 전체 높이를 채우도록 */}
+      <div className="flex-grow border rounded-md overflow-hidden">
         <div className="w-full h-full">
           <CalendarGrid 
             calendarDays={calendarDays}
@@ -130,7 +131,7 @@ const MonthView: React.FC<MonthViewProps> = ({
             isUserLoggedIn={isUserLoggedIn}
           />
         </div>
-      </AspectRatio>
+      </div>
     </div>
   );
 };
