@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, Settings, User } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 const AuthStatus = () => {
   const [user, setUser] = useState<any>(null);

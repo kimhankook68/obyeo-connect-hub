@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -54,10 +53,8 @@ export const useDocuments = () => {
       setDocuments(documentsWithAuthors);
     } catch (error: any) {
       console.error('문서 로딩 오류:', error);
-      toast({
-        title: "문서 로딩 실패",
-        description: error.message,
-        variant: "destructive",
+      toast.error("문서 로딩 실패", {
+        description: error.message
       });
     } finally {
       setLoading(false);
@@ -71,20 +68,16 @@ export const useDocuments = () => {
         throw new Error("다운로드에 실패했습니다.");
       }
     } catch (error: any) {
-      toast({
-        title: "파일 다운로드 실패",
-        description: error.message,
-        variant: "destructive",
+      toast.error("파일 다운로드 실패", {
+        description: error.message
       });
     }
   };
 
   const handleDelete = async (doc: Document) => {
     if (!user) {
-      toast({
-        title: "로그인이 필요합니다",
-        description: "파일 삭제를 위해 로그인해주세요",
-        variant: "destructive",
+      toast.error("로그인이 필요합니다", {
+        description: "파일 삭제를 위해 로그인해주세요"
       });
       return;
     }
@@ -101,14 +94,10 @@ export const useDocuments = () => {
       // 3. 목록 업데이트
       setDocuments(documents.filter(d => d.id !== doc.id));
       
-      toast({
-        title: "파일이 삭제되었습니다",
-      });
+      toast.success("파일이 삭제되었습니다");
     } catch (error: any) {
-      toast({
-        title: "파일 삭제 실패",
-        description: error.message,
-        variant: "destructive",
+      toast.error("파일 삭제 실패", {
+        description: error.message
       });
     }
   };

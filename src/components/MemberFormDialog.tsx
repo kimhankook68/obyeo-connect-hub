@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -127,10 +126,7 @@ export function MemberFormDialog({
 
         if (error) throw error;
 
-        toast({
-          title: "임직원 정보 수정 완료",
-          description: "임직원 정보가 성공적으로 수정되었습니다.",
-        });
+        toast.success("임직원 정보가 성공적으로 수정되었습니다.");
       } else {
         // 새 UUID 생성
         const newId = crypto.randomUUID();
@@ -149,10 +145,7 @@ export function MemberFormDialog({
 
         if (error) throw error;
 
-        toast({
-          title: "임직원 등록 완료",
-          description: "새 임직원이 성공적으로 등록되었습니다.",
-        });
+        toast.success("새 임직원이 성공적으로 등록되었습니다.");
       }
 
       // 폼 초기화 및 대화상자 닫기
@@ -165,10 +158,8 @@ export function MemberFormDialog({
       }
     } catch (error) {
       console.error("임직원 등록/수정 오류:", error);
-      toast({
-        variant: "destructive",
-        title: editMember ? "임직원 수정 실패" : "임직원 등록 실패",
-        description: "작업 중 오류가 발생했습니다.",
+      toast.error(editMember ? "임직원 수정 실패" : "임직원 등록 실패", {
+        description: "작업 중 오류가 발생했습니다."
       });
     }
   }

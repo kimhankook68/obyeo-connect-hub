@@ -1,7 +1,6 @@
-
 import React from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 import {
   AlertDialog,
@@ -44,10 +43,7 @@ export function MemberDeleteDialog({
 
       if (error) throw error;
 
-      toast({
-        title: "임직원 삭제 완료",
-        description: `${memberName || "임직원"} 정보가 성공적으로 삭제되었습니다.`,
-      });
+      toast.success(`${memberName || "임직원"} 정보가 성공적으로 삭제되었습니다.`);
 
       onOpenChange(false);
       if (onSuccess) {
@@ -55,10 +51,8 @@ export function MemberDeleteDialog({
       }
     } catch (error) {
       console.error("임직원 삭제 오류:", error);
-      toast({
-        variant: "destructive",
-        title: "임직원 삭제 실패",
-        description: "삭제 중 오류가 발생했습니다.",
+      toast.error("임직원 삭제 실패", { 
+        description: "삭제 중 오류가 발생했습니다."
       });
     } finally {
       setIsDeleting(false);

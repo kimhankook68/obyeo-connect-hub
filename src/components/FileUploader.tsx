@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,26 +53,17 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
     e.preventDefault();
     
     if (!file) {
-      toast({
-        title: "파일을 선택해주세요",
-        variant: "destructive",
-      });
+      toast.error("파일을 선택해주세요");
       return;
     }
 
     if (!title) {
-      toast({
-        title: "제목을 입력해주세요",
-        variant: "destructive",
-      });
+      toast.error("제목을 입력해주세요");
       return;
     }
 
     if (!author) {
-      toast({
-        title: "작성자를 입력해주세요",
-        variant: "destructive",
-      });
+      toast.error("작성자를 입력해주세요");
       return;
     }
 
@@ -108,9 +98,7 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
 
       if (dbError) throw dbError;
 
-      toast({
-        title: "파일이 성공적으로 업로드되었습니다",
-      });
+      toast.success("파일이 성공적으로 업로드되었습니다");
       
       // 폼 리셋
       setFile(null);
@@ -122,10 +110,8 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
       
     } catch (error: any) {
       console.error('파일 업로드 오류:', error);
-      toast({
-        title: "파일 업로드 실패",
-        description: error.message || "알 수 없는 오류가 발생했습니다",
-        variant: "destructive",
+      toast.error("파일 업로드 실패", {
+        description: error.message || "알 수 없는 오류가 발생했습니다"
       });
     } finally {
       setIsUploading(false);
