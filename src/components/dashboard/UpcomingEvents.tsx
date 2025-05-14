@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import type { Member } from "@/types/member";
 
 type FreePost = {
   id: string;
@@ -13,11 +14,13 @@ type FreePost = {
   created_at: string;
   author: string;
   views: number;
+  user_id?: string | null;
 };
 
 const UpcomingEvents = () => {
   const [posts, setPosts] = useState<FreePost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState<Record<string, Member>>({});
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -26,12 +29,35 @@ const UpcomingEvents = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from("free_posts")
-          .select("id, title, created_at, author, views")
+          .select("id, title, created_at, author, views, user_id")
           .order("created_at", { ascending: false })
           .limit(5);
         
         if (error) throw error;
         setPosts(data || []);
+        
+        // Collect unique user IDs to fetch member data
+        const userIds = data
+          ?.map(post => post.user_id)
+          .filter(id => id !== null && id !== undefined) as string[];
+        
+        if (userIds.length > 0) {
+          const uniqueUserIds = [...new Set(userIds)];
+          const { data: membersData } = await supabase
+            .from("members")
+            .select("*")
+            .in("user_id", uniqueUserIds);
+            
+          if (membersData) {
+            const membersMap = membersData.reduce((acc, member) => {
+              if (member.user_id) {
+                acc[member.user_id] = member;
+              }
+              return acc;
+            }, {} as Record<string, Member>);
+            setMembers(membersMap);
+          }
+        }
       } catch (error) {
         console.error("Error fetching posts:", error);
       } finally {
@@ -50,6 +76,13 @@ const UpcomingEvents = () => {
       console.error("Date formatting error:", error);
       return dateString;
     }
+  };
+
+  const getAuthorDisplayName = (post: FreePost) => {
+    if (post.user_id && members[post.user_id]) {
+      return members[post.user_id].name || post.author.split('@')[0];
+    }
+    return post.author.split('@')[0];
   };
   
   return (
@@ -84,7 +117,7 @@ const UpcomingEvents = () => {
                 </p>
               </div>
               <div className="flex-shrink-0 text-xs text-gray-500 ml-2">
-                {post.author.split('@')[0]}
+                {getAuthorDisplayName(post)}
               </div>
               <div className="flex-shrink-0 text-xs text-gray-500 ml-4">
                 {formatPostDate(post.created_at)}
