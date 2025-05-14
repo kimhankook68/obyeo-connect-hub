@@ -21,34 +21,34 @@ const StatCards = () => {
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
         
-        const { data: eventsData, error: eventsError } = await supabase
+        const { count: eventsCount, error: eventsError } = await supabase
           .from('calendar_events')
-          .select('count', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .gte('start_time', today.toISOString())
           .lt('start_time', tomorrow.toISOString());
         
         if (eventsError) throw eventsError;
         
         // Fetch total members
-        const { data: membersData, error: membersError } = await supabase
+        const { count: membersCount, error: membersError } = await supabase
           .from('members')
-          .select('count', { count: 'exact' });
+          .select('*', { count: 'exact', head: true });
           
         if (membersError) throw membersError;
         
         // Fetch new surveys
-        const { data: surveysData, error: surveysError } = await supabase
+        const { count: surveysCount, error: surveysError } = await supabase
           .from('surveys')
-          .select('count', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .gte('created_at', new Date(new Date().setDate(new Date().getDate() - 7)).toISOString());
           
         if (surveysError) console.error(surveysError);
         
         setStats({
           pendingTasks: 0, // Placeholder for tasks
-          todayEvents: eventsData?.count || 0,
-          newMessages: surveysData?.count || 0, // Using surveys as messages
-          totalMembers: membersData?.count || 0
+          todayEvents: eventsCount || 0,
+          newMessages: surveysCount || 0, // Using surveys as messages
+          totalMembers: membersCount || 0
         });
         
       } catch (error) {

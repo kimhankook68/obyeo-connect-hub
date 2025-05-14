@@ -134,6 +134,33 @@ export type Database = {
         }
         Relationships: []
       }
+      free_posts: {
+        Row: {
+          author: string
+          content: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           created_at: string
@@ -329,6 +356,33 @@ export type Database = {
           name?: string | null
           phone?: string | null
           role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      surveys: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          title?: string
           updated_at?: string
         }
         Relationships: []
