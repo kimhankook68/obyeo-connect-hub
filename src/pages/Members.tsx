@@ -10,8 +10,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { PlusIcon, Search } from "lucide-react";
 import { Member } from "@/types/member";
+import Sidebar from "@/components/Sidebar";
 
 const Members = () => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -110,6 +112,8 @@ const Members = () => {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+      
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="임직원 관리" />
         
