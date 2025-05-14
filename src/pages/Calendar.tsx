@@ -95,7 +95,7 @@ const CalendarPage: React.FC = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="일정 관리" />
         
-        <main className="flex-1 overflow-y-auto p-6 bg-background">
+        <main className="flex-1 flex flex-col overflow-hidden p-6 bg-background">
           <CalendarHeader 
             onAddEvent={handleAddEvent} 
             view={view} 
@@ -104,32 +104,34 @@ const CalendarPage: React.FC = () => {
             onViewModeChange={handleViewModeChange}
           />
           
-          <Tabs value={view} onValueChange={(value) => handleViewChange(value as "calendar" | "list")}>
-            <TabsContent value="calendar" className="space-y-4">
-              <CalendarView 
-                date={date}
-                setDate={setDate}
-                events={events}
-                loading={loading}
-                handleEdit={handleEdit}
-                handleDelete={handleDelete}
-                formatEventDate={formatEventDate}
-                isUserLoggedIn={!!user}
-                viewMode={viewMode}
-              />
-            </TabsContent>
-            
-            <TabsContent value="list">
-              <ListView 
-                events={events}
-                loading={loading}
-                handleEdit={handleEdit}
-                handleDelete={handleDelete}
-                formatEventDate={formatEventDate}
-                isUserLoggedIn={!!user}
-              />
-            </TabsContent>
-          </Tabs>
+          <div className="flex-1 overflow-hidden">
+            <Tabs value={view} onValueChange={(value) => handleViewChange(value as "calendar" | "list")} className="h-full">
+              <TabsContent value="calendar" className="h-full overflow-y-auto">
+                <CalendarView 
+                  date={date}
+                  setDate={setDate}
+                  events={events}
+                  loading={loading}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                  formatEventDate={formatEventDate}
+                  isUserLoggedIn={!!user}
+                  viewMode={viewMode}
+                />
+              </TabsContent>
+              
+              <TabsContent value="list" className="h-full overflow-y-auto">
+                <ListView 
+                  events={events}
+                  loading={loading}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                  formatEventDate={formatEventDate}
+                  isUserLoggedIn={!!user}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
           
           <EventForm
             open={modalOpen}
