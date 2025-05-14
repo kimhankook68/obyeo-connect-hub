@@ -36,18 +36,19 @@ const StatCards = () => {
           
         if (membersError) throw membersError;
         
-        // Fetch new surveys
+        // Fetch active surveys
         const { count: surveysCount, error: surveysError } = await supabase
           .from('surveys')
           .select('*', { count: 'exact', head: true })
-          .gte('created_at', new Date(new Date().setDate(new Date().getDate() - 7)).toISOString());
+          .is('end_date', null)
+          .or('end_date.gte.' + new Date().toISOString());
           
         if (surveysError) console.error(surveysError);
         
         setStats({
-          pendingTasks: 0, // Placeholder for tasks
+          pendingTasks: surveysCount || 0, // Use surveys count for pending tasks
           todayEvents: eventsCount || 0,
-          newMessages: surveysCount || 0, // Using surveys as messages
+          newMessages: 0, // Placeholder for messages
           totalMembers: membersCount || 0
         });
         
@@ -103,7 +104,8 @@ const StatCards = () => {
       {cards.map((card, index) => (
         <div 
           key={index}
-          className={`p-6 rounded-lg border border-border shadow-sm ${card.color}`}
+          className={`p-6 rounded-lg border border-border shadow-sm ${card.color} cursor-pointer`}
+          onClick={() => navigate(card.link)}
         >
           <div className="flex flex-col items-start">
             <div className={`text-2xl mb-2 ${card.iconColor}`}>{card.icon}</div>
@@ -111,7 +113,10 @@ const StatCards = () => {
             <div className="text-2xl font-semibold mb-2">{card.count}개</div>
             <button 
               className="text-blue-500 text-sm hover:underline"
-              onClick={() => navigate(card.link)}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(card.link);
+              }}
             >
               {card.linkText}
             </button>
