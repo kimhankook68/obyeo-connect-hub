@@ -34,11 +34,6 @@ const navItems: NavItem[] = [
     name: "임직원",
     path: "/members",
     icon: "👥"
-  },
-  {
-    name: "대화하기",
-    path: "/chat",
-    icon: "💬"
   }
 ];
 

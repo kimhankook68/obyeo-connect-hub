@@ -1,137 +1,166 @@
 
-import React, { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import MembersList from "@/components/MembersList";
-import { MemberFormDialog } from "@/components/MemberFormDialog";
-import { MemberDeleteDialog } from "@/components/MemberDeleteDialog";
-import { Member } from "@/types/member";
+import MemberFormDialog from "@/components/MemberFormDialog";
+import MemberDeleteDialog from "@/components/MemberDeleteDialog";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Plus, Search } from "lucide-react";
+import { PlusIcon, Search } from "lucide-react";
+import { Member } from "@/types/member";
 
 const Members = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [filter, setFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchMembers();
   }, []);
 
   const fetchMembers = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const { data, error } = await supabase
-        .from('members')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("members")
+        .select("*");
 
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       setMembers(data || []);
     } catch (error: any) {
-      toast.error("임직원 정보를 불러오는데 실패했습니다: " + error.message);
+      toast.error("멤버 데이터를 불러오는데 실패했습니다.");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAddMember = () => {
-    setSelectedMember(null);
-    setIsFormDialogOpen(true);
+  const handleAddMember = async (member: Omit<Member, "id">) => {
+    try {
+      const { data, error } = await supabase
+        .from("members")
+        .insert([member])
+        .select();
+
+      if (error) throw error;
+      setMembers([...members, data[0]]);
+      toast.success("멤버가 추가되었습니다.");
+    } catch (error: any) {
+      toast.error("멤버 추가에 실패했습니다.");
+      console.error(error);
+    } finally {
+      setIsFormOpen(false);
+    }
   };
 
-  const handleEditMember = (member: Member) => {
-    setSelectedMember(member);
-    setIsFormDialogOpen(true);
+  const handleEditMember = async (member: Member) => {
+    try {
+      const { error } = await supabase
+        .from("members")
+        .update(member)
+        .eq("id", member.id);
+
+      if (error) throw error;
+      
+      setMembers(members.map(m => m.id === member.id ? member : m));
+      toast.success("멤버 정보가 수정되었습니다.");
+    } catch (error: any) {
+      toast.error("멤버 정보 수정에 실패했습니다.");
+      console.error(error);
+    } finally {
+      setSelectedMember(null);
+      setIsFormOpen(false);
+    }
   };
 
-  const handleDeleteMember = (member: Member) => {
-    setSelectedMember(member);
-    setIsDeleteDialogOpen(true);
-  };
+  const handleDeleteMember = async () => {
+    if (!selectedMember) return;
+    
+    try {
+      const { error } = await supabase
+        .from("members")
+        .delete()
+        .eq("id", selectedMember.id);
 
-  const handleFormSuccess = () => {
-    setIsFormDialogOpen(false);
-    setSelectedMember(null);
-    fetchMembers();
+      if (error) throw error;
+      
+      setMembers(members.filter(m => m.id !== selectedMember.id));
+      toast.success("멤버가 삭제되었습니다.");
+    } catch (error: any) {
+      toast.error("멤버 삭제에 실패했습니다.");
+      console.error(error);
+    } finally {
+      setSelectedMember(null);
+      setIsDeleteDialogOpen(false);
+    }
   };
-
-  const handleDeleteSuccess = () => {
-    setIsDeleteDialogOpen(false);
-    setSelectedMember(null);
-    fetchMembers();
-  };
-
-  const filteredMembers = members.filter((member) => {
-    const searchRegex = new RegExp(searchQuery, 'i');
-    return (
-      searchRegex.test(member.name) ||
-      searchRegex.test(member.department) ||
-      searchRegex.test(member.role)
-    );
-  });
 
   return (
-    <div className="flex h-screen bg-background">
-      <div className="flex-1 flex flex-col">
+    <div className="flex h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Header>임직원 관리</Header>
         
-        <div className="flex-1 p-6 space-y-6 overflow-auto">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="이름, 부서, 직책으로 검색"
-                  className="w-full pl-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+        <main className="flex-1 overflow-auto p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="이름, 부서, 직책으로 검색"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 pr-4"
+              />
             </div>
-            
-            <Button onClick={handleAddMember}>
-              <Plus className="mr-2 h-4 w-4" />
-              임직원 추가
+            <Button onClick={() => {
+              setSelectedMember(null);
+              setIsFormOpen(true);
+            }}>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              새 임직원
             </Button>
           </div>
-          
-          {isLoading ? (
-            <div className="flex items-center justify-center p-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <MembersList 
-              members={filteredMembers} 
-              onEditMember={handleEditMember} 
-              onDeleteMember={handleDeleteMember} 
-            />
-          )}
-        </div>
-        
-        <MemberFormDialog
-          open={isFormDialogOpen}
-          onOpenChange={setIsFormDialogOpen}
-          editMember={selectedMember || undefined}
-          onSuccess={handleFormSuccess}
-        />
-        
-        <MemberDeleteDialog
-          open={isDeleteDialogOpen}
-          onOpenChange={setIsDeleteDialogOpen}
-          memberId={selectedMember?.id || null}
-          memberName={selectedMember?.name || null}
-          onSuccess={handleDeleteSuccess}
-        />
+
+          <MembersList
+            members={members.filter(member => {
+              // 검색어 필터링
+              const searchFilter = !searchTerm || 
+                member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                member.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                member.role?.toLowerCase().includes(searchTerm.toLowerCase());
+              
+              return searchFilter;
+            })}
+            isLoading={isLoading}
+            onEdit={(member) => {
+              setSelectedMember(member);
+              setIsFormOpen(true);
+            }}
+            onDelete={(member) => {
+              setSelectedMember(member);
+              setIsDeleteDialogOpen(true);
+            }}
+          />
+
+          <MemberFormDialog
+            open={isFormOpen}
+            member={selectedMember}
+            onOpenChange={setIsFormOpen}
+            onSubmit={selectedMember ? handleEditMember : handleAddMember}
+          />
+
+          <MemberDeleteDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}
+            onDelete={handleDeleteMember}
+            memberName={selectedMember?.name || ""}
+          />
+        </main>
       </div>
     </div>
   );

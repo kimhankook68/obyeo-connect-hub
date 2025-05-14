@@ -16,7 +16,6 @@ import Settings from "./pages/Settings";
 import Documents from "./pages/Documents";
 import Calendar from "./pages/Calendar";
 import Members from "./pages/Members";
-import Chat from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
@@ -39,7 +38,6 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/tasks" element={<Index />} />
           <Route path="/members" element={<Members />} />
-          <Route path="/chat" element={<Chat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
