@@ -66,7 +66,7 @@ const StatCards = () => {
       icon: "📄",
       color: "bg-blue-50",
       iconColor: "text-blue-500",
-      link: "/tasks",
+      link: "/surveys",
       linkText: "모두 보기"
     },
     { 
