@@ -7,7 +7,7 @@ import { MemberDeleteDialog } from "@/components/MemberDeleteDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { PlusIcon, Search } from "lucide-react";
 import { Member } from "@/types/member";
 import Sidebar from "@/components/Sidebar";
@@ -35,7 +35,7 @@ const Members = () => {
       if (error) throw error;
       setMembers(data || []);
     } catch (error: any) {
-      toast.error("임직원 데이터를 불러오는데 실패했습니다.");
+      toast({ title: "임직원 데이터를 불러오는데 실패했습니다.", variant: "destructive" });
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -44,16 +44,28 @@ const Members = () => {
 
   const handleAddMember = async (member: Omit<Member, "id">) => {
     try {
+      // Generate a UUID for the new member
+      const newId = crypto.randomUUID();
+      
       const { data, error } = await supabase
         .from("profiles")
-        .insert([member])
+        .insert({
+          id: newId,
+          name: member.name,
+          email: member.email,
+          department: member.department,
+          role: member.role,
+          phone: member.phone || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
         .select();
 
       if (error) throw error;
       setMembers([...members, data[0]]);
-      toast.success("임직원이 추가되었습니다.");
+      toast({ title: "임직원이 추가되었습니다." });
     } catch (error: any) {
-      toast.error("임직원 추가에 실패했습니다.");
+      toast({ title: "임직원 추가에 실패했습니다.", variant: "destructive" });
       console.error(error);
     } finally {
       setIsFormOpen(false);
@@ -64,15 +76,22 @@ const Members = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update(member)
+        .update({
+          name: member.name,
+          email: member.email,
+          department: member.department,
+          role: member.role,
+          phone: member.phone || null,
+          updated_at: new Date().toISOString()
+        })
         .eq("id", member.id);
 
       if (error) throw error;
       
       setMembers(members.map(m => m.id === member.id ? member : m));
-      toast.success("임직원 정보가 수정되었습니다.");
+      toast({ title: "임직원 정보가 수정되었습니다." });
     } catch (error: any) {
-      toast.error("임직원 정보 수정에 실패했습니다.");
+      toast({ title: "임직원 정보 수정에 실패했습니다.", variant: "destructive" });
       console.error(error);
     } finally {
       setSelectedMember(null);
@@ -92,9 +111,9 @@ const Members = () => {
       if (error) throw error;
       
       setMembers(members.filter(m => m.id !== selectedMember.id));
-      toast.success("임직원이 삭제되었습니다.");
+      toast({ title: "임직원이 삭제되었습니다." });
     } catch (error: any) {
-      toast.error("임직원 삭제에 실패했습니다.");
+      toast({ title: "임직원 삭제에 실패했습니다.", variant: "destructive" });
       console.error(error);
     } finally {
       setSelectedMember(null);
