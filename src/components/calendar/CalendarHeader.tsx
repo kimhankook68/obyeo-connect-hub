@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CalendarDays, CalendarMonth, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, CalendarDays, CalendarCheck } from "lucide-react";
 
 interface CalendarHeaderProps {
   onAddEvent: () => void;
@@ -70,7 +70,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 주간
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onViewModeChange("month")}>
-                <CalendarMonth className="h-4 w-4 mr-2" />
+                <CalendarCheck className="h-4 w-4 mr-2" />
                 월간
               </DropdownMenuItem>
             </DropdownMenuContent>
