@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,7 +56,6 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   // Define forms
   const loginForm = useForm<LoginFormValues>({
@@ -101,14 +101,12 @@ const Auth = () => {
 
       // Explicitly navigate to dashboard after successful login
       navigate("/");
-      toast({
-        title: "로그인 성공",
+      toast("로그인 성공", {
         description: "환영합니다!",
       });
 
     } catch (error: any) {
-      toast({
-        title: "로그인 실패",
+      toast("로그인 실패", {
         description: error.message || "로그인 중 오류가 발생했습니다.",
         variant: "destructive",
       });
@@ -139,8 +137,7 @@ const Auth = () => {
       // If signup was successful and we have a session, sign in automatically
       if (signUpData.session) {
         navigate("/");
-        toast({
-          title: "회원가입 성공",
+        toast("회원가입 성공", {
           description: "환영합니다!",
         });
       } else {
@@ -155,14 +152,12 @@ const Auth = () => {
         }
         
         navigate("/");
-        toast({
-          title: "회원가입 성공",
+        toast("회원가입 성공", {
           description: "환영합니다!",
         });
       }
     } catch (error: any) {
-      toast({
-        title: "회원가입 실패",
+      toast("회원가입 실패", {
         description: error.message || "회원가입 중 오류가 발생했습니다.",
         variant: "destructive",
       });

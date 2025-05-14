@@ -1,7 +1,7 @@
 
 import { createRoot } from 'react-dom/client';
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Navigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import App from './App.tsx';
 import Auth from './pages/Auth.tsx';
@@ -43,12 +43,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const Main = () => {
   return (
     <BrowserRouter>
-      <ProtectedRoute>
-        <App />
-      </ProtectedRoute>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <App />
+          </ProtectedRoute>
+        } />
+      </Routes>
       <Toaster position="top-right" />
     </BrowserRouter>
   );
-}
+};
 
 createRoot(document.getElementById("root")!).render(<Main />);
