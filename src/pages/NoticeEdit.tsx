@@ -231,7 +231,7 @@ const NoticeEdit = () => {
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header title="공지사항 수정" />
         
         <main className="flex-1 overflow-y-auto p-6 bg-background">
           <div className="flex items-center justify-between mb-6">

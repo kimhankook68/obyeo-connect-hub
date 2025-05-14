@@ -91,7 +91,7 @@ const CalendarPage: React.FC = () => {
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header title="일정 관리" />
         
         <main className="flex-1 overflow-y-auto p-6 bg-background">
           <CalendarHeader 
