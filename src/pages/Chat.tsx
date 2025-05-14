@@ -1,5 +1,5 @@
+
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import ChatList from "@/components/chat/ChatList";
@@ -7,99 +7,129 @@ import MessagesList from "@/components/chat/MessagesList";
 import ParticipantsList from "@/components/chat/ParticipantsList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Send, Users } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const Chat = () => {
-  const navigate = useNavigate();
-  const { chatId } = useParams();
-  const [chats, setChats] = useState([]);
-  const [activeChat, setActiveChat] = useState(null);
-  const [participants, setParticipants] = useState([]);
+  const [chats, setChats] = useState<any[]>([]);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [currentChat, setCurrentChat] = useState<any>(null);
+  const [participants, setParticipants] = useState<any[]>([]);
   const [newChatName, setNewChatName] = useState("");
   const [showNewChatForm, setShowNewChatForm] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [messageContent, setMessageContent] = useState("");
+  const [user, setUser] = useState<any>(null);
+  
+  // 로그인 사용자 정보 가져오기
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    getUser();
+  }, []);
 
+  // 채팅 목록 가져오기
   useEffect(() => {
     const fetchChats = async () => {
       const { data, error } = await supabase.from('chats').select('*');
       if (error) {
         toast.error("채팅 목록을 불러오는 데 실패했습니다.");
       } else {
-        setChats(data);
+        // 각 채팅에 대한 참여자 수와 읽지 않은 메시지 수 0으로 설정 (실제로는 이 값들을 서버에서 계산해야 함)
+        const chatsWithMetadata = data.map((chat) => ({
+          ...chat,
+          chat_participants: [], // 임시 빈 배열
+          unreadCount: 0 // 읽지 않은 메시지 수 (예시)
+        }));
+        setChats(chatsWithMetadata);
       }
     };
 
     fetchChats();
   }, []);
 
-  useEffect(() => {
-    if (chatId) {
-      const fetchChatDetails = async () => {
-        const { data, error } = await supabase
-          .from('chats')
-          .select('*')
-          .eq('id', chatId)
-          .single();
-        if (error) {
-          toast.error("채팅 정보를 불러오는 데 실패했습니다.");
-        } else {
-          setActiveChat(data);
-          fetchMessages(chatId);
-        }
-      };
-
-      fetchChatDetails();
-    }
-  }, [chatId]);
-
-  const fetchMessages = async (chatId) => {
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('chat_id', chatId);
-    if (error) {
-      toast.error("메시지를 불러오는 데 실패했습니다.");
-    } else {
-      setMessages(data);
-    }
-  };
-
-  const handleSelectChat = (chat) => {
-    setActiveChat(chat);
-    fetchMessages(chat.id);
-  };
-
-  const handleCreateChat = async () => {
-    const { error } = await supabase
+  // 채팅방 선택 시 채팅 상세 정보 가져오기
+  const handleSelectChat = async (chatId: string) => {
+    setSelectedChatId(chatId);
+    
+    // 선택된 채팅 정보 가져오기
+    const { data: chatData } = await supabase
       .from('chats')
-      .insert({ name: newChatName });
-    if (error) {
-      toast.error("채팅방 생성에 실패했습니다.");
-    } else {
+      .select('*')
+      .eq('id', chatId)
+      .single();
+    
+    if (chatData) {
+      setCurrentChat(chatData);
+    }
+  };
+
+  // 새 채팅방 생성
+  const handleCreateChat = async () => {
+    if (!user) {
+      toast.error("로그인이 필요합니다.");
+      return;
+    }
+    
+    try {
+      // 채팅방 생성
+      const { data: chatData, error: chatError } = await supabase
+        .from('chats')
+        .insert({
+          name: newChatName,
+          creator_id: user.id
+        })
+        .select()
+        .single();
+      
+      if (chatError) throw chatError;
+      
+      // 채팅방 참여자 등록 (생성자)
+      if (chatData) {
+        const { error: participantError } = await supabase
+          .from('chat_participants')
+          .insert({
+            chat_id: chatData.id,
+            user_id: user.id
+          });
+        
+        if (participantError) throw participantError;
+      }
+      
       setNewChatName("");
       setShowNewChatForm(false);
-      fetchChats();
+      
+      // 채팅 목록 다시 가져오기
+      const { data, error } = await supabase.from('chats').select('*');
+      if (error) throw error;
+      setChats(data);
+      
+      // 새로 생성된 채팅방 선택
+      if (chatData) {
+        handleSelectChat(chatData.id);
+      }
+      
+      toast.success("채팅방이 생성되었습니다.");
+    } catch (error: any) {
+      toast.error("채팅방 생성에 실패했습니다: " + error.message);
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!messageContent) return;
-
-    const { error } = await supabase
-      .from('messages')
-      .insert({
-        chat_id: activeChat.id,
-        content: messageContent,
-        created_at: new Date().toISOString(),
-      });
-    if (error) {
-      toast.error("메시지 전송에 실패했습니다.");
-    } else {
-      setMessageContent("");
-      fetchMessages(activeChat.id);
+  // 참여자 목록 가져오기 함수 (시트가 열렸을 때 호출)
+  const handleOpenParticipants = async () => {
+    if (!selectedChatId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('chat_participants')
+        .select('*')
+        .eq('chat_id', selectedChatId);
+      
+      if (error) throw error;
+      setParticipants(data || []);
+    } catch (error: any) {
+      toast.error("참여자 목록을 불러오는데 실패했습니다: " + error.message);
     }
   };
 
@@ -144,68 +174,58 @@ const Chat = () => {
         
         <ChatList 
           chats={chats} 
-          activeChat={activeChat} 
+          selectedChatId={selectedChatId} 
           onSelect={handleSelectChat} 
         />
       </div>
       
       <div className="flex-1 flex flex-col">
-        <Header>
-          <div className="flex items-center justify-between w-full">
-            <span>{activeChat?.name || '메시지'}</span>
-            
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8 md:hidden">
-                  <Users className="h-4 w-4" />
-                  <span className="sr-only">참여자 목록</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left">
-                <div className="py-4">
-                  <ChatList 
-                    chats={chats} 
-                    activeChat={activeChat} 
-                    onSelect={(chat) => {
-                      handleSelectChat(chat);
-                      document.querySelector('[data-radix-collection-item]')?.click?.();
-                    }}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-            
-            {activeChat && (
+        <Header>임직원 메시지</Header>
+        
+        <div className="flex-1 overflow-hidden">
+          {selectedChatId ? (
+            <MessagesList 
+              chatId={selectedChatId} 
+              user={user}
+              onOpenParticipants={handleOpenParticipants}
+              currentChat={currentChat}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+              <p className="mb-4">채팅방을 선택하거나 새로운 채팅방을 만들어주세요.</p>
+              
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="hidden md:flex">
-                    <Users className="mr-2 h-4 w-4" />
-                    참여자 ({participants.length})
+                  <Button variant="outline" size="sm" className="md:hidden">
+                    채팅방 목록 보기
                   </Button>
                 </SheetTrigger>
-                <SheetContent>
-                  <ParticipantsList participants={participants} />
+                <SheetContent side="left">
+                  <div className="py-4">
+                    <ChatList 
+                      chats={chats} 
+                      selectedChatId={selectedChatId} 
+                      onSelect={(chatId) => {
+                        handleSelectChat(chatId);
+                        const closeButton = document.querySelector('[data-radix-collection-item]');
+                        if (closeButton instanceof HTMLElement) {
+                          closeButton.click();
+                        }
+                      }}
+                    />
+                  </div>
                 </SheetContent>
               </Sheet>
-            )}
-          </div>
-        </Header>
-        
-        <div className="flex-1 overflow-auto">
-          <MessagesList messages={messages} />
-          <div className="p-4 border-t">
-            <Input
-              placeholder="메시지를 입력하세요..."
-              value={messageContent}
-              onChange={(e) => setMessageContent(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-            />
-            <Button onClick={handleSendMessage}>
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
+      
+      <Sheet>
+        <SheetContent>
+          <ParticipantsList chatParticipants={participants} />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

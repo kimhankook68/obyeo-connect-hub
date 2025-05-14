@@ -1,9 +1,10 @@
+
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import MembersList from "@/components/MembersList";
-import MemberFormDialog from "@/components/MemberFormDialog";
-import MemberDeleteDialog from "@/components/MemberDeleteDialog";
+import { MemberFormDialog } from "@/components/MemberFormDialog";
+import { MemberDeleteDialog } from "@/components/MemberDeleteDialog";
 import { Member } from "@/types/member";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,7 +99,7 @@ const Members = () => {
               </div>
             </div>
             
-            <Button onClick={() => handleAddMember()}>
+            <Button onClick={handleAddMember}>
               <Plus className="mr-2 h-4 w-4" />
               임직원 추가
             </Button>
@@ -118,16 +119,17 @@ const Members = () => {
         </div>
         
         <MemberFormDialog
-          isOpen={isFormDialogOpen}
-          onClose={() => setIsFormDialogOpen(false)}
-          memberToEdit={selectedMember}
+          open={isFormDialogOpen}
+          onOpenChange={setIsFormDialogOpen}
+          editMember={selectedMember || undefined}
           onSuccess={handleFormSuccess}
         />
         
         <MemberDeleteDialog
-          isOpen={isDeleteDialogOpen}
-          onClose={() => setIsDeleteDialogOpen(false)}
-          member={selectedMember}
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          memberId={selectedMember?.id || null}
+          memberName={selectedMember?.name || null}
           onSuccess={handleDeleteSuccess}
         />
       </div>
