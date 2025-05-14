@@ -37,6 +37,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const FreeBoards = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -54,6 +61,7 @@ const FreeBoards = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newPostTitle, setNewPostTitle] = useState("");
   const [newPostContent, setNewPostContent] = useState("");
+  const [newPostCategory, setNewPostCategory] = useState("기타");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -188,7 +196,8 @@ const FreeBoards = () => {
             content: newPostContent,
             author: user.email,
             user_id: user.id,
-            views: 0 // Initialize with 0 views
+            views: 0,
+            category: newPostCategory
           }
         ])
         .select();
@@ -203,6 +212,7 @@ const FreeBoards = () => {
       // Reset form and close dialog
       setNewPostTitle("");
       setNewPostContent("");
+      setNewPostCategory("기타");
       setIsDialogOpen(false);
       
       // Refresh posts list
@@ -293,6 +303,35 @@ const FreeBoards = () => {
       .replace(/\.\s/g, '-').replace('.', '');
   };
 
+  const getCategoryBadge = (category?: string) => {
+    if (!category) return null;
+    
+    let badgeClass = "";
+    
+    switch (category) {
+      case "질문":
+        badgeClass = "bg-blue-100 text-blue-800";
+        break;
+      case "칭찬":
+        badgeClass = "bg-green-100 text-green-800";
+        break;
+      case "건의":
+        badgeClass = "bg-orange-100 text-orange-800";
+        break;
+      case "요청":
+        badgeClass = "bg-purple-100 text-purple-800";
+        break;
+      default:
+        badgeClass = "bg-gray-100 text-gray-800";
+    }
+    
+    return (
+      <span className={`text-xs px-1.5 py-0.5 rounded-sm ${badgeClass}`}>
+        {category}
+      </span>
+    );
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
@@ -328,6 +367,27 @@ const FreeBoards = () => {
                       onChange={(e) => setNewPostTitle(e.target.value)}
                       placeholder="게시물 제목을 입력하세요"
                     />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="category" className="text-sm font-medium">
+                      분류
+                    </label>
+                    <Select 
+                      value={newPostCategory} 
+                      onValueChange={setNewPostCategory}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="분류를 선택하세요" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="질문">질문</SelectItem>
+                        <SelectItem value="칭찬">칭찬</SelectItem>
+                        <SelectItem value="건의">건의</SelectItem>
+                        <SelectItem value="요청">요청</SelectItem>
+                        <SelectItem value="기타">기타</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">
@@ -389,6 +449,7 @@ const FreeBoards = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[80px] text-center">번호</TableHead>
+                        <TableHead className="w-[100px] text-center">분류</TableHead>
                         <TableHead>제목</TableHead>
                         <TableHead className="w-[120px] text-center">작성자</TableHead>
                         <TableHead className="w-[120px] text-center">등록일</TableHead>
@@ -405,9 +466,17 @@ const FreeBoards = () => {
                           <TableCell className="text-center">
                             {(currentPage - 1) * postsPerPage + index + 1}
                           </TableCell>
+                          <TableCell className="text-center">
+                            {post.category ? getCategoryBadge(post.category) : '-'}
+                          </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
                               {post.title}
+                              {(new Date().getTime() - new Date(post.created_at).getTime()) < 86400000 && (
+                                <Badge variant="secondary" className="ml-1 bg-red-500 text-white text-xs h-4 w-4 rounded-full p-0 flex items-center justify-center">
+                                  N
+                                </Badge>
+                              )}
                               {post.commentCount > 0 && (
                                 <Badge variant="secondary" className="ml-2 flex items-center gap-1 bg-purple-100 text-purple-800">
                                   <MessageCircle className="h-3 w-3" />

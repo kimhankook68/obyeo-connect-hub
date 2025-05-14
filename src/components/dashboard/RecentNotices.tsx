@@ -7,6 +7,7 @@ import NoticeCard from "@/components/NoticeCard";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isAfter, subDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 type Notice = {
   id: string;
@@ -85,12 +86,20 @@ const RecentNotices = () => {
       ) : recentNotices.length > 0 ? (
         <div className="space-y-0">
           {recentNotices.map(notice => (
-            <div key={notice.id} onClick={() => navigate(`/notices/${notice.id}`)}>
+            <div key={notice.id} onClick={() => navigate(`/notices/${notice.id}`)} className="cursor-pointer">
               <NoticeCard
-                title={notice.title}
+                title={
+                  <div className="flex items-center">
+                    <span>{notice.title}</span>
+                    {isNew(notice.created_at) && (
+                      <Badge variant="secondary" className="ml-1 bg-red-500 text-white text-xs h-4 w-4 rounded-full p-0 flex items-center justify-center">
+                        N
+                      </Badge>
+                    )}
+                  </div>
+                }
                 date={formatDate(notice.created_at)}
                 author={notice.author}
-                isNew={isNew(notice.created_at)}
                 category={notice.category}
               />
             </div>

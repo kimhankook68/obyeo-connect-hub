@@ -15,6 +15,7 @@ type FreePost = {
   author: string;
   views: number;
   user_id?: string | null;
+  category?: string;
 };
 
 const UpcomingEvents = () => {
@@ -29,7 +30,7 @@ const UpcomingEvents = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from("free_posts")
-          .select("id, title, created_at, author, views, user_id")
+          .select("id, title, created_at, author, views, user_id, category")
           .order("created_at", { ascending: false })
           .limit(5);
         
@@ -84,6 +85,35 @@ const UpcomingEvents = () => {
     }
     return post.author.split('@')[0];
   };
+
+  const getCategoryBadge = (category?: string) => {
+    if (!category) return null;
+    
+    let badgeClass = "";
+    
+    switch (category) {
+      case "질문":
+        badgeClass = "bg-blue-100 text-blue-800";
+        break;
+      case "칭찬":
+        badgeClass = "bg-green-100 text-green-800";
+        break;
+      case "건의":
+        badgeClass = "bg-orange-100 text-orange-800";
+        break;
+      case "요청":
+        badgeClass = "bg-purple-100 text-purple-800";
+        break;
+      default:
+        badgeClass = "bg-gray-100 text-gray-800";
+    }
+    
+    return (
+      <span className={`text-xs px-1.5 py-0.5 rounded-sm mr-1.5 ${badgeClass}`}>
+        {category}
+      </span>
+    );
+  };
   
   return (
     <DashboardCard 
@@ -107,10 +137,11 @@ const UpcomingEvents = () => {
               onClick={() => navigate(`/freeboards/${post.id}`)}
             >
               <div className="flex-grow">
-                <p className="font-medium text-sm line-clamp-1">
-                  {post.title}
+                <p className="font-medium text-sm items-center flex">
+                  {getCategoryBadge(post.category)}
+                  <span className="truncate">{post.title}</span>
                   {(new Date().getTime() - new Date(post.created_at).getTime()) < 86400000 && (
-                    <Badge variant="secondary" className="ml-2 bg-red-500 text-white text-xs h-4 w-4 rounded-full p-0 flex items-center justify-center">
+                    <Badge variant="secondary" className="ml-1 bg-red-500 text-white text-xs h-4 w-4 rounded-full p-0 flex items-center justify-center">
                       N
                     </Badge>
                   )}

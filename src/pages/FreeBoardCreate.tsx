@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,12 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const FreeBoardCreate = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState("기타");
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
 
@@ -50,7 +59,8 @@ const FreeBoardCreate = () => {
             title,
             content,
             author: user.email, // Using email as author name
-            user_id: user.id // Storing the actual user ID
+            user_id: user.id, // Storing the actual user ID
+            category // Add the category field
           }
         ])
         .select();
@@ -87,6 +97,27 @@ const FreeBoardCreate = () => {
                 placeholder="게시물 제목을 입력하세요"
                 required
               />
+            </div>
+            
+            <div className="space-y-1">
+              <label htmlFor="category" className="text-sm font-medium">
+                분류
+              </label>
+              <Select 
+                value={category} 
+                onValueChange={setCategory}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="분류를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="질문">질문</SelectItem>
+                  <SelectItem value="칭찬">칭찬</SelectItem>
+                  <SelectItem value="건의">건의</SelectItem>
+                  <SelectItem value="요청">요청</SelectItem>
+                  <SelectItem value="기타">기타</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-1">
