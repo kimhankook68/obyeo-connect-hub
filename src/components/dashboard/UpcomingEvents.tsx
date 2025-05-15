@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import DashboardCard from "@/components/DashboardCard";
+import { DashboardCard } from "@/components/DashboardCard";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO } from "date-fns";
 import { useNavigate } from "react-router-dom";

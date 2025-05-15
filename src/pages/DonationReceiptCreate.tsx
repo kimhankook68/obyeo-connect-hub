@@ -47,14 +47,16 @@ const DonationReceiptCreate = () => {
         return;
       }
 
-      const { error } = await supabase.from("donation_receipts").insert({
-        title,
-        content,
-        amount: numAmount,
-        user_id: user?.id,
-        author: user?.user_metadata?.name || user?.email?.split('@')[0] || '방문자',
-        processed: false
-      });
+      const { error } = await supabase
+        .from("donation_receipts")
+        .insert({
+          title,
+          content,
+          amount: numAmount,
+          user_id: user?.id,
+          author: user?.user_metadata?.name || user?.email?.split('@')[0] || '방문자',
+          processed: false
+        });
 
       if (error) throw error;
       

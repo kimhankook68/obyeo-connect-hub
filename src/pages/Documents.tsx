@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import DashboardCard from "@/components/DashboardCard";
+import { DashboardCard } from "@/components/DashboardCard";
 import FileUploader from "@/components/FileUploader";
 import DocumentsList from "@/components/DocumentsList";
 import { Button } from "@/components/ui/button";

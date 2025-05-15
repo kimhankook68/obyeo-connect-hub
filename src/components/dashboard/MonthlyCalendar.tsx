@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
 import { ko } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import DashboardCard from '@/components/DashboardCard';
+import { DashboardCard } from '@/components/DashboardCard';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isSameDay } from 'date-fns';
 

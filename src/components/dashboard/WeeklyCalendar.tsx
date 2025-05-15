@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import DashboardCard from '@/components/DashboardCard';
+import { DashboardCard } from '@/components/DashboardCard';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek, addDays, isSameDay, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';

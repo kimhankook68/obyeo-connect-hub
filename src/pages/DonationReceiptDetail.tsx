@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import { DashboardCard } from "@/components/DashboardCard";
 import CommentList from "@/components/CommentList";
 import { DonationReceipt, DonationReceiptComment } from "@/types/donation-receipt";
 import { Badge } from "@/components/ui/badge";
-import { FileUploader } from "@/components/FileUploader";
+import FileUploader from "@/components/FileUploader";
 import { ArrowLeft, Download } from "lucide-react";
 
 const DonationReceiptDetail = () => {
@@ -49,7 +48,10 @@ const DonationReceiptDetail = () => {
         .single();
 
       if (error) throw error;
-      setReceipt(data);
+      
+      if (data) {
+        setReceipt(data as DonationReceipt);
+      }
     } catch (error) {
       console.error("Error fetching donation receipt:", error);
       toast.error("영수증 정보를 불러오는데 실패했습니다.");
@@ -69,7 +71,10 @@ const DonationReceiptDetail = () => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      setComments(data || []);
+      
+      if (data) {
+        setComments(data as DonationReceiptComment[]);
+      }
     } catch (error) {
       console.error("Error fetching comments:", error);
     }

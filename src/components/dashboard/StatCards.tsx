@@ -31,14 +31,15 @@ const StatCards = () => {
         if (eventsError) throw eventsError;
         
         // Fetch donation receipt requests
-        const { count: donationCount, error: donationError } = await supabase
+        const { data, error: donationError } = await supabase
           .from('donation_receipts')
-          .select('*', { count: 'exact', head: true })
-          .is('processed', false);
+          .select('id', { count: 'exact' })
+          .eq('processed', false);
           
+        const donationCount = data?.length || 0;
         if (donationError) console.error(donationError);
         
-        // Fetch active surveys - updated to correctly count ongoing surveys
+        // Fetch active surveys
         const currentDate = new Date().toISOString();
         const { count: surveysCount, error: surveysError } = await supabase
           .from('surveys')

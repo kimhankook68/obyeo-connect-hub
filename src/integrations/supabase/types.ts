@@ -167,6 +167,86 @@ export type Database = {
         }
         Relationships: []
       }
+      donation_receipt_comments: {
+        Row: {
+          attachment_url: string | null
+          author: string
+          content: string | null
+          created_at: string
+          id: string
+          receipt_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attachment_url?: string | null
+          author: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          receipt_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attachment_url?: string | null
+          author?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          receipt_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_receipt_comments_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "donation_receipts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donation_receipts: {
+        Row: {
+          amount: number
+          author: string
+          content: string
+          created_at: string
+          id: string
+          processed: boolean | null
+          receipt_file: string | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          author: string
+          content: string
+          created_at?: string
+          id?: string
+          processed?: boolean | null
+          receipt_file?: string | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          author?: string
+          content?: string
+          created_at?: string
+          id?: string
+          processed?: boolean | null
+          receipt_file?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       free_post_comments: {
         Row: {
           author: string
