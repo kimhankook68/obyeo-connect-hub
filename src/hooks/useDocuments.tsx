@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,11 +16,18 @@ interface Document {
   user_id?: string;
 }
 
+interface DocumentUpdateData {
+  title: string;
+  description: string | null;
+}
+
 export const useDocuments = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
 
@@ -102,20 +110,81 @@ export const useDocuments = () => {
     }
   };
 
+  const handleEdit = (doc: Document) => {
+    setEditingDocument(doc);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async (id: string, data: DocumentUpdateData) => {
+    if (!user) {
+      toast.error("로그인이 필요합니다", {
+        description: "파일 수정을 위해 로그인해주세요"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .update({
+          title: data.title,
+          description: data.description,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      // Update documents list
+      setDocuments(prev => 
+        prev.map(doc => 
+          doc.id === id 
+            ? { ...doc, title: data.title, description: data.description } 
+            : doc
+        )
+      );
+      
+      // If the edited document is currently selected for preview, update it
+      if (selectedDocument?.id === id) {
+        setSelectedDocument(prev => 
+          prev ? { ...prev, title: data.title, description: data.description } : null
+        );
+      }
+      
+      toast.success("문서가 수정되었습니다");
+    } catch (error: any) {
+      console.error('문서 수정 오류:', error);
+      toast.error("문서 수정 실패", {
+        description: error.message || "알 수 없는 오류가 발생했습니다"
+      });
+      throw error;
+    }
+  };
+
   const handlePreviewClick = (doc: Document) => {
     setSelectedDocument(doc);
     setPreviewOpen(true);
+  };
+
+  const isDocumentOwner = (doc: Document) => {
+    return user && doc.user_id === user.id;
   };
 
   return {
     documents,
     loading,
     selectedDocument,
+    editingDocument,
     previewOpen,
     setPreviewOpen,
+    editDialogOpen,
+    setEditDialogOpen,
     user,
     handleDownload,
     handleDelete,
-    handlePreviewClick
+    handleEdit,
+    handleSaveEdit,
+    handlePreviewClick,
+    isDocumentOwner
   };
 };

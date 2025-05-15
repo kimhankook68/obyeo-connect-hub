@@ -3,6 +3,7 @@ import React from "react";
 import { useDocuments } from "@/hooks/useDocuments";
 import DocumentItem from "@/components/documents/DocumentItem";
 import DocumentPreview from "@/components/documents/DocumentPreview";
+import DocumentEditDialog from "@/components/documents/DocumentEditDialog";
 import { formatFileSize } from "@/components/documents/documentUtils";
 import {
   Table,
@@ -17,12 +18,18 @@ const DocumentsList = () => {
     documents,
     loading,
     selectedDocument,
+    editingDocument,
     previewOpen,
     setPreviewOpen,
+    editDialogOpen,
+    setEditDialogOpen,
     user,
     handleDownload,
     handleDelete,
-    handlePreviewClick
+    handleEdit,
+    handleSaveEdit,
+    handlePreviewClick,
+    isDocumentOwner
   } = useDocuments();
 
   if (loading) {
@@ -63,7 +70,9 @@ const DocumentsList = () => {
                 onPreview={handlePreviewClick}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
+                onEdit={handleEdit}
                 isUserLoggedIn={!!user}
+                isOwner={isDocumentOwner(doc)}
               />
             ))}
           </TableBody>
@@ -75,6 +84,13 @@ const DocumentsList = () => {
         onOpenChange={setPreviewOpen}
         document={selectedDocument}
         onDownload={handleDownload}
+      />
+
+      <DocumentEditDialog
+        document={editingDocument}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={handleSaveEdit}
       />
     </>
   );

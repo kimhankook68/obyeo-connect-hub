@@ -1,7 +1,7 @@
 
 import React from "react";
 import { format } from "date-fns";
-import { Eye, FileIcon, Trash2 } from "lucide-react";
+import { Eye, FileIcon, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   TableRow,
@@ -18,12 +18,15 @@ interface DocumentItemProps {
     file_type: string;
     file_size: number;
     created_at: string;
+    user_id?: string;
   };
   formatFileSize: (bytes: number) => string;
   onPreview: (doc: any) => void;
   onDownload: (doc: any) => void;
   onDelete: (doc: any) => void;
+  onEdit: (doc: any) => void;
   isUserLoggedIn: boolean;
+  isOwner: boolean;
 }
 
 const DocumentItem = ({
@@ -32,7 +35,9 @@ const DocumentItem = ({
   onPreview,
   onDownload,
   onDelete,
+  onEdit,
   isUserLoggedIn,
+  isOwner,
 }: DocumentItemProps) => {
   return (
     <TableRow key={document.id}>
@@ -59,9 +64,16 @@ const DocumentItem = ({
             다운로드
           </Button>
           {isUserLoggedIn && (
-            <Button variant="ghost" size="sm" className="text-red-500" onClick={() => onDelete(document)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <>
+              {isOwner && (
+                <Button variant="ghost" size="sm" className="text-blue-500" onClick={() => onEdit(document)}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" className="text-red-500" onClick={() => onDelete(document)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
           )}
         </div>
       </TableCell>
