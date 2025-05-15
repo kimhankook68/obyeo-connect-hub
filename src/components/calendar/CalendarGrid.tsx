@@ -38,7 +38,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
   };
   
   return (
-    <table className="w-full h-full border-collapse">
+    <table className="w-full h-full border-collapse table-fixed">
       <CalendarWeekdayHeader weekdayLabels={weekdayLabels} />
       <tbody className="divide-y">
         {calendarDays.map((week, weekIndex) => (

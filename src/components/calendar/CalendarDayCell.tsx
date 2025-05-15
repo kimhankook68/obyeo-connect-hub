@@ -39,7 +39,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     <td 
       onClick={() => handleDateClick(day)}
       className={cn(
-        "relative p-0 align-top cursor-pointer hover:bg-gray-50 transition-colors",
+        "relative p-0 align-top cursor-pointer hover:bg-gray-50 transition-colors w-[calc(100%/7)]",
         !isCurrentMonth && "text-gray-400 bg-gray-50",
         isSelected && "bg-blue-50"
       )}
@@ -60,8 +60,8 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
           </span>
         </div>
         
-        {/* 이벤트 표시 영역 - 최소 높이 설정 */}
-        <div className="min-h-[1.75rem] max-h-[1.75rem] overflow-y-auto overflow-x-hidden">
+        {/* 이벤트 표시 영역 - 고정 높이 설정 */}
+        <div className="min-h-[1.75rem] h-[1.75rem] overflow-y-auto overflow-x-hidden">
           {isCurrentMonth && dayEvents.length > 0 && (
             <EventPopover
               date={day}
