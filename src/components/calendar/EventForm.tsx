@@ -219,7 +219,7 @@ const EventForm: React.FC<EventFormProps> = ({
                           }}
                           initialFocus
                           locale={ko}
-                          className="pointer-events-auto scale-110"
+                          className="pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>
