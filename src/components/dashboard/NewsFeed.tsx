@@ -10,6 +10,7 @@ import { MessageSquare, Heart, Share2, Bell, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { UserPost } from "@/types/member";
 
 interface NewsItem {
   id: string;
@@ -23,15 +24,6 @@ interface NewsItem {
   created_at: string;
   likes?: number;
   comments?: number;
-}
-
-// Add interface for user posts
-interface UserPost {
-  id: string;
-  content: string;
-  created_at: string;
-  author_name: string | null;
-  user_id: string;
 }
 
 const NewsFeed = () => {
@@ -77,14 +69,29 @@ const NewsFeed = () => {
 
       if (eventError) throw eventError;
 
-      // Fetch user posts - using type assertion to fix TypeScript error
-      const { data: posts, error: postsError } = await supabase
-        .from("user_posts" as any)
-        .select("id, content, created_at, user_id, author_name")
-        .order("created_at", { ascending: false })
-        .limit(5);
+      // Fetch user posts with better error handling
+      let userPosts: UserPost[] = [];
+      try {
+        const { data: postsData, error: postsError } = await supabase
+          .from("user_posts" as any)
+          .select("id, content, created_at, user_id, author_name")
+          .order("created_at", { ascending: false })
+          .limit(5);
 
-      if (postsError) throw postsError;
+        if (postsError) throw postsError;
+
+        // Safely convert the data to UserPost[] with validation
+        if (postsData) {
+          userPosts = postsData.filter(post => 
+            post && typeof post.id === 'string' && 
+            typeof post.content === 'string' && 
+            typeof post.created_at === 'string'
+          ) as UserPost[];
+        }
+      } catch (postFetchError) {
+        console.error("Error fetching user posts:", postFetchError);
+        // Continue with empty posts array
+      }
 
       // Process the data to create the news items array
       const processedNotices = notices?.map(notice => ({
@@ -120,9 +127,8 @@ const NewsFeed = () => {
         comments: Math.floor(Math.random() * 2)
       })) || [];
 
-      // Cast posts to UserPost[] to ensure TypeScript type safety
-      const typedPosts = posts as UserPost[] || [];
-      const processedPosts = typedPosts.map(post => ({
+      // Process posts with the validated array
+      const processedPosts = userPosts.map(post => ({
         id: post.id,
         title: "", // Posts don't have titles
         content: post.content,
@@ -209,15 +215,14 @@ const NewsFeed = () => {
 
       const authorName = profileData?.name || user.email?.split('@')[0] || "사용자";
 
-      // Insert new post - using type assertion to fix TypeScript error
-      const { data, error } = await supabase
+      // Insert new post with better error handling
+      const { error } = await supabase
         .from("user_posts" as any)
         .insert({
           content: newPost,
           user_id: user.id,
           author_name: authorName
-        })
-        .select();
+        });
 
       if (error) throw error;
 
