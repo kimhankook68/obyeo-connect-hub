@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardCard } from "@/components/DashboardCard";
@@ -72,24 +73,28 @@ const NewsFeed = () => {
       // Fetch user posts with better error handling
       let userPosts: UserPost[] = [];
       try {
-        const { data: postsData, error: postsError } = await supabase
+        // Cast the raw response to any first to bypass type checking
+        const response: any = await supabase
           .from("user_posts" as any)
           .select("id, content, created_at, user_id, author_name")
           .order("created_at", { ascending: false })
           .limit(5);
-
-        if (postsError) throw postsError;
-
-        // Safely convert the data to UserPost[] with validation
-        if (postsData) {
-          userPosts = postsData.filter(post => 
-            post && typeof post.id === 'string' && 
-            typeof post.content === 'string' && 
-            typeof post.created_at === 'string'
-          ) as UserPost[];
+        
+        // Check if response has data and no error
+        if (response && response.data && !response.error) {
+          // Map each item in the array to ensure it has the right structure
+          userPosts = response.data.map((post: any) => ({
+            id: post.id,
+            content: post.content,
+            created_at: post.created_at,
+            author_name: post.author_name,
+            user_id: post.user_id
+          }));
+        } else if (response.error) {
+          console.error("Error fetching user posts:", response.error);
         }
       } catch (postFetchError) {
-        console.error("Error fetching user posts:", postFetchError);
+        console.error("Error processing user posts:", postFetchError);
         // Continue with empty posts array
       }
 
@@ -216,7 +221,7 @@ const NewsFeed = () => {
       const authorName = profileData?.name || user.email?.split('@')[0] || "사용자";
 
       // Insert new post with better error handling
-      const { error } = await supabase
+      const response: any = await supabase
         .from("user_posts" as any)
         .insert({
           content: newPost,
@@ -224,7 +229,7 @@ const NewsFeed = () => {
           author_name: authorName
         });
 
-      if (error) throw error;
+      if (response.error) throw response.error;
 
       // Clear input field
       setNewPost("");
