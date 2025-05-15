@@ -52,7 +52,7 @@ const Index = () => {
           </div>
           
           <footer className="mt-auto pt-4 border-t border-border text-center text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} 사회복지법인 오병이어복지재단 All Rights Reserved.</p>
+            <p>© {new Date().getFullYear()}  오병이어복지재단 All Rights Reserved.</p>
           </footer>
         </main>
       </div>
