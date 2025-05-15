@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -152,17 +153,26 @@ const SurveyCreate = () => {
       return;
     }
 
+    if (!user) {
+      toast.error("로그인 필요", {
+        description: "설문을 생성하려면 로그인이 필요합니다.",
+      });
+      navigate("/auth");
+      return;
+    }
+
     try {
       setLoading(true);
       
-      // Create survey
+      // Create survey with user_id
       const { data: surveyData, error: surveyError } = await supabase
         .from("surveys")
         .insert([
           {
             title,
             description: description.trim() || null,
-            end_date: endDate ? endDate.toISOString() : null
+            end_date: endDate ? endDate.toISOString() : null,
+            user_id: user.id // Add user_id here
           }
         ])
         .select();
@@ -171,7 +181,7 @@ const SurveyCreate = () => {
       
       const surveyId = surveyData[0].id;
       
-      // Create questions - Fix the type issue by converting options to a JSON-compatible format
+      // Create questions
       for (const question of questions) {
         const { error: questionError } = await supabase
           .from("survey_questions")
@@ -179,7 +189,6 @@ const SurveyCreate = () => {
             survey_id: surveyId,
             question: question.question,
             question_type: question.question_type,
-            // Convert the options array to a proper JSON object that matches the Json type
             options: question.options.length > 0 ? question.options as unknown as Json : null,
             required: question.required,
             order_num: question.order_num

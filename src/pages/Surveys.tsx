@@ -25,11 +25,23 @@ const Surveys = () => {
   const [surveys, setSurveys] = useState<any[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [surveyToDelete, setSurveyToDelete] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchSurveys();
+    const fetchUserAndSurveys = async () => {
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+      }
+      
+      // Fetch surveys regardless of login status
+      fetchSurveys();
+    };
+    
+    fetchUserAndSurveys();
   }, []);
 
   const fetchSurveys = async () => {
@@ -54,13 +66,35 @@ const Surveys = () => {
     }
   };
 
-  const handleEdit = (e: React.MouseEvent, surveyId: string) => {
+  const handleEdit = (e: React.MouseEvent, surveyId: string, ownerId: string | null) => {
     e.stopPropagation();
+    
+    // Check if the user is the owner of the survey
+    if (!user || (ownerId && user.id !== ownerId)) {
+      toast({
+        title: "권한 없음",
+        description: "이 설문을 수정할 권한이 없습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     navigate(`/surveys/edit/${surveyId}`);
   };
 
-  const openDeleteDialog = (e: React.MouseEvent, surveyId: string) => {
+  const openDeleteDialog = (e: React.MouseEvent, surveyId: string, ownerId: string | null) => {
     e.stopPropagation();
+    
+    // Check if the user is the owner of the survey
+    if (!user || (ownerId && user.id !== ownerId)) {
+      toast({
+        title: "권한 없음",
+        description: "이 설문을 삭제할 권한이 없습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSurveyToDelete(surveyId);
     setDeleteDialogOpen(true);
   };
@@ -123,7 +157,19 @@ const Surveys = () => {
         <main className="flex-1 overflow-y-auto p-6 bg-background">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">설문조사</h1>
-            <Button onClick={() => navigate("/surveys/create")}>
+            <Button 
+              onClick={() => {
+                if (!user) {
+                  toast({
+                    title: "로그인 필요",
+                    description: "설문을 생성하려면 로그인이 필요합니다.",
+                  });
+                  navigate("/auth");
+                  return;
+                }
+                navigate("/surveys/create");
+              }}
+            >
               <PlusIcon className="h-4 w-4 mr-2" />
               새 설문 작성
             </Button>
@@ -136,48 +182,66 @@ const Surveys = () => {
           ) : surveys.length === 0 ? (
             <div className="text-center py-12 border rounded-lg bg-muted/30">
               <p className="text-muted-foreground mb-4">아직 설문이 없습니다.</p>
-              <Button onClick={() => navigate("/surveys/create")}>
+              <Button 
+                onClick={() => {
+                  if (!user) {
+                    toast({
+                      title: "로그인 필요",
+                      description: "설문을 생성하려면 로그인이 필요합니다.",
+                    });
+                    navigate("/auth");
+                    return;
+                  }
+                  navigate("/surveys/create");
+                }}
+              >
                 새 설문 작성하기
               </Button>
             </div>
           ) : (
             <div className="grid gap-4">
-              {surveys.map((survey) => (
-                <div
-                  key={survey.id}
-                  className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer relative"
-                  onClick={() => navigate(`/surveys/${survey.id}`)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h2 className="font-medium text-lg mb-1">{survey.title}</h2>
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                        {survey.description}
-                      </p>
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>생성일: {new Date(survey.created_at).toLocaleDateString()}</span>
-                        <span>마감일: {survey.end_date ? new Date(survey.end_date).toLocaleDateString() : '무기한'}</span>
+              {surveys.map((survey) => {
+                const isOwner = user && user.id === survey.user_id;
+                
+                return (
+                  <div
+                    key={survey.id}
+                    className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer relative"
+                    onClick={() => navigate(`/surveys/${survey.id}`)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h2 className="font-medium text-lg mb-1">{survey.title}</h2>
+                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                          {survey.description}
+                        </p>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>생성일: {new Date(survey.created_at).toLocaleDateString()}</span>
+                          <span>마감일: {survey.end_date ? new Date(survey.end_date).toLocaleDateString() : '무기한'}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex space-x-1 ml-4">
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        onClick={(e) => handleEdit(e, survey.id)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        onClick={(e) => openDeleteDialog(e, survey.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {isOwner && (
+                        <div className="flex space-x-1 ml-4">
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            onClick={(e) => handleEdit(e, survey.id, survey.user_id)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            onClick={(e) => openDeleteDialog(e, survey.id, survey.user_id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </main>

@@ -47,6 +47,7 @@ const SurveyEdit = () => {
   const [user, setUser] = useState<any>(null);
   const [originalQuestions, setOriginalQuestions] = useState<SurveyQuestion[]>([]);
   const [deletedQuestionIds, setDeletedQuestionIds] = useState<string[]>([]);
+  const [surveyOwnerId, setSurveyOwnerId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -78,6 +79,19 @@ const SurveyEdit = () => {
         .single();
       
       if (surveyError) throw surveyError;
+      
+      // Store the survey owner ID
+      setSurveyOwnerId(surveyData.user_id);
+      
+      // Check if the current user is the owner of the survey
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user && surveyData.user_id && session.user.id !== surveyData.user_id) {
+        toast.error("권한 없음", {
+          description: "이 설문을 수정할 권한이 없습니다.",
+        });
+        navigate(`/surveys/${id}`);
+        return;
+      }
       
       setTitle(surveyData.title);
       setDescription(surveyData.description || "");
@@ -215,6 +229,14 @@ const SurveyEdit = () => {
     
     if (invalidOptions.length > 0) {
       toast("선택형 질문에는 최소 2개 이상의 유효한 선택지가 필요합니다.");
+      return;
+    }
+
+    // Check if current user is the survey owner
+    if (!user || (surveyOwnerId && user.id !== surveyOwnerId)) {
+      toast.error("권한 없음", {
+        description: "이 설문을 수정할 권한이 없습니다.",
+      });
       return;
     }
 
