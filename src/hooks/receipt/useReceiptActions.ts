@@ -25,15 +25,18 @@ export const useReceiptActions = (id?: string, setReceipt?: (receipt: DonationRe
       if (error) throw error;
       
       // Fetch updated receipt to reflect changes
-      const { data } = await supabase
+      const { data, error: fetchError } = await supabase
         .from("donation_receipts")
         .select("*")
         .eq("id", id)
         .single();
       
+      if (fetchError) throw fetchError;
+      
       if (data && setReceipt) {
-        // 중요: 여기서 receipt 상태를 업데이트합니다
+        // 바로 업데이트하여 UI에 반영되도록 수정
         setReceipt(data as DonationReceipt);
+        console.log("Receipt updated:", data);
       }
       
       toast.success(processed ? "발급 완료 처리되었습니다." : "대기중으로 변경되었습니다.");
