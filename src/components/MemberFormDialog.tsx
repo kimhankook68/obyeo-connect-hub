@@ -37,7 +37,27 @@ export const DEPARTMENTS = [
   "사무국",
   "사랑의집",
   "소망의집",
-  "서울중구시니어클럽",
+  "오병이어지역아동센터",
+  "은평4호점 우리동네키움센터",
+  "은평9호점 우리동네키움센터",
+  "대조어린이집",
+  "남서울힐스테이트어린이집",
+  "진달래어린이집",
+  "대조스테이원어린이집",
+  "숲속나라어린이집",
+  "오병이어재가복지센터",
+  "서부노인보호전문기관",
+  "중구시니어클럽",
+] as const;
+
+// 직책 목록 정의
+export const ROLES = [
+  "이사장",
+  "사무국장",
+  "원장",
+  "시설장",
+  "센터장",
+  "관장",
 ] as const;
 
 // 유효성 검사 스키마
@@ -246,9 +266,24 @@ export function MemberFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>직책</FormLabel>
-                  <FormControl>
-                    <Input placeholder="과장" {...field} />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="직책을 선택하세요" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {ROLES.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
