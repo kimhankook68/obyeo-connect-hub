@@ -150,7 +150,7 @@ const EventForm: React.FC<EventFormProps> = ({
           </Button>
         </DialogHeader>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto max-h-[80vh]">
           <p className="text-sm text-muted-foreground mb-4">
             새로운 일정을 추가하려면 아래 양식을 작성하세요.
           </p>
@@ -199,37 +199,39 @@ const EventForm: React.FC<EventFormProps> = ({
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent 
-                        className="w-auto p-0" 
+                        className="w-auto p-0 z-50" 
                         align="start"
                         side="bottom"
                         sideOffset={4}
                       >
-                        <Calendar
-                          mode="single"
-                          selected={field.value ? parseISO(field.value) : undefined}
-                          onSelect={(date) => {
-                            if (date) {
-                              const timeString = getTimeFromDate(field.value) || '09:00';
-                              const newDateTime = combineDateTime(date, timeString);
-                              field.onChange(newDateTime);
-                              
-                              // Also update end_time to be the same date if not set
-                              const endTimeValue = form.getValues("end_time");
-                              if (!endTimeValue) {
-                                const endTime = combineDateTime(date, '10:00');
-                                form.setValue("end_time", endTime);
-                              } else {
-                                // Keep end time but update date
-                                const endTime = getTimeFromDate(endTimeValue);
-                                const newEndDateTime = combineDateTime(date, endTime);
-                                form.setValue("end_time", newEndDateTime);
+                        <div className="z-50 bg-background rounded-md shadow-md border">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? parseISO(field.value) : undefined}
+                            onSelect={(date) => {
+                              if (date) {
+                                const timeString = getTimeFromDate(field.value) || '09:00';
+                                const newDateTime = combineDateTime(date, timeString);
+                                field.onChange(newDateTime);
+                                
+                                // Also update end_time to be the same date if not set
+                                const endTimeValue = form.getValues("end_time");
+                                if (!endTimeValue) {
+                                  const endTime = combineDateTime(date, '10:00');
+                                  form.setValue("end_time", endTime);
+                                } else {
+                                  // Keep end time but update date
+                                  const endTime = getTimeFromDate(endTimeValue);
+                                  const newEndDateTime = combineDateTime(date, endTime);
+                                  form.setValue("end_time", newEndDateTime);
+                                }
                               }
-                            }
-                          }}
-                          initialFocus
-                          locale={ko}
-                          className="border-0"
-                        />
+                            }}
+                            initialFocus
+                            locale={ko}
+                            className="border-0"
+                          />
+                        </div>
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
