@@ -13,6 +13,7 @@ import {
   ReceiptIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 type NavItem = {
   name: string;
@@ -82,13 +83,25 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean, setCollapsed
         <div className="flex items-center justify-between p-4 border-b border-border">
           <div className={cn("flex items-center", collapsed ? "justify-center w-full" : "")}>
             {collapsed ? (
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-brand-500 text-white text-xl font-bold">
-                오
+              <div className="w-10 h-10 overflow-hidden">
+                <AspectRatio ratio={1} className="rounded-lg">
+                  <img 
+                    src="/lovable-uploads/7277f3f3-7135-4f66-b425-c99df62252b0.png" 
+                    alt="오병이어복지재단 로고" 
+                    className="w-full h-full object-contain"
+                  />
+                </AspectRatio>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-brand-500 text-white text-xl font-bold">
-                  오
+                <div className="w-10 h-10 overflow-hidden">
+                  <AspectRatio ratio={1} className="rounded-lg">
+                    <img 
+                      src="/lovable-uploads/7277f3f3-7135-4f66-b425-c99df62252b0.png" 
+                      alt="오병이어복지재단 로고" 
+                      className="w-full h-full object-contain"
+                    />
+                  </AspectRatio>
                 </div>
                 <div className="font-semibold text-sm">오병이어복지재단</div>
               </div>
