@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast"; // Fixed import
+import { toast } from "@/hooks/use-toast"; // This is the correct import
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,8 +25,8 @@ interface Question {
   id: string;
   survey_id: string;
   question: string;
-  question_type: 'text' | 'single_choice' | 'multiple_choice' | 'textarea'; // Added textarea type
-  options: string[];
+  question_type: 'text' | 'single_choice' | 'multiple_choice' | 'textarea';
+  options: any[]; // Changed from string[] to any[] to handle JSON data
   required: boolean;
   order_num: number;
 }
@@ -43,7 +42,6 @@ interface Survey {
 const SurveyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  // Removed useToast hook since we're using the direct toast import
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +49,7 @@ const SurveyDetail = () => {
   const [hasResponded, setHasResponded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("survey");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Added state for sidebar
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // 설문 통계 데이터 가져오기
   const surveyStats = useSurveyStats(id || '');
@@ -92,12 +90,15 @@ const SurveyDetail = () => {
         .order('order_num');
 
       if (error) throw error;
-      // Type casting to ensure compatibility with Question interface
-      setQuestions((data || []).map(q => ({
+      
+      // Updated type casting to ensure compatibility with Question interface
+      // Converting the data to match our Question interface
+      setQuestions(data?.map(q => ({
         ...q,
         question_type: q.question_type as 'text' | 'single_choice' | 'multiple_choice' | 'textarea',
+        // Handle options correctly, ensuring it's always an array
         options: Array.isArray(q.options) ? q.options : []
-      })));
+      })) || []);
     } catch (error) {
       console.error('Error fetching questions:', error);
     } finally {
@@ -320,7 +321,7 @@ const SurveyDetail = () => {
         <main className="flex-1 p-6">
           <div className="container mx-auto max-w-4xl">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">{survey?.title || '설문조사'}</h1>
+              <h1 className="text-2xl font-bold">{survey?.title || '���문조사'}</h1>
               <div className="flex gap-2">
                 <Button
                   variant="outline"

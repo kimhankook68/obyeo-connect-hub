@@ -5,17 +5,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { SurveyStatistics as SurveyStatsType } from "@/hooks/useSurveyStats";
+import { SurveyStatsData } from "@/hooks/useSurveyStats";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 
 interface SurveyStatisticsProps {
-  stats: SurveyStatsType;
+  stats: SurveyStatsData;
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
 
 export const SurveyStatistics = ({ stats }: SurveyStatisticsProps) => {
-  const { loading, error, totalResponses, questionStats } = stats;
+  const { loading, error, totalResponses, questions } = stats;
 
   if (loading) {
     return (
@@ -59,36 +59,39 @@ export const SurveyStatistics = ({ stats }: SurveyStatisticsProps) => {
         <CardDescription>총 응답자 수: {totalResponses}명</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
-        {questionStats.map((questionStat) => (
-          <div key={questionStat.questionId} className="space-y-2">
+        {questions.map((questionStat) => (
+          <div key={questionStat.id} className="space-y-2">
             <h3 className="text-lg font-medium">{questionStat.question}</h3>
             
-            {questionStat.questionType === 'text' ? (
+            {questionStat.question_type === 'text' || questionStat.question_type === 'textarea' ? (
               <div className="text-sm text-muted-foreground">
-                텍스트 응답 수: {questionStat.stats[0]?.count || 0}개 (응답률: {questionStat.stats[0]?.percentage.toFixed(1) || 0}%)
+                텍스트 응답 수: {questionStat.responseCount || 0}개 
+                {totalResponses > 0 && ` (응답률: ${Math.round((questionStat.responseCount / totalResponses) * 100)}%)`}
               </div>
-            ) : questionStat.questionType === 'single_choice' ? (
+            ) : questionStat.question_type === 'single_choice' ? (
               <div className="h-[300px] w-full">
                 <ChartContainer config={{
                   option: { theme: { light: "#10b981", dark: "#10b981" } },
                 }}>
-                  <PieChart>
-                    <Pie
-                      data={questionStat.stats}
-                      dataKey="count"
-                      nameKey="option"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      fill="#8884d8"
-                      label={(entry) => `${entry.option}: ${entry.count}명 (${entry.percentage.toFixed(1)}%)`}
-                    >
-                      {questionStat.stats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<ChartTooltipContent />} />
-                  </PieChart>
+                  {questionStat.distribution && questionStat.distribution.length > 0 && (
+                    <PieChart>
+                      <Pie
+                        data={questionStat.distribution}
+                        dataKey="value"
+                        nameKey="label"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        label={(entry) => `${entry.label}: ${entry.value}명 (${entry.percentage}%)`}
+                      >
+                        {questionStat.distribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  )}
                 </ChartContainer>
               </div>
             ) : (
@@ -96,30 +99,34 @@ export const SurveyStatistics = ({ stats }: SurveyStatisticsProps) => {
                 <ChartContainer config={{
                   option: { theme: { light: "#10b981", dark: "#10b981" } },
                 }}>
-                  <BarChart data={questionStat.stats}>
-                    <XAxis 
-                      dataKey="option"
-                      tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value}
-                    />
-                    <YAxis />
-                    <Tooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="count" fill="#10b981">
-                      {questionStat.stats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
+                  {questionStat.distribution && questionStat.distribution.length > 0 && (
+                    <BarChart data={questionStat.distribution}>
+                      <XAxis 
+                        dataKey="label"
+                        tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value}
+                      />
+                      <YAxis />
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="value" fill="#10b981">
+                        {questionStat.distribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  )}
                 </ChartContainer>
               </div>
             )}
             
             <div className="mt-2 space-y-1">
-              {questionStat.questionType !== 'text' && questionStat.stats.map((stat, idx) => (
-                <div key={idx} className="flex justify-between text-sm">
-                  <span className="truncate max-w-[70%]">{stat.option}</span>
-                  <span className="text-muted-foreground">{stat.count}명 ({stat.percentage.toFixed(1)}%)</span>
-                </div>
-              ))}
+              {(questionStat.question_type === 'single_choice' || questionStat.question_type === 'multiple_choice') && 
+                questionStat.distribution && 
+                questionStat.distribution.map((stat, idx) => (
+                  <div key={idx} className="flex justify-between text-sm">
+                    <span className="truncate max-w-[70%]">{stat.label}</span>
+                    <span className="text-muted-foreground">{stat.value}명 ({stat.percentage}%)</span>
+                  </div>
+                ))}
             </div>
           </div>
         ))}
