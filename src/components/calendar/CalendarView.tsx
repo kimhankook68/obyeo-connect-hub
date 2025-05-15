@@ -20,6 +20,7 @@ interface CalendarViewProps {
   isUserLoggedIn: boolean;
   viewMode: "month" | "week" | "day";
   getEventCountForDay: (day: Date) => number;
+  handleAddEvent?: (day: Date) => void;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
@@ -32,7 +33,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   formatEventDate,
   isUserLoggedIn,
   viewMode,
-  getEventCountForDay
+  getEventCountForDay,
+  handleAddEvent
 }) => {
   // 해당 날짜의 이벤트 필터링
   const filteredEvents = useMemo(() => {
@@ -77,6 +79,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             handleDelete={handleDelete}
             formatEventDate={formatEventDate}
             isUserLoggedIn={isUserLoggedIn}
+            handleAddEvent={handleAddEvent}
           />
         )}
         

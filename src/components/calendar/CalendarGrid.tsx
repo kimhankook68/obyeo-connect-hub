@@ -17,6 +17,7 @@ interface CalendarGridProps {
   handleDelete: (event: CalendarEvent) => void;
   formatEventDate: (dateString: string) => string;
   isUserLoggedIn: boolean;
+  handleAddEvent?: (day: Date) => void;
 }
 
 const CalendarGrid: React.FC<CalendarGridProps> = ({
@@ -30,7 +31,8 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
   handleEdit,
   handleDelete,
   formatEventDate,
-  isUserLoggedIn
+  isUserLoggedIn,
+  handleAddEvent
 }) => {
   // 해당 날짜의 이벤트 필터링
   const getEventsForDay = (day: Date) => {
@@ -61,6 +63,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
                   handleDelete={handleDelete}
                   formatEventDate={formatEventDate}
                   isUserLoggedIn={isUserLoggedIn}
+                  handleAddEvent={handleAddEvent}
                 />
               );
             })}

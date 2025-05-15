@@ -82,6 +82,14 @@ const Calendar = () => {
     }
   }, [handleAdd]);
 
+  // 특정 날짜에 일정 추가 핸들러
+  const handleAddEventOnDay = (day: Date) => {
+    if (isUserLoggedIn) {
+      setSelectedDate(day);
+      handleAdd();
+    }
+  };
+
   const getEventCountForDay = (day: Date) => {
     return events.filter(event => {
       const eventDate = new Date(event.start_time);
@@ -173,6 +181,7 @@ const Calendar = () => {
                     handleDelete={handleDelete}
                     formatEventDate={formatEventDate}
                     isUserLoggedIn={isUserLoggedIn}
+                    handleAddEvent={handleAddEventOnDay}
                   />
                 </div>
               )}

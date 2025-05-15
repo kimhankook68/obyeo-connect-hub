@@ -29,6 +29,7 @@ interface MonthViewProps {
   handleDelete: (event: CalendarEvent) => void;
   formatEventDate: (dateString: string) => string;
   isUserLoggedIn: boolean;
+  handleAddEvent?: (day: Date) => void;
 }
 
 const MonthView: React.FC<MonthViewProps> = ({
@@ -39,7 +40,8 @@ const MonthView: React.FC<MonthViewProps> = ({
   handleEdit,
   handleDelete,
   formatEventDate,
-  isUserLoggedIn
+  isUserLoggedIn,
+  handleAddEvent
 }) => {
   // 현재 달력에 표시되는 월
   const [currentMonth, setCurrentMonth] = React.useState<Date>(date || new Date());
@@ -122,6 +124,7 @@ const MonthView: React.FC<MonthViewProps> = ({
             handleDelete={handleDelete}
             formatEventDate={formatEventDate}
             isUserLoggedIn={isUserLoggedIn}
+            handleAddEvent={handleAddEvent}
           />
         </div>
       </div>

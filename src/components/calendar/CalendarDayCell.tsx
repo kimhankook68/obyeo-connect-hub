@@ -17,6 +17,7 @@ interface CalendarDayCellProps {
   handleDelete: (event: CalendarEvent) => void;
   formatEventDate: (dateString: string) => string;
   isUserLoggedIn: boolean;
+  handleAddEvent?: (day: Date) => void;
 }
 
 const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
@@ -30,14 +31,25 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
   handleEdit,
   handleDelete,
   formatEventDate,
-  isUserLoggedIn
+  isUserLoggedIn,
+  handleAddEvent
 }) => {
   const isToday = isSameDay(day, new Date());
   const isCurrentMonth = isSameMonth(day, currentMonth);
   
+  const onCellClick = () => {
+    // 날짜 선택 기능 유지
+    handleDateClick(day);
+    
+    // 사용자가 로그인되어 있고 현재 달의 날짜인 경우에만 일정 추가 동작 실행
+    if (isUserLoggedIn && isCurrentMonth && handleAddEvent) {
+      handleAddEvent(day);
+    }
+  };
+  
   return (
     <td 
-      onClick={() => handleDateClick(day)}
+      onClick={onCellClick}
       className={cn(
         "relative p-0 align-top cursor-pointer hover:bg-gray-50 transition-colors w-[calc(100%/7)]",
         !isCurrentMonth && "text-gray-400 bg-gray-50",

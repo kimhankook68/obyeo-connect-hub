@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -78,11 +79,35 @@ const EventForm: React.FC<EventFormProps> = ({
         console.error("Error resetting form with event data:", error);
       }
     } else {
+      // 새 일정 추가 시 현재 선택된 날짜가 있다면 적용
+      const currentDate = new Date();
+      
+      // URL 검색 파라미터에서 날짜 확인
+      const urlParams = new URLSearchParams(window.location.search);
+      const dateParam = urlParams.get('date');
+      
+      let startDate = currentDate;
+      if (dateParam) {
+        try {
+          startDate = parseISO(dateParam);
+        } catch (error) {
+          console.error("유효하지 않은 날짜 형식:", error);
+        }
+      }
+      
+      // 시작 시간을 해당 날짜의 9시로 설정
+      const startDateTime = new Date(startDate);
+      startDateTime.setHours(9, 0, 0, 0);
+      
+      // 종료 시간을 해당 날짜의 10시로 설정
+      const endDateTime = new Date(startDate);
+      endDateTime.setHours(10, 0, 0, 0);
+      
       form.reset({
         title: "",
         description: "",
-        start_time: "",
-        end_time: "",
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
         location: "",
         type: "meeting",
       });
@@ -144,7 +169,7 @@ const EventForm: React.FC<EventFormProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
         <DialogHeader className="px-6 py-4 border-b flex flex-row justify-between items-center">
-          <DialogTitle className="text-lg font-bold">새 일정 추가</DialogTitle>
+          <DialogTitle className="text-lg font-bold">{selectedEvent ? '일정 수정' : '새 일정 추가'}</DialogTitle>
           <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
             <X className="h-4 w-4" />
           </Button>
@@ -152,7 +177,7 @@ const EventForm: React.FC<EventFormProps> = ({
 
         <div className="p-6 overflow-y-auto max-h-[80vh]">
           <p className="text-sm text-muted-foreground mb-4">
-            새로운 일정을 추가하려면 아래 양식을 작성하세요.
+            {selectedEvent ? '일정을 수정하려면 아래 양식을 작성하세요.' : '새로운 일정을 추가하려면 아래 양식을 작성하세요.'}
           </p>
 
           <Form {...form}>
@@ -229,7 +254,7 @@ const EventForm: React.FC<EventFormProps> = ({
                             }}
                             initialFocus
                             locale={ko}
-                            className="border-0"
+                            className="border-0 select-none"
                           />
                         </div>
                       </PopoverContent>
