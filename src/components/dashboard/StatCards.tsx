@@ -37,12 +37,12 @@ const StatCards = () => {
           
         if (membersError) throw membersError;
         
-        // Fetch active surveys
+        // Fetch active surveys - updated to correctly count ongoing surveys
+        const currentDate = new Date().toISOString();
         const { count: surveysCount, error: surveysError } = await supabase
           .from('surveys')
           .select('*', { count: 'exact', head: true })
-          .is('end_date', null)
-          .or('end_date.gte.' + new Date().toISOString());
+          .or(`end_date.gt.${currentDate},end_date.is.null`);
           
         if (surveysError) console.error(surveysError);
         
