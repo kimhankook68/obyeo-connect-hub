@@ -9,6 +9,7 @@ import RecentNotices from "@/components/dashboard/RecentNotices";
 import RecentDocuments from "@/components/dashboard/RecentDocuments";
 import RecentPosts from "@/components/dashboard/UpcomingEvents";
 import WeeklyCalendar from "@/components/dashboard/WeeklyCalendar";
+import NewsFeed from "@/components/dashboard/NewsFeed";
 
 const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -51,7 +52,10 @@ const Index = () => {
             <WeeklyCalendar />
           </div>
           
-         
+          {/* News Feed at the bottom */}
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            <NewsFeed />
+          </div>
         </main>
       </div>
     </div>
