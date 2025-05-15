@@ -623,6 +623,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_posts: {
+        Row: {
+          author_name: string | null
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          author_name?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
