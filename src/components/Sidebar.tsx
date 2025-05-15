@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import MiniCalendar from "@/components/sidebar/MiniCalendar";
 
 type NavItem = {
   name: string;
@@ -75,7 +76,7 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean, setCollapsed
   return (
     <aside
       className={cn(
-        "h-screen bg-sidebar border-r border-border transition-all duration-300 ease-in-out",
+        "h-screen bg-sidebar border-r border-border transition-all duration-300 ease-in-out flex flex-col",
         collapsed ? "w-20" : "w-64"
       )}
     >
@@ -140,6 +141,9 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean, setCollapsed
             </ul>
           </nav>
         </div>
+        
+        {/* 미니 캘린더 - 축소된 사이드바일 때는 표시하지 않음 */}
+        {!collapsed && <MiniCalendar />}
         
         <div className={cn("p-4 border-t border-border", collapsed ? "flex justify-center" : "")}>
           <button onClick={() => setCollapsed(!collapsed)} className="text-muted-foreground hover:text-foreground">

@@ -11,11 +11,14 @@ import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSearchParams } from "react-router-dom";
+import { parseISO } from "date-fns";
 
 const Calendar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [user, setUser] = useState<any>(null);
+  const [searchParams] = useSearchParams();
   
   const {
     events,
@@ -45,6 +48,40 @@ const Calendar = () => {
     fetchUser();
   }, []);
 
+  // URL 파라미터에서 날짜 확인
+  useEffect(() => {
+    const dateParam = searchParams.get('date');
+    const eventParam = searchParams.get('event');
+    
+    if (dateParam) {
+      try {
+        const parsedDate = parseISO(dateParam);
+        setSelectedDate(parsedDate);
+      } catch (error) {
+        console.error('Invalid date format:', error);
+      }
+    }
+    
+    if (eventParam && events.length > 0) {
+      const event = events.find(e => e.id === eventParam);
+      if (event) {
+        handleEdit(event);
+        // 해당 이벤트의 날짜도 선택
+        setSelectedDate(parseISO(event.start_time));
+      }
+    }
+  }, [searchParams, events, setSelectedDate, handleEdit]);
+
+  // 사용자 상태에서 오는 모달 열기 요청 처리
+  useEffect(() => {
+    const { state } = window.history as any;
+    if (state?.openEventModal) {
+      handleAdd();
+      // 상태 정리
+      window.history.replaceState({}, document.title);
+    }
+  }, [handleAdd]);
+
   const getEventCountForDay = (day: Date) => {
     return events.filter(event => {
       const eventDate = new Date(event.start_time);
@@ -70,18 +107,44 @@ const Calendar = () => {
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl font-bold">일정 관리</h1>
               
-              {/* 일정 추가 버튼 (복원) */}
-              {isUserLoggedIn && (
-                <Button 
-                  onClick={handleAdd} 
-                  className="hidden md:inline-flex"
-                >
-                  <Plus className="mr-1 h-4 w-4" /> 새 일정
-                </Button>
-              )}
+              {/* 뷰 모드 선택 버튼 추가 */}
+              <div className="flex gap-2 items-center">
+                <div className="hidden md:flex items-center space-x-2">
+                  <Button 
+                    variant={viewMode === "month" ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => setViewMode("month")}
+                  >
+                    월간
+                  </Button>
+                  <Button 
+                    variant={viewMode === "week" ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => setViewMode("week")}
+                  >
+                    주간
+                  </Button>
+                  <Button 
+                    variant={viewMode === "day" ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => setViewMode("day")}
+                  >
+                    일간
+                  </Button>
+                </div>
+                
+                {isUserLoggedIn && (
+                  <Button 
+                    onClick={handleAdd} 
+                    className="hidden md:inline-flex"
+                  >
+                    <Plus className="mr-1 h-4 w-4" /> 새 일정
+                  </Button>
+                )}
+              </div>
             </div>
             
-            {/* 달력 뷰 - h-full을 추가하여 사이드바와 높이를 맞춤 */}
+            {/* 달력 뷰 */}
             <Card className="overflow-hidden shadow-sm mb-6 flex-grow">
               {loading ? (
                 <div className="p-4 space-y-4 h-full">
