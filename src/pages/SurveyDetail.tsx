@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast"; // This is the correct import
+import { toast } from "sonner"; // Sonner로 변경
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,12 +15,12 @@ import { Separator } from "@/components/ui/separator";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import Footer from "@/components/Footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SurveyStatistics } from '@/components/survey/SurveyStatistics';
 import { useSurveyStats } from '@/hooks/useSurveyStats';
 import { Loader2, BarChart3 } from 'lucide-react';
+import { Json } from "@/integrations/supabase/types";
 
 interface Question {
   id: string;
@@ -74,10 +75,7 @@ const SurveyDetail = () => {
       setSurvey(data);
     } catch (error) {
       console.error('Error fetching survey:', error);
-      toast({
-        title: '설문조사를 불러오는데 실패했습니다.',
-        variant: 'destructive',
-      });
+      toast.error('설문조사를 불러오는데 실패했습니다.');
     }
   };
 
@@ -93,12 +91,16 @@ const SurveyDetail = () => {
       
       // Updated type casting to ensure compatibility with Question interface
       // Converting the data to match our Question interface
-      setQuestions(data?.map(q => ({
-        ...q,
-        question_type: q.question_type as 'text' | 'single_choice' | 'multiple_choice' | 'textarea',
-        // Handle options correctly, ensuring it's always an array
-        options: Array.isArray(q.options) ? q.options : []
-      })) || []);
+      if (data) {
+        const formattedQuestions: Question[] = data.map(q => ({
+          ...q,
+          question_type: q.question_type as 'text' | 'single_choice' | 'multiple_choice' | 'textarea',
+          // Handle options correctly, ensuring it's always an array
+          options: Array.isArray(q.options) ? q.options : []
+        }));
+        
+        setQuestions(formattedQuestions);
+      }
     } catch (error) {
       console.error('Error fetching questions:', error);
     } finally {
@@ -167,10 +169,8 @@ const SurveyDetail = () => {
       // 로그인 체크
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user?.id) {
-        toast({
-          title: '로그인이 필요합니다.',
-          description: '설문에 응답하려면 로그인해주세요.',
-          variant: 'destructive',
+        toast.error('로그인이 필요합니다.', {
+          description: '설문에 응답하려면 로그인해주세요.'
         });
         return;
       }
@@ -186,10 +186,8 @@ const SurveyDetail = () => {
       });
 
       if (unansweredRequired.length > 0) {
-        toast({
-          title: '필수 항목을 모두 작성해주세요.',
-          description: `${unansweredRequired.length}개의 필수 질문에 대한 응답이 필요합니다.`,
-          variant: 'destructive',
+        toast.error('필수 항목을 모두 작성해주세요.', {
+          description: `${unansweredRequired.length}개의 필수 질문에 대한 응답이 필요합니다.`
         });
         return;
       }
@@ -205,17 +203,12 @@ const SurveyDetail = () => {
 
       if (error) throw error;
 
-      toast({
-        title: '설문 응답이 성공적으로 제출되었습니다.',
-      });
+      toast.success('설문 응답이 성공적으로 제출되었습니다.');
       
       setHasResponded(true);
     } catch (error) {
       console.error('Error submitting survey responses:', error);
-      toast({
-        title: '응답 제출 중 오류가 발생했습니다.',
-        variant: 'destructive',
-      });
+      toast.error('응답 제출 중 오류가 발생했습니다.');
     } finally {
       setSubmitting(false);
     }
@@ -299,13 +292,15 @@ const SurveyDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header title="설문조사" />
-        <div className="flex">
-          <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
-          <main className="flex-1 p-6">
-            <div className="flex justify-center items-center h-[70vh]">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-screen">
+        <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header title="설문조사" />
+          <main className="flex-1 p-6 overflow-y-auto bg-background">
+            <div className="container mx-auto max-w-5xl">
+              <div className="flex justify-center items-center h-[70vh]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
             </div>
           </main>
         </div>
@@ -314,14 +309,14 @@ const SurveyDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header title="설문조사 상세" />
-      <div className="flex">
-        <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
-        <main className="flex-1 p-6">
-          <div className="container mx-auto max-w-4xl">
+    <div className="flex h-screen">
+      <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header title="설문조사 상세" />
+        <main className="flex-1 p-6 overflow-y-auto bg-background">
+          <div className="container mx-auto max-w-5xl">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">{survey?.title || '���문조사'}</h1>
+              <h1 className="text-2xl font-bold">{survey?.title || '설문조사'}</h1>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -332,7 +327,7 @@ const SurveyDetail = () => {
               </div>
             </div>
 
-            <Tabs defaultValue="survey" value={activeTab} onValueChange={setActiveTab}>
+            <Tabs defaultValue="survey" value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="mb-4">
                 <TabsTrigger value="survey">설문지</TabsTrigger>
                 <TabsTrigger value="statistics" className="flex items-center gap-1">
@@ -343,31 +338,39 @@ const SurveyDetail = () => {
 
               <TabsContent value="survey">
                 {hasResponded && (
-                  <Card className="mb-4 p-4 bg-amber-50 border border-amber-200">
-                    <p className="text-amber-700">이미 이 설문에 응답하셨습니다.</p>
+                  <Card className="mb-4">
+                    <CardContent className="pt-6 pb-4">
+                      <p className="text-amber-700 bg-amber-50 px-4 py-2 rounded-md border border-amber-200">
+                        이미 이 설문에 응답하셨습니다.
+                      </p>
+                    </CardContent>
                   </Card>
                 )}
 
-                <Card className="p-6 mb-6">
-                  <h2 className="text-xl font-semibold mb-2">{survey?.title}</h2>
-                  {survey?.description && <p className="text-muted-foreground mb-4">{survey.description}</p>}
-                  {survey?.end_date && new Date(survey.end_date) < new Date() && (
-                    <div className="text-sm text-red-500 mb-2">
-                      이 설문조사는 마감되었습니다. (마감일: {new Date(survey.end_date).toLocaleDateString()})
-                    </div>
-                  )}
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle>{survey?.title}</CardTitle>
+                    {survey?.description && <CardDescription>{survey.description}</CardDescription>}
+                    {survey?.end_date && new Date(survey.end_date) < new Date() && (
+                      <div className="text-sm text-red-500 mt-2">
+                        이 설문조사는 마감되었습니다. (마감일: {new Date(survey.end_date).toLocaleDateString()})
+                      </div>
+                    )}
+                  </CardHeader>
                 </Card>
 
                 <div className="space-y-6">
                   {questions.map((question, index) => (
-                    <Card key={question.id} className="p-6">
-                      <div className="mb-2">
-                        <span className="font-medium">
-                          {index + 1}. {question.question}
-                        </span>
-                        {question.required && <span className="text-red-500 ml-1">*</span>}
-                      </div>
-                      {renderQuestionInput(question)}
+                    <Card key={question.id}>
+                      <CardContent className="pt-6">
+                        <div className="mb-2">
+                          <span className="font-medium">
+                            {index + 1}. {question.question}
+                          </span>
+                          {question.required && <span className="text-red-500 ml-1">*</span>}
+                        </div>
+                        {renderQuestionInput(question)}
+                      </CardContent>
                     </Card>
                   ))}
                 </div>

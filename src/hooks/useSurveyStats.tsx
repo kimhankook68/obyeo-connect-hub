@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
 
 // Define types for statistics
 export interface QuestionStats {
@@ -132,10 +133,8 @@ export const useSurveyStats = (surveyId: string): SurveyStatsData => {
           error: '통계 데이터를 불러오는데 실패했습니다.'
         }));
         
-        toast({
-          title: '통계 데이터 로드 실패',
-          description: '설문 통계를 불러오는데 오류가 발생했습니다.',
-          variant: 'destructive',
+        toast.error('통계 데이터 로드 실패', {
+          description: '설문 통계를 불러오는데 오류가 발생했습니다.'
         });
       }
     };
