@@ -8,147 +8,47 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { MessageSquare, Heart, Share2, Bell, Send } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { UserPost } from "@/types/member";
 
-interface NewsItem {
-  id: string;
-  title: string;
-  content: string;
-  author?: {
-    name: string;
-    avatar?: string;
-  };
-  type: 'notice' | 'document' | 'event' | 'news' | 'post';
-  created_at: string;
-  likes?: number;
-  comments?: number;
-}
-
 const NewsFeed = () => {
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [userPosts, setUserPosts] = useState<UserPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPost, setNewPost] = useState("");
   const [postLoading, setPostLoading] = useState(false);
   const { toast } = useToast();
 
-  const fetchNewsItems = async () => {
+  const fetchPosts = async () => {
     setLoading(true);
     try {
-      // Fetch notices
-      const { data: notices, error: noticeError } = await supabase
-        .from("notices")
-        .select("id, title, content, created_at, user_id")
-        .order("created_at", { ascending: false })
-        .limit(3);
-
-      if (noticeError) throw noticeError;
-
-      // Fetch the most recent documents
-      const { data: documents, error: documentError } = await supabase
-        .from("documents")
-        .select("id, title, description, created_at, user_id")
-        .order("created_at", { ascending: false })
-        .limit(2);
-
-      if (documentError) throw documentError;
-
-      // Fetch calendar events
-      const today = new Date();
-      const nextWeek = new Date();
-      nextWeek.setDate(today.getDate() + 7);
-
-      const { data: events, error: eventError } = await supabase
-        .from("calendar_events")
-        .select("id, title, description, start_time, user_id")
-        .gte("start_time", today.toISOString())
-        .lte("start_time", nextWeek.toISOString())
-        .order("start_time", { ascending: true })
-        .limit(2);
-
-      if (eventError) throw eventError;
-
       // Fetch user posts with better error handling
-      let userPosts: UserPost[] = [];
+      let posts: UserPost[] = [];
       try {
         // Cast the raw response to any first to bypass type checking
         const response: any = await supabase
           .from("user_posts" as any)
           .select("id, content, created_at, user_id, author_name")
           .order("created_at", { ascending: false })
-          .limit(5);
+          .limit(10);
         
         // Check if response has data and no error
         if (response && response.data && !response.error) {
           // Map each item in the array to ensure it has the right structure
-          userPosts = response.data.map((post: any) => ({
+          posts = response.data.map((post: any) => ({
             id: post.id,
             content: post.content,
             created_at: post.created_at,
             author_name: post.author_name,
             user_id: post.user_id
           }));
+          setUserPosts(posts);
         } else if (response.error) {
           console.error("Error fetching user posts:", response.error);
         }
       } catch (postFetchError) {
         console.error("Error processing user posts:", postFetchError);
-        // Continue with empty posts array
       }
-
-      // Process the data to create the news items array
-      const processedNotices = notices?.map(notice => ({
-        id: notice.id,
-        title: notice.title,
-        content: notice.content || "",
-        type: 'notice' as const,
-        created_at: notice.created_at,
-        author: { name: "관리자" },
-        likes: Math.floor(Math.random() * 10),
-        comments: Math.floor(Math.random() * 5)
-      })) || [];
-
-      const processedDocs = documents?.map(doc => ({
-        id: doc.id,
-        title: doc.title,
-        content: doc.description || "",
-        type: 'document' as const,
-        created_at: doc.created_at,
-        author: { name: "자료담당자" },
-        likes: Math.floor(Math.random() * 8),
-        comments: Math.floor(Math.random() * 3)
-      })) || [];
-
-      const processedEvents = events?.map(event => ({
-        id: event.id,
-        title: event.title,
-        content: event.description || "",
-        type: 'event' as const,
-        created_at: event.start_time,
-        author: { name: "일정담당자" },
-        likes: Math.floor(Math.random() * 5),
-        comments: Math.floor(Math.random() * 2)
-      })) || [];
-
-      // Process posts with the validated array
-      const processedPosts = userPosts.map(post => ({
-        id: post.id,
-        title: "", // Posts don't have titles
-        content: post.content,
-        type: 'post' as const,
-        created_at: post.created_at,
-        author: { name: post.author_name || "사용자" },
-        likes: Math.floor(Math.random() * 15),
-        comments: Math.floor(Math.random() * 7)
-      })) || [];
-
-      // Combine all items and sort by created_at
-      const allItems = [...processedPosts, ...processedNotices, ...processedDocs, ...processedEvents]
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-      setNewsItems(allItems.slice(0, 10));
     } catch (error) {
       console.error("Error fetching news feed data:", error);
       toast({
@@ -162,7 +62,7 @@ const NewsFeed = () => {
   };
 
   useEffect(() => {
-    fetchNewsItems();
+    fetchPosts();
   }, []);
 
   // Format date to relative time (e.g., "3 days ago")
@@ -174,22 +74,6 @@ const NewsFeed = () => {
       });
     } catch (error) {
       return "날짜 오류";
-    }
-  };
-
-  // Get badge variant and text based on item type
-  const getTypeInfo = (type: NewsItem['type']) => {
-    switch (type) {
-      case 'notice':
-        return { variant: 'destructive' as const, text: '공지사항' };
-      case 'document':
-        return { variant: 'secondary' as const, text: '새 자료' };
-      case 'event':
-        return { variant: 'default' as const, text: '다가오는 일정' };
-      case 'news':
-        return { variant: 'outline' as const, text: '소식' };
-      case 'post':
-        return { variant: 'outline' as const, text: '짧은 소식' };
     }
   };
 
@@ -235,7 +119,7 @@ const NewsFeed = () => {
       setNewPost("");
       
       // Refresh news feed
-      fetchNewsItems();
+      fetchPosts();
       
       toast({
         title: "작성 완료",
@@ -303,54 +187,42 @@ const NewsFeed = () => {
             </div>
           ))}
         </div>
-      ) : newsItems.length > 0 ? (
+      ) : userPosts.length > 0 ? (
         <div className="space-y-6">
-          {newsItems.map((item) => {
-            const typeInfo = getTypeInfo(item.type);
-            
-            return (
-              <div key={item.id} className="flex gap-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={item.author?.avatar} />
-                  <AvatarFallback>
-                    {item.author?.name?.substring(0, 2) || "사용자"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{item.author?.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatRelativeTime(item.created_at)}
-                    </span>
-                    <Badge variant={typeInfo.variant} className="ml-auto">
-                      {typeInfo.text}
-                    </Badge>
-                  </div>
-                  <div>
-                    {item.title && (
-                      <h4 className="font-medium">{item.title}</h4>
-                    )}
-                    {item.content && (
-                      <p className="text-sm text-muted-foreground line-clamp-3">
-                        {item.content}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 pt-1">
-                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                      <Heart className="h-4 w-4" /> {item.likes}
-                    </button>
-                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                      <MessageSquare className="h-4 w-4" /> {item.comments}
-                    </button>
-                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground ml-auto">
-                      <Share2 className="h-4 w-4" /> 공유
-                    </button>
-                  </div>
+          {userPosts.map((post) => (
+            <div key={post.id} className="flex gap-4">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={undefined} />
+                <AvatarFallback>
+                  {post.author_name?.substring(0, 2) || "사용자"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{post.author_name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatRelativeTime(post.created_at)}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {post.content}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 pt-1">
+                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                    <Heart className="h-4 w-4" /> {Math.floor(Math.random() * 15)}
+                  </button>
+                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                    <MessageSquare className="h-4 w-4" /> {Math.floor(Math.random() * 7)}
+                  </button>
+                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground ml-auto">
+                    <Share2 className="h-4 w-4" /> 공유
+                  </button>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
