@@ -12,7 +12,21 @@ import CommentList from "@/components/CommentList";
 import { DonationReceipt, DonationReceiptComment } from "@/types/donation-receipt";
 import { Badge } from "@/components/ui/badge";
 import FileUploader from "@/components/FileUploader";
-import { ArrowLeft, Download } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Download, 
+  Edit, 
+  Trash2, 
+  AlertTriangle 
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const DonationReceiptDetail = () => {
   const { id } = useParams();
@@ -25,17 +39,39 @@ const DonationReceiptDetail = () => {
   const [commentLoading, setCommentLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [isAuthor, setIsAuthor] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
+      
+      // Check if user is admin (you'll need to define this check based on your system)
+      if (session?.user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        
+        setIsAdmin(data?.role === 'admin');
+      }
     };
     
     fetchUser();
     fetchReceipt();
     fetchComments();
   }, [id]);
+
+  useEffect(() => {
+    // Check if current user is the author
+    if (user && receipt) {
+      setIsAuthor(user.id === receipt.user_id);
+    }
+  }, [user, receipt]);
 
   const fetchReceipt = async () => {
     try {
@@ -153,6 +189,44 @@ const DonationReceiptDetail = () => {
     }
   };
 
+  const handleEdit = () => {
+    navigate(`/donation-receipts/edit/${id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!id || deleteLoading) return;
+    
+    try {
+      setDeleteLoading(true);
+      
+      // Delete associated comments first
+      const { error: commentsError } = await supabase
+        .from("donation_receipt_comments")
+        .delete()
+        .eq("receipt_id", id);
+      
+      if (commentsError) throw commentsError;
+      
+      // Delete the receipt
+      const { error } = await supabase
+        .from("donation_receipts")
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
+      
+      toast.success("기부금영수증이 삭제되었습니다.");
+      navigate("/donation-receipts");
+      
+    } catch (error) {
+      console.error("Error deleting donation receipt:", error);
+      toast.error("삭제에 실패했습니다.");
+    } finally {
+      setDeleteLoading(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
@@ -185,9 +259,31 @@ const DonationReceiptDetail = () => {
                       신청일: {new Date(receipt.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <Badge variant={receipt.processed ? "success" : "outline"}>
-                    {receipt.processed ? "처리완료" : "대기중"}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={receipt.processed ? "success" : "outline"}>
+                      {receipt.processed ? "처리완료" : "대기중"}
+                    </Badge>
+                    
+                    {/* Show edit/delete buttons only for author or admin */}
+                    {(isAuthor || isAdmin) && (
+                      <div className="flex gap-2 ml-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleEdit}
+                        >
+                          <Edit className="h-4 w-4 mr-1" /> 수정
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => setDeleteDialogOpen(true)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" /> 삭제
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="mb-4 p-4 bg-muted/30 rounded-md">
@@ -258,6 +354,48 @@ const DonationReceiptDetail = () => {
           )}
         </main>
       </div>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>기부금영수증 삭제</DialogTitle>
+            <DialogDescription>
+              <div className="flex items-center pt-2 text-destructive">
+                <AlertTriangle className="h-5 w-5 mr-2" />
+                <span>이 작업은 되돌릴 수 없습니다.</span>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            정말로 이 기부금영수증을 삭제하시겠습니까?<br />
+            모든 관련 댓글도 함께 삭제됩니다.
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleteLoading}
+            >
+              취소
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? (
+                <>
+                  <span className="animate-spin h-4 w-4 mr-2 border-2 border-b-transparent rounded-full"></span>
+                  삭제 중...
+                </>
+              ) : (
+                "삭제"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
