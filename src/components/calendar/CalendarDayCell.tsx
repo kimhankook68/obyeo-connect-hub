@@ -37,7 +37,11 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
   const isToday = isSameDay(day, new Date());
   const isCurrentMonth = isSameMonth(day, currentMonth);
   
-  const onCellClick = () => {
+  // 날짜 셀 빈 공간 클릭 시 동작 (새 일정 추가)
+  const onEmptyCellClick = (e: React.MouseEvent) => {
+    // 이벤트 버블링 방지
+    e.stopPropagation();
+    
     // 날짜 선택 기능 유지
     handleDateClick(day);
     
@@ -49,21 +53,22 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
   
   return (
     <td 
-      onClick={onCellClick}
       className={cn(
         "relative p-0 align-top cursor-pointer hover:bg-gray-50 transition-colors w-[calc(100%/7)]",
         !isCurrentMonth && "text-gray-400 bg-gray-50",
         isSelected && "bg-blue-50"
       )}
     >
-      <div className="flex flex-col h-full p-1">
+      <div className="flex flex-col h-full">
         {/* 날짜 번호 */}
-        <div className={cn(
-          "flex justify-center items-center",
-          dayIndex === 0 ? "text-red-500" : 
-          dayIndex === 6 ? "text-blue-500" : "",
-          !isCurrentMonth && "text-gray-400"
-        )}>
+        <div 
+          onClick={onEmptyCellClick}
+          className={cn(
+            "flex justify-center items-center",
+            dayIndex === 0 ? "text-red-500" : 
+            dayIndex === 6 ? "text-blue-500" : "",
+            !isCurrentMonth && "text-gray-400"
+          )}>
           <span className={cn(
             "text-center w-6 h-6 flex items-center justify-center",
             isToday && isCurrentMonth && "bg-blue-500 text-white rounded-full"
@@ -73,7 +78,10 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
         </div>
         
         {/* 이벤트 표시 영역 - 고정 높이 설정 */}
-        <div className="min-h-[1.75rem] h-[1.75rem] overflow-y-auto overflow-x-hidden">
+        <div 
+          className="min-h-[1.75rem] h-[1.75rem] overflow-y-auto overflow-x-hidden"
+          onClick={onEmptyCellClick} // 빈 영역 클릭 시에도 일정 추가
+        >
           {isCurrentMonth && dayEvents.length > 0 && (
             <EventPopover
               date={day}
@@ -91,13 +99,24 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
                       "text-[10px] px-1 py-[1px] rounded text-white truncate leading-tight",
                       getEventColor(event.type)
                     )}
+                    onClick={(e) => {
+                      e.stopPropagation(); // 이벤트 버블링 방지
+                      handleEdit(event);
+                    }}
                   >
                     {event.title}
                   </div>
                 ))}
                 
                 {dayEvents.length > 1 && (
-                  <div className="text-[9px] text-blue-600 font-medium px-1 leading-tight">
+                  <div 
+                    className="text-[9px] text-blue-600 font-medium px-1 leading-tight"
+                    onClick={(e) => {
+                      e.stopPropagation(); // 이벤트 버블링 방지
+                      // 날짜만 선택하고 팝업은 열리지 않게 함
+                      handleDateClick(day);
+                    }}
+                  >
                     +{dayEvents.length - 1}개 더보기
                   </div>
                 )}

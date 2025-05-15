@@ -94,7 +94,13 @@ const MiniCalendar = () => {
   
   // 새 일정 추가 핸들러
   const handleAddEvent = () => {
-    navigate('/calendar', { state: { openEventModal: true } });
+    // 현재 선택된 날짜와 함께 일정 추가 창 열기 상태 전달
+    navigate('/calendar', { 
+      state: { 
+        openEventModal: true,
+        selectedDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
+      } 
+    });
   };
   
   const weeks = getDaysInMonth();

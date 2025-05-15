@@ -11,14 +11,15 @@ import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSearchParams } from "react-router-dom";
-import { parseISO } from "date-fns";
+import { useSearchParams, useLocation } from "react-router-dom";
+import { parseISO, format } from "date-fns";
 
 const Calendar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [user, setUser] = useState<any>(null);
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   
   const {
     events,
@@ -72,15 +73,26 @@ const Calendar = () => {
     }
   }, [searchParams, events, setSelectedDate, handleEdit]);
 
-  // 사용자 상태에서 오는 모달 열기 요청 처리
+  // location state에서 오는 모달 열기 요청 및 선택된 날짜 처리
   useEffect(() => {
-    const { state } = window.history as any;
+    const state = location.state as any;
+    
     if (state?.openEventModal) {
+      // 선택된 날짜가 있으면 해당 날짜로 설정
+      if (state.selectedDate) {
+        try {
+          const parsedDate = parseISO(state.selectedDate);
+          setSelectedDate(parsedDate);
+        } catch (error) {
+          console.error('유효하지 않은 날짜 형식:', error);
+        }
+      }
+      
       handleAdd();
       // 상태 정리
       window.history.replaceState({}, document.title);
     }
-  }, [handleAdd]);
+  }, [location.state, handleAdd, setSelectedDate]);
 
   // 특정 날짜에 일정 추가 핸들러
   const handleAddEventOnDay = (day: Date) => {
