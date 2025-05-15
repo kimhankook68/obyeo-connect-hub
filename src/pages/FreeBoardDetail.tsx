@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
@@ -258,7 +259,7 @@ const FreeBoardDetail = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <div className="space-y-6 max-w-4xl mx-auto">
+            <div className="space-y-6 max-w-full mx-auto">
               <Card>
                 <CardHeader className="border-b pb-3">
                   <div className="flex justify-between items-start">
