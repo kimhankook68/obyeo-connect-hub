@@ -3,7 +3,7 @@ import React from "react";
 import { DonationReceipt } from "@/types/donation-receipt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Check } from "lucide-react";
 
 interface ReceiptDetailCardProps {
   receipt: DonationReceipt;
@@ -11,6 +11,8 @@ interface ReceiptDetailCardProps {
   isAdmin: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleProcessed?: (processed: boolean) => Promise<void>;
+  processingStatus?: boolean;
 }
 
 const ReceiptDetailCard: React.FC<ReceiptDetailCardProps> = ({
@@ -19,6 +21,8 @@ const ReceiptDetailCard: React.FC<ReceiptDetailCardProps> = ({
   isAdmin,
   onEdit,
   onDelete,
+  onToggleProcessed,
+  processingStatus = false,
 }) => {
   return (
     <div className="mb-4">
@@ -35,6 +39,20 @@ const ReceiptDetailCard: React.FC<ReceiptDetailCardProps> = ({
           <Badge variant={receipt.processed ? "success" : "outline"}>
             {receipt.processed ? "처리완료" : "대기중"}
           </Badge>
+          
+          {/* Admin can toggle the processed status */}
+          {isAdmin && !receipt.processed && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onToggleProcessed && onToggleProcessed(!receipt.processed)}
+              disabled={processingStatus}
+              className="ml-2"
+            >
+              <Check className="h-4 w-4 mr-1" /> 
+              {processingStatus ? "처리 중..." : "발급완료"}
+            </Button>
+          )}
           
           {/* Show edit/delete buttons only for author or admin */}
           {(isAuthor || isAdmin) && (

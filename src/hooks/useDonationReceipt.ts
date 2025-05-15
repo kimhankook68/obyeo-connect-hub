@@ -11,6 +11,7 @@ export const useDonationReceipt = (id?: string) => {
   const [comments, setComments] = useState<DonationReceiptComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentLoading, setCommentLoading] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isAuthor, setIsAuthor] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -93,27 +94,9 @@ export const useDonationReceipt = (id?: string) => {
     }
   };
 
-  const handleSubmitComment = async (comment: string, file: File | null) => {
+  const handleSubmitComment = async (comment: string) => {
     try {
       setCommentLoading(true);
-      
-      let attachment_url = null;
-      
-      // Upload file if provided
-      if (file) {
-        const fileName = `${Date.now()}-${file.name}`;
-        const { data: fileData, error: fileError } = await supabase.storage
-          .from("donation_receipts")
-          .upload(fileName, file);
-          
-        if (fileError) throw fileError;
-        
-        const { data } = supabase.storage
-          .from("donation_receipts")
-          .getPublicUrl(fileName);
-          
-        attachment_url = data.publicUrl;
-      }
       
       // Insert comment
       const { error } = await supabase.from("donation_receipt_comments").insert({
@@ -121,7 +104,6 @@ export const useDonationReceipt = (id?: string) => {
         user_id: user?.id,
         author: user?.user_metadata?.name || user?.email?.split('@')[0] || '방문자',
         content: comment,
-        attachment_url
       });
 
       if (error) throw error;
@@ -137,20 +119,31 @@ export const useDonationReceipt = (id?: string) => {
     }
   };
 
-  const downloadReceipt = async (url: string, filename: string) => {
+  const handleToggleProcessed = async (processed: boolean) => {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (!id || !isAdmin) return;
+      
+      setProcessingStatus(true);
+      
+      const { error } = await supabase
+        .from("donation_receipts")
+        .update({ processed })
+        .eq("id", id);
+      
+      if (error) throw error;
+      
+      // Update local receipt status
+      if (receipt) {
+        setReceipt({ ...receipt, processed });
+      }
+      
+      toast.success(processed ? "발급 완료 처리되었습니다." : "대기중으로 변경되었습니다.");
+      
     } catch (error) {
-      console.error("Error downloading file:", error);
-      toast.error("파일 다운로드에 실패했습니다.");
+      console.error("Error updating receipt status:", error);
+      toast.error("상태 변경에 실패했습니다.");
+    } finally {
+      setProcessingStatus(false);
     }
   };
 
@@ -197,6 +190,7 @@ export const useDonationReceipt = (id?: string) => {
     comments,
     loading,
     commentLoading,
+    processingStatus,
     user,
     isAuthor,
     isAdmin,
@@ -204,7 +198,7 @@ export const useDonationReceipt = (id?: string) => {
     deleteLoading,
     setDeleteDialogOpen,
     handleSubmitComment,
-    downloadReceipt,
+    handleToggleProcessed,
     handleEdit,
     handleDelete,
   };

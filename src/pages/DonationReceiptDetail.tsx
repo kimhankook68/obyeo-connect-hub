@@ -7,7 +7,7 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { DashboardCard } from "@/components/DashboardCard";
 import CommentList from "@/components/CommentList";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useDonationReceipt } from "@/hooks/useDonationReceipt";
 import ReceiptDetailCard from "@/components/donation/ReceiptDetailCard";
 import DeleteReceiptDialog from "@/components/donation/DeleteReceiptDialog";
@@ -23,13 +23,14 @@ const DonationReceiptDetail = () => {
     comments,
     loading,
     commentLoading,
+    processingStatus,
     isAuthor,
     isAdmin,
     deleteDialogOpen,
     deleteLoading,
     setDeleteDialogOpen,
     handleSubmitComment,
-    downloadReceipt,
+    handleToggleProcessed,
     handleEdit,
     handleDelete
   } = useDonationReceipt(id);
@@ -63,6 +64,8 @@ const DonationReceiptDetail = () => {
                   isAdmin={isAdmin}
                   onEdit={handleEdit}
                   onDelete={() => setDeleteDialogOpen(true)}
+                  onToggleProcessed={handleToggleProcessed}
+                  processingStatus={processingStatus}
                 />
                 
                 <div className="border-t border-border pt-4">
@@ -70,22 +73,7 @@ const DonationReceiptDetail = () => {
                   <CommentList comments={comments.map(c => ({
                     id: c.id,
                     author: c.author,
-                    content: c.attachment_url ? 
-                      <div>
-                        <div>{c.content}</div>
-                        {c.attachment_url && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="mt-2"
-                            onClick={() => downloadReceipt(c.attachment_url!, '기부금영수증.pdf')}
-                          >
-                            <Download className="mr-2 h-4 w-4" />
-                            영수증 다운로드
-                          </Button>
-                        )}
-                      </div> : 
-                      c.content,
+                    content: c.content,
                     created_at: c.created_at
                   }))} />
                   
