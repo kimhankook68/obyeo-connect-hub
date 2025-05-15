@@ -32,6 +32,7 @@ export const useReceiptActions = (id?: string, setReceipt?: (receipt: DonationRe
         .single();
       
       if (data && setReceipt) {
+        // 중요: 여기서 receipt 상태를 업데이트합니다
         setReceipt(data as DonationReceipt);
       }
       

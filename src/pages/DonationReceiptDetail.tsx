@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -34,6 +34,14 @@ const DonationReceiptDetail = () => {
     handleEdit,
     handleDelete
   } = useDonationReceipt(id);
+
+  // 컴포넌트가 렌더링될 때마다 콘솔에 현재 receipt 상태를 출력
+  useEffect(() => {
+    if (receipt) {
+      console.log("Current receipt state:", receipt);
+      console.log("Processed status:", receipt.processed);
+    }
+  }, [receipt]);
 
   return (
     <div className="flex h-screen">
