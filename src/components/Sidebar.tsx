@@ -1,49 +1,64 @@
 
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { 
+  LayoutDashboard, 
+  Megaphone, 
+  CalendarIcon, 
+  FolderOpen, 
+  FileText, 
+  MessageSquare, 
+  Users, 
+  BookmarkIcon
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
   name: string;
   path: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const navItems: NavItem[] = [
   {
     name: "대시보드",
     path: "/",
-    icon: "📊"
+    icon: <LayoutDashboard size={20} />
   },
   {
     name: "공지사항",
     path: "/notices",
-    icon: "📣"
+    icon: <Megaphone size={20} />
   },
   {
     name: "일정관리",
     path: "/calendar",
-    icon: "📅"
+    icon: <CalendarIcon size={20} />
   },
   {
     name: "자료실",
     path: "/documents",
-    icon: "📁"
+    icon: <FolderOpen size={20} />
   },
   {
     name: "설문조사",
     path: "/surveys",
-    icon: "📝"
+    icon: <FileText size={20} />
   },
   {
     name: "자유게시판",
     path: "/freeboards",
-    icon: "💬"
+    icon: <MessageSquare size={20} />
+  },
+  {
+    name: "즐겨찾기",
+    path: "/bookmarks",
+    icon: <BookmarkIcon size={20} />
   },
   {
     name: "임직원",
     path: "/members",
-    icon: "👥"
+    icon: <Users size={20} />
   }
 ];
 
@@ -98,7 +113,7 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean, setCollapsed
                       )
                     }
                   >
-                    <span className="text-xl mr-3">{item.icon}</span>
+                    <span className="mr-3">{item.icon}</span>
                     {!collapsed && <span>{item.name}</span>}
                   </NavLink>
                 </li>

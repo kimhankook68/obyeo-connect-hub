@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { BookmarkIcon, CalendarIcon, FileTextIcon, UsersIcon } from "lucide-react";
 
 const StatCards = () => {
   const navigate = useNavigate();
@@ -45,10 +46,17 @@ const StatCards = () => {
           
         if (surveysError) console.error(surveysError);
         
+        // Fetch bookmarks count
+        const { count: bookmarksCount, error: bookmarksError } = await supabase
+          .from('bookmarks')
+          .select('*', { count: 'exact', head: true });
+          
+        if (bookmarksError) console.error(bookmarksError);
+        
         setStats({
-          pendingTasks: surveysCount || 0, // Use surveys count for pending tasks
+          pendingTasks: surveysCount || 0,
           todayEvents: eventsCount || 0,
-          newMessages: 0, // Placeholder for messages
+          newMessages: bookmarksCount || 0, // Use bookmarks count for the third card
           totalMembers: membersCount || 0
         });
         
@@ -64,7 +72,7 @@ const StatCards = () => {
     { 
       title: "진행 중인 설문", 
       count: stats.pendingTasks, 
-      icon: "📄",
+      icon: <FileTextIcon className="w-6 h-6 text-blue-500" />,
       color: "bg-blue-50",
       iconColor: "text-blue-500",
       link: "/surveys",
@@ -73,25 +81,25 @@ const StatCards = () => {
     { 
       title: "오늘 일정", 
       count: stats.todayEvents, 
-      icon: "📅",
+      icon: <CalendarIcon className="w-6 h-6 text-green-500" />,
       color: "bg-green-50",
       iconColor: "text-green-500",
       link: "/calendar",
       linkText: "달력 보기"
     },
     { 
-      title: "새 메시지", 
+      title: "즐겨찾기", 
       count: stats.newMessages, 
-      icon: "💬",
+      icon: <BookmarkIcon className="w-6 h-6 text-purple-500" />,
       color: "bg-purple-50",
       iconColor: "text-purple-500",
-      link: "/surveys",
-      linkText: "메시지함 열기"
+      link: "/bookmarks",
+      linkText: "전체 보기"
     },
     { 
       title: "활동 직원", 
       count: stats.totalMembers, 
-      icon: "👥",
+      icon: <UsersIcon className="w-6 h-6 text-amber-500" />,
       color: "bg-amber-50",
       iconColor: "text-amber-500",
       link: "/members",
@@ -104,11 +112,11 @@ const StatCards = () => {
       {cards.map((card, index) => (
         <div 
           key={index}
-          className={`p-6 rounded-lg border border-border shadow-sm ${card.color} cursor-pointer`}
+          className={`p-6 rounded-lg border border-border shadow-sm ${card.color} cursor-pointer transition-all hover:shadow-md`}
           onClick={() => navigate(card.link)}
         >
           <div className="flex flex-col items-start">
-            <div className={`text-2xl mb-2 ${card.iconColor}`}>{card.icon}</div>
+            <div className={`mb-2 ${card.iconColor}`}>{card.icon}</div>
             <div className="text-sm text-muted-foreground mb-1">{card.title}</div>
             <div className="text-2xl font-semibold mb-2">{card.count}개</div>
             <button 

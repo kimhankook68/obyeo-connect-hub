@@ -24,6 +24,7 @@ import FreeBoards from "./pages/FreeBoards";
 import FreeBoardDetail from "./pages/FreeBoardDetail";
 import FreeBoardCreate from "./pages/FreeBoardCreate";
 import FreeBoardEdit from "./pages/FreeBoardEdit";
+import Bookmarks from "./pages/Bookmarks";
 import Footer from "./components/Footer";
 
 // Create a QueryClient instance
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/tasks" element={<Index />} />
               <Route path="/members" element={<Members />} />
+              <Route path="/bookmarks" element={<Bookmarks />} />
               <Route path="/surveys" element={<Surveys />} />
               <Route path="/surveys/:id" element={<SurveyDetail />} />
               <Route path="/surveys/create" element={<SurveyCreate />} />
