@@ -54,7 +54,7 @@ const Index = () => {
           
           {/* News Feed at the bottom */}
           <div className="grid grid-cols-1 gap-6 mb-6">
-            <NewsFeed />
+            <NewsFeed limit={5} />
           </div>
         </main>
       </div>

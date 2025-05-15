@@ -30,6 +30,7 @@ import DonationReceipts from "./pages/DonationReceipts";
 import DonationReceiptDetail from "./pages/DonationReceiptDetail";
 import DonationReceiptCreate from "./pages/DonationReceiptCreate";
 import DonationReceiptEdit from "./pages/DonationReceiptEdit";
+import NewsFeed from "./pages/NewsFeed";
 import Footer from "./components/Footer";
 
 // Create a QueryClient instance
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/donation-receipts/:id" element={<DonationReceiptDetail />} />
               <Route path="/donation-receipts/create" element={<DonationReceiptCreate />} />
               <Route path="/donation-receipts/edit/:id" element={<DonationReceiptEdit />} />
+              <Route path="/newsfeed" element={<NewsFeed />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
