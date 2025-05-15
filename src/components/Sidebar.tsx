@@ -9,7 +9,8 @@ import {
   FileText, 
   MessageSquare, 
   Users, 
-  BookmarkIcon
+  BookmarkIcon,
+  ReceiptIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,11 @@ const navItems: NavItem[] = [
     name: "자유게시판",
     path: "/freeboards",
     icon: <MessageSquare size={20} />
+  },
+  {
+    name: "기부금영수증",
+    path: "/donation-receipts",
+    icon: <ReceiptIcon size={20} />
   },
   {
     name: "즐겨찾기",

@@ -9,7 +9,7 @@ type DashboardCardProps = {
   action?: ReactNode;
 };
 
-const DashboardCard = ({ title, children, className, action }: DashboardCardProps) => {
+export const DashboardCard = ({ title, children, className, action }: DashboardCardProps) => {
   return (
     <div
       className={cn(
@@ -25,5 +25,3 @@ const DashboardCard = ({ title, children, className, action }: DashboardCardProp
     </div>
   );
 };
-
-export default DashboardCard;

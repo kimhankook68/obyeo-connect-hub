@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { BookmarkIcon, CalendarIcon, FileTextIcon, UsersIcon } from "lucide-react";
+import { BookmarkIcon, CalendarIcon, FileTextIcon, ReceiptIcon } from "lucide-react";
 
 const StatCards = () => {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ const StatCards = () => {
     pendingTasks: 0,
     todayEvents: 0,
     newMessages: 0,
-    totalMembers: 0
+    donationRequests: 0
   });
   
   useEffect(() => {
@@ -30,12 +30,13 @@ const StatCards = () => {
         
         if (eventsError) throw eventsError;
         
-        // Fetch total members
-        const { count: membersCount, error: membersError } = await supabase
-          .from('members')
-          .select('*', { count: 'exact', head: true });
+        // Fetch donation receipt requests
+        const { count: donationCount, error: donationError } = await supabase
+          .from('donation_receipts')
+          .select('*', { count: 'exact', head: true })
+          .is('processed', false);
           
-        if (membersError) throw membersError;
+        if (donationError) console.error(donationError);
         
         // Fetch active surveys - updated to correctly count ongoing surveys
         const currentDate = new Date().toISOString();
@@ -56,8 +57,8 @@ const StatCards = () => {
         setStats({
           pendingTasks: surveysCount || 0,
           todayEvents: eventsCount || 0,
-          newMessages: bookmarksCount || 0, // Use bookmarks count for the third card
-          totalMembers: membersCount || 0
+          newMessages: bookmarksCount || 0,
+          donationRequests: donationCount || 0
         });
         
       } catch (error) {
@@ -97,13 +98,13 @@ const StatCards = () => {
       linkText: "전체 보기"
     },
     { 
-      title: "활동 직원", 
-      count: stats.totalMembers, 
-      icon: <UsersIcon className="w-6 h-6 text-amber-500" />,
+      title: "기부금영수증 신청", 
+      count: stats.donationRequests, 
+      icon: <ReceiptIcon className="w-6 h-6 text-amber-500" />,
       color: "bg-amber-50",
       iconColor: "text-amber-500",
-      link: "/members",
-      linkText: "직원 목록"
+      link: "/donation-receipts",
+      linkText: "신청 목록"
     }
   ];
 

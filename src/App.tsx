@@ -26,6 +26,9 @@ import FreeBoardDetail from "./pages/FreeBoardDetail";
 import FreeBoardCreate from "./pages/FreeBoardCreate";
 import FreeBoardEdit from "./pages/FreeBoardEdit";
 import Bookmarks from "./pages/Bookmarks";
+import DonationReceipts from "./pages/DonationReceipts";
+import DonationReceiptDetail from "./pages/DonationReceiptDetail";
+import DonationReceiptCreate from "./pages/DonationReceiptCreate";
 import Footer from "./components/Footer";
 
 // Create a QueryClient instance
@@ -61,6 +64,9 @@ const App = () => (
               <Route path="/freeboards/:id" element={<FreeBoardDetail />} />
               <Route path="/freeboards/create" element={<FreeBoardCreate />} />
               <Route path="/freeboards/edit/:id" element={<FreeBoardEdit />} />
+              <Route path="/donation-receipts" element={<DonationReceipts />} />
+              <Route path="/donation-receipts/:id" element={<DonationReceiptDetail />} />
+              <Route path="/donation-receipts/create" element={<DonationReceiptCreate />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
