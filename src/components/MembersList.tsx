@@ -1,11 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Member } from "@/types/member";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, User } from "lucide-react";
 import ProfileViewDialog from "./profile/ProfileViewDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MembersListProps {
   members: Member[];
@@ -17,10 +18,39 @@ interface MembersListProps {
 const MembersList = ({ members, isLoading, onEditMember, onDeleteMember }: MembersListProps) => {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    // 현재 로그인한 사용자의 ID와 관리자 여부를 확인
+    const checkCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUserId(session.user.id);
+        
+        // 사용자 프로필에서 역할 확인
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+          
+        // 'admin' 역할인지 확인 (대소문자 구분 없이)
+        setIsAdmin(profileData?.role?.toLowerCase() === 'admin');
+      }
+    };
+    
+    checkCurrentUser();
+  }, []);
   
   const handleViewProfile = (member: Member) => {
     setSelectedMember(member);
     setIsProfileOpen(true);
+  };
+  
+  // 본인 또는 관리자인지 확인하는 함수
+  const canEditOrDelete = (memberId: string) => {
+    return isAdmin || memberId === currentUserId;
   };
   
   if (isLoading) {
@@ -85,14 +115,19 @@ const MembersList = ({ members, isLoading, onEditMember, onDeleteMember }: Membe
                     <User className="h-4 w-4 mr-1" />
                     <span>프로필</span>
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => onEditMember(member)}>
-                    <Edit className="h-4 w-4 mr-1" />
-                    <span>수정</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => onDeleteMember(member)}>
-                    <Trash2 className="h-4 w-4 mr-1 text-destructive" />
-                    <span className="text-destructive">삭제</span>
-                  </Button>
+                  
+                  {canEditOrDelete(member.user_id || '') && (
+                    <>
+                      <Button variant="ghost" size="sm" onClick={() => onEditMember(member)}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        <span>수정</span>
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => onDeleteMember(member)}>
+                        <Trash2 className="h-4 w-4 mr-1 text-destructive" />
+                        <span className="text-destructive">삭제</span>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>

@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Building2, Mail, Phone, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileViewProps {
   profile: {
@@ -21,10 +22,14 @@ interface ProfileViewProps {
   };
   isOwnProfile: boolean;
   onEdit?: () => void;
+  isAdmin?: boolean;
 }
 
-const ProfileView = ({ profile, isOwnProfile, onEdit }: ProfileViewProps) => {
+const ProfileView = ({ profile, isOwnProfile, onEdit, isAdmin = false }: ProfileViewProps) => {
   const navigate = useNavigate();
+  
+  // 본인 또는 관리자인 경우에만 수정 가능
+  const canEdit = isOwnProfile || isAdmin;
   
   return (
     <Card>
@@ -98,7 +103,7 @@ const ProfileView = ({ profile, isOwnProfile, onEdit }: ProfileViewProps) => {
           최종 수정일: {profile.updated_at ? new Date(profile.updated_at).toLocaleDateString('ko-KR') : "-"}
         </div>
         <div className="flex gap-2">
-          {(isOwnProfile && onEdit) && (
+          {(canEdit && onEdit) && (
             <Button onClick={onEdit}>수정</Button>
           )}
           <Button variant="outline" size="sm" onClick={() => navigate('/members')}>
