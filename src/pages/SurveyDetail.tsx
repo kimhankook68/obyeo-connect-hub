@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast"; // Fixed import
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +26,7 @@ interface Question {
   id: string;
   survey_id: string;
   question: string;
-  question_type: 'text' | 'single_choice' | 'multiple_choice';
+  question_type: 'text' | 'single_choice' | 'multiple_choice' | 'textarea'; // Added textarea type
   options: string[];
   required: boolean;
   order_num: number;
@@ -42,7 +43,7 @@ interface Survey {
 const SurveyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  // Removed useToast hook since we're using the direct toast import
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +51,7 @@ const SurveyDetail = () => {
   const [hasResponded, setHasResponded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("survey");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Added state for sidebar
 
   // 설문 통계 데이터 가져오기
   const surveyStats = useSurveyStats(id || '');
@@ -90,7 +92,12 @@ const SurveyDetail = () => {
         .order('order_num');
 
       if (error) throw error;
-      setQuestions(data || []);
+      // Type casting to ensure compatibility with Question interface
+      setQuestions((data || []).map(q => ({
+        ...q,
+        question_type: q.question_type as 'text' | 'single_choice' | 'multiple_choice' | 'textarea',
+        options: Array.isArray(q.options) ? q.options : []
+      })));
     } catch (error) {
       console.error('Error fetching questions:', error);
     } finally {
@@ -116,7 +123,9 @@ const SurveyDetail = () => {
       if (error) throw error;
       
       if (data) {
-        setUserResponses(data.responses || {});
+        // Safely handle responses data
+        const responseData = typeof data.responses === 'object' ? data.responses : {};
+        setUserResponses(responseData || {});
         setHasResponded(true);
       }
     } catch (error) {
@@ -129,6 +138,25 @@ const SurveyDetail = () => {
       ...prev,
       [questionId]: value
     }));
+  };
+
+  // Special handler for multiple choice questions
+  const handleMultipleChoiceChange = (questionId: string, optionValue: string, checked: boolean) => {
+    setUserResponses(prev => {
+      const currentValues = Array.isArray(prev[questionId]) ? [...prev[questionId]] : [];
+      
+      if (checked) {
+        return {
+          ...prev,
+          [questionId]: [...currentValues, optionValue]
+        };
+      } else {
+        return {
+          ...prev,
+          [questionId]: currentValues.filter(v => v !== optionValue)
+        };
+      }
+    });
   };
 
   const handleSubmit = async () => {
@@ -204,7 +232,7 @@ const SurveyDetail = () => {
             value={value}
             onChange={(e) => handleInputChange(question.id, e.target.value)}
             placeholder="응답을 입력하세요"
-            disabled={hasResponded || !userResponses[question.id]}
+            disabled={hasResponded}
           />
         );
       case 'textarea':
@@ -214,7 +242,7 @@ const SurveyDetail = () => {
             onChange={(e) => handleInputChange(question.id, e.target.value)}
             placeholder="응답을 입력하세요"
             className="min-h-[100px]"
-            disabled={hasResponded || !userResponses[question.id]}
+            disabled={hasResponded}
           />
         );
       case 'single_choice':
@@ -222,7 +250,7 @@ const SurveyDetail = () => {
           <RadioGroup
             value={value}
             onValueChange={(val) => handleInputChange(question.id, val)}
-            disabled={hasResponded || !userResponses[question.id]}
+            disabled={hasResponded}
             className="space-y-1"
           >
             {options.map((option: any, index: number) => (
@@ -246,9 +274,9 @@ const SurveyDetail = () => {
                     id={`${question.id}-option-${index}`}
                     checked={isChecked}
                     onCheckedChange={(checked) => 
-                      handleInputChange(question.id, optionValue, checked === true)
+                      handleMultipleChoiceChange(question.id, optionValue, checked === true)
                     }
-                    disabled={hasResponded || !userResponses[question.id]}
+                    disabled={hasResponded}
                   />
                   <Label htmlFor={`${question.id}-option-${index}`}>{option.label || option}</Label>
                 </div>
@@ -262,7 +290,7 @@ const SurveyDetail = () => {
             value={value}
             onChange={(e) => handleInputChange(question.id, e.target.value)}
             placeholder="응답을 입력하세요"
-            disabled={hasResponded || !userResponses[question.id]}
+            disabled={hasResponded}
           />
         );
     }
@@ -271,9 +299,9 @@ const SurveyDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <Header title="설문조사" />
         <div className="flex">
-          <Sidebar />
+          <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
           <main className="flex-1 p-6">
             <div className="flex justify-center items-center h-[70vh]">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -286,9 +314,9 @@ const SurveyDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header title="설문조사 상세" />
       <div className="flex">
-        <Sidebar />
+        <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
         <main className="flex-1 p-6">
           <div className="container mx-auto max-w-4xl">
             <div className="flex justify-between items-center mb-6">

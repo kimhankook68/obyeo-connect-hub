@@ -1,128 +1,146 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
-export type SurveyStatistics = {
-  totalResponses: number;
-  questionStats: {
-    questionId: string;
-    question: string;
-    questionType: string;
-    stats: {
-      option?: string;
-      count: number;
-      percentage: number;
-    }[];
+// Define types for statistics
+export interface QuestionStats {
+  id: string;
+  question: string;
+  question_type: string;
+  responseCount: number;
+  options?: any[];
+  responses?: any[];
+  distribution?: {
+    label: string;
+    value: number;
+    percentage: number;
   }[];
+}
+
+export interface SurveyStatsData {
+  totalResponses: number;
+  questions: QuestionStats[];
   loading: boolean;
   error: string | null;
-};
+}
 
-export const useSurveyStats = (surveyId: string) => {
-  const [stats, setStats] = useState<SurveyStatistics>({
+export const useSurveyStats = (surveyId: string): SurveyStatsData => {
+  const [stats, setStats] = useState<SurveyStatsData>({
     totalResponses: 0,
-    questionStats: [],
+    questions: [],
     loading: true,
     error: null
   });
 
   useEffect(() => {
-    const fetchSurveyStats = async () => {
+    if (!surveyId) return;
+    
+    const fetchStats = async () => {
       try {
-        // 1. 설문 질문 가져오기
+        // 설문 질문 가져오기
         const { data: questions, error: questionsError } = await supabase
           .from('survey_questions')
           .select('*')
           .eq('survey_id', surveyId)
           .order('order_num');
-
-        if (questionsError) throw new Error(questionsError.message);
+          
+        if (questionsError) throw questionsError;
         
-        // 2. 설문 응답 가져오기
+        // 설문 응답 가져오기
         const { data: responses, error: responsesError } = await supabase
           .from('survey_responses')
           .select('*')
           .eq('survey_id', surveyId);
           
-        if (responsesError) throw new Error(responsesError.message);
+        if (responsesError) throw responsesError;
         
-        // 3. 통계 계산하기
-        const totalResponses = responses.length;
-        
-        const questionStats = questions.map(question => {
-          let stats: { option?: string; count: number; percentage: number }[] = [];
+        // 질문별 통계 계산
+        const questionStats: QuestionStats[] = (questions || []).map(q => {
+          const questionResponses: any[] = [];
           
-          // 질문 유형에 따라 통계 계산 방식 다르게 적용
-          if (question.question_type === 'multiple_choice' || question.question_type === 'single_choice') {
-            // 선택형 질문의 경우 각 옵션별 통계
-            const options = question.options || [];
+          // 각 응답에서 현재 질문에 대한 답변 추출
+          responses?.forEach(response => {
+            const responseData = response.responses;
+            if (responseData && typeof responseData === 'object' && responseData[q.id] !== undefined) {
+              questionResponses.push(responseData[q.id]);
+            }
+          });
+          
+          let distribution;
+          
+          // 질문 유형에 따라 응답 분포 계산
+          if (q.question_type === 'single_choice' || q.question_type === 'multiple_choice') {
+            const optionsArray = Array.isArray(q.options) ? q.options : [];
+            const counts: Record<string, number> = {};
             
-            // 각 옵션별로 카운트 초기화
-            const optionCounts: Record<string, number> = {};
-            options.forEach((option: string) => {
-              optionCounts[option] = 0;
+            // 초기 카운트 0으로 설정
+            optionsArray.forEach((option: any) => {
+              const optionValue = typeof option === 'object' ? option.value : option;
+              counts[optionValue] = 0;
             });
             
             // 응답 카운트
-            responses.forEach(response => {
-              const answer = response.responses[question.id];
-              if (Array.isArray(answer)) {
-                answer.forEach(selected => {
-                  if (optionCounts[selected] !== undefined) {
-                    optionCounts[selected]++;
-                  }
+            questionResponses.forEach(response => {
+              if (Array.isArray(response)) {
+                // 다중 선택의 경우
+                response.forEach(value => {
+                  counts[value] = (counts[value] || 0) + 1;
                 });
-              } else if (typeof answer === 'string' && optionCounts[answer] !== undefined) {
-                optionCounts[answer]++;
+              } else {
+                // 단일 선택의 경우
+                counts[response] = (counts[response] || 0) + 1;
               }
             });
             
-            // 통계 계산
-            stats = options.map(option => ({
-              option,
-              count: optionCounts[option] || 0,
-              percentage: totalResponses > 0 ? (optionCounts[option] || 0) / totalResponses * 100 : 0
-            }));
-          } else {
-            // 텍스트형 질문의 경우 응답 수만 집계
-            const answeredCount = responses.filter(response => {
-              const answer = response.responses[question.id];
-              return answer && answer.trim && answer.trim() !== '';
-            }).length;
-            
-            stats = [{
-              count: answeredCount,
-              percentage: totalResponses > 0 ? answeredCount / totalResponses * 100 : 0
-            }];
+            // 분포 계산
+            distribution = optionsArray.map((option: any) => {
+              const optionValue = typeof option === 'object' ? option.value : option;
+              const optionLabel = typeof option === 'object' ? option.label : option;
+              const count = counts[optionValue] || 0;
+              return {
+                label: optionLabel,
+                value: count,
+                percentage: questionResponses.length ? Math.round((count / questionResponses.length) * 100) : 0
+              };
+            });
           }
           
           return {
-            questionId: question.id,
-            question: question.question,
-            questionType: question.question_type,
-            stats
+            id: q.id,
+            question: q.question,
+            question_type: q.question_type,
+            responseCount: questionResponses.length,
+            options: Array.isArray(q.options) ? q.options : [],
+            responses: questionResponses,
+            distribution
           };
         });
         
         setStats({
-          totalResponses,
-          questionStats,
+          totalResponses: responses?.length || 0,
+          questions: questionStats,
           loading: false,
           error: null
         });
+        
       } catch (error) {
-        console.error('Error fetching survey statistics:', error);
+        console.error('Error fetching survey stats:', error);
         setStats(prev => ({
           ...prev,
           loading: false,
-          error: error instanceof Error ? error.message : '통계를 불러오는 중 오류가 발생했습니다.'
+          error: '통계 데이터를 불러오는데 실패했습니다.'
         }));
+        
+        toast({
+          title: '통계 데이터 로드 실패',
+          description: '설문 통계를 불러오는데 오류가 발생했습니다.',
+          variant: 'destructive',
+        });
       }
     };
 
-    if (surveyId) {
-      fetchSurveyStats();
-    }
+    fetchStats();
   }, [surveyId]);
 
   return stats;
