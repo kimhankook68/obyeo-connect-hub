@@ -17,7 +17,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import Footer from "@/components/Footer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Surveys = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -154,7 +157,7 @@ const Surveys = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="설문조사" />
         
-        <main className="flex-1 overflow-y-auto p-6 bg-background">
+        <main className="flex-1 overflow-y-auto p-6 max-w-7xl w-full mx-auto bg-background">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">설문조사</h1>
             <Button 
@@ -176,75 +179,93 @@ const Surveys = () => {
           </div>
           
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="grid gap-4">
+              {[1, 2, 3].map((index) => (
+                <Card key={index} className="p-4 border rounded-lg">
+                  <CardContent className="p-0">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <Skeleton className="h-6 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-2/3" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : surveys.length === 0 ? (
-            <div className="text-center py-12 border rounded-lg bg-muted/30">
-              <p className="text-muted-foreground mb-4">아직 설문이 없습니다.</p>
-              <Button 
-                onClick={() => {
-                  if (!user) {
-                    toast({
-                      title: "로그인 필요",
-                      description: "설문을 생성하려면 로그인이 필요합니다.",
-                    });
-                    navigate("/auth");
-                    return;
-                  }
-                  navigate("/surveys/create");
-                }}
-              >
-                새 설문 작성하기
-              </Button>
-            </div>
+            <Card className="text-center py-12 bg-muted/30">
+              <CardContent>
+                <p className="text-muted-foreground mb-4">아직 설문이 없습니다.</p>
+                <Button 
+                  onClick={() => {
+                    if (!user) {
+                      toast({
+                        title: "로그인 필요",
+                        description: "설문을 생성하려면 로그인이 필요합니다.",
+                      });
+                      navigate("/auth");
+                      return;
+                    }
+                    navigate("/surveys/create");
+                  }}
+                >
+                  새 설문 작성하기
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid gap-4">
               {surveys.map((survey) => {
                 const isOwner = user && user.id === survey.user_id;
                 
                 return (
-                  <div
+                  <Card
                     key={survey.id}
-                    className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer relative"
+                    className="hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => navigate(`/surveys/${survey.id}`)}
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h2 className="font-medium text-lg mb-1">{survey.title}</h2>
-                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                          {survey.description}
-                        </p>
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>생성일: {new Date(survey.created_at).toLocaleDateString()}</span>
-                          <span>마감일: {survey.end_date ? new Date(survey.end_date).toLocaleDateString() : '무기한'}</span>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h2 className="font-medium text-lg mb-1">{survey.title}</h2>
+                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                            {survey.description}
+                          </p>
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>생성일: {new Date(survey.created_at).toLocaleDateString()}</span>
+                            <span>마감일: {survey.end_date ? new Date(survey.end_date).toLocaleDateString() : '무기한'}</span>
+                          </div>
                         </div>
+                        {isOwner && (
+                          <div className="flex space-x-1 ml-4">
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              onClick={(e) => handleEdit(e, survey.id, survey.user_id)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              onClick={(e) => openDeleteDialog(e, survey.id, survey.user_id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      {isOwner && (
-                        <div className="flex space-x-1 ml-4">
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            onClick={(e) => handleEdit(e, survey.id, survey.user_id)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            onClick={(e) => openDeleteDialog(e, survey.id, survey.user_id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>
           )}
         </main>
+        
+        <Footer />
       </div>
       
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

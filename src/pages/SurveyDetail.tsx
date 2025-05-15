@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
@@ -13,6 +14,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import Footer from "@/components/Footer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const SurveyDetail = () => {
   const { id } = useParams();
@@ -263,31 +267,48 @@ const SurveyDetail = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={loading ? "설문조사" : survey?.title} />
         
-        <main className="flex-1 overflow-y-auto p-6 bg-background">
+        <main className="flex-1 overflow-y-auto p-6 max-w-5xl mx-auto w-full bg-background">
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="space-y-6">
+              <Skeleton className="h-12 w-3/4" />
+              <Skeleton className="h-24 w-full" />
+              <div className="space-y-4">
+                {[1, 2, 3].map((index) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <Skeleton className="h-6 w-2/3" />
+                    </CardHeader>
+                    <CardContent>
+                      <Skeleton className="h-20 w-full" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           ) : (
-            <div className="space-y-6 max-w-4xl">
-              <div className="p-6 border rounded-lg">
-                <h1 className="text-2xl font-semibold mb-4">{survey.title}</h1>
-                {survey.description && (
-                  <p className="text-muted-foreground mb-6">{survey.description}</p>
-                )}
-                <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                  <div className="flex gap-2">
-                    <span className="font-medium">생성일:</span>
-                    <span>{new Date(survey.created_at).toLocaleDateString()}</span>
-                  </div>
-                  {survey.end_date && (
-                    <div className="flex gap-2">
-                      <span className="font-medium">마감일:</span>
-                      <span>{new Date(survey.end_date).toLocaleDateString()}</span>
-                    </div>
+            <div className="space-y-6">
+              <Card className="border shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-2xl">{survey.title}</CardTitle>
+                  {survey.description && (
+                    <CardDescription className="mt-2">{survey.description}</CardDescription>
                   )}
-                </div>
-              </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                    <div className="flex gap-2">
+                      <span className="font-medium">생성일:</span>
+                      <span>{new Date(survey.created_at).toLocaleDateString()}</span>
+                    </div>
+                    {survey.end_date && (
+                      <div className="flex gap-2">
+                        <span className="font-medium">마감일:</span>
+                        <span>{new Date(survey.end_date).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
               {isSurveyExpired && (
                 <Alert variant="destructive">
@@ -320,22 +341,24 @@ const SurveyDetail = () => {
               {questions.length > 0 ? (
                 <div className="space-y-6">
                   {questions.map((question, index) => (
-                    <div key={question.id} className="p-4 border rounded-lg">
-                      <div className="flex items-start gap-2 mb-2">
-                        <span className="font-medium">{index + 1}.</span>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{question.question}</span>
-                            {question.required && (
-                              <span className="text-red-500">*</span>
-                            )}
-                          </div>
-                          <div className="mt-3">
-                            {renderQuestionInput(question)}
+                    <Card key={question.id} className="border shadow-sm">
+                      <CardContent className="pt-6">
+                        <div className="flex items-start gap-2 mb-4">
+                          <span className="font-medium">{index + 1}.</span>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{question.question}</span>
+                              {question.required && (
+                                <span className="text-red-500">*</span>
+                              )}
+                            </div>
+                            <div className="mt-3">
+                              {renderQuestionInput(question)}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
 
                   {!hasResponded && !isSurveyExpired && user && (
@@ -343,6 +366,7 @@ const SurveyDetail = () => {
                       <Button
                         onClick={handleSubmit}
                         disabled={submitLoading}
+                        className="px-6"
                       >
                         {submitLoading ? (
                           <>
@@ -357,13 +381,17 @@ const SurveyDetail = () => {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">이 설문에는 아직 질문이 없습니다.</p>
-                </div>
+                <Card className="border text-center py-8">
+                  <CardContent>
+                    <p className="text-muted-foreground">이 설문에는 아직 질문이 없습니다.</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}
         </main>
+        
+        <Footer />
       </div>
     </div>
   );
