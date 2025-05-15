@@ -5,13 +5,26 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Pencil, Trash2, AlertCircle } from "lucide-react";
 import { useToast } from "../components/ui/use-toast";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const Surveys = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [surveys, setSurveys] = useState<any[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [surveyToDelete, setSurveyToDelete] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -38,6 +51,65 @@ const Surveys = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (e: React.MouseEvent, surveyId: string) => {
+    e.stopPropagation();
+    navigate(`/surveys/edit/${surveyId}`);
+  };
+
+  const openDeleteDialog = (e: React.MouseEvent, surveyId: string) => {
+    e.stopPropagation();
+    setSurveyToDelete(surveyId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!surveyToDelete) return;
+    
+    try {
+      // First delete all associated survey questions
+      const { error: questionsError } = await supabase
+        .from("survey_questions")
+        .delete()
+        .eq("survey_id", surveyToDelete);
+      
+      if (questionsError) throw questionsError;
+      
+      // Then delete all associated responses
+      const { error: responsesError } = await supabase
+        .from("survey_responses")
+        .delete()
+        .eq("survey_id", surveyToDelete);
+      
+      if (responsesError) throw responsesError;
+      
+      // Finally delete the survey itself
+      const { error: surveyError } = await supabase
+        .from("surveys")
+        .delete()
+        .eq("id", surveyToDelete);
+      
+      if (surveyError) throw surveyError;
+      
+      // Update the local state
+      setSurveys(surveys.filter(survey => survey.id !== surveyToDelete));
+      
+      toast({
+        title: "설문 삭제 완료",
+        description: "설문이 성공적으로 삭제되었습니다.",
+      });
+    } catch (error) {
+      console.error("설문 삭제 실패:", error);
+      toast({
+        title: "설문 삭제 실패",
+        description: "설문을 삭제하는 데 문제가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setSurveyToDelete(null);
     }
   };
 
@@ -73,16 +145,36 @@ const Surveys = () => {
               {surveys.map((survey) => (
                 <div
                   key={survey.id}
-                  className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+                  className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer relative"
                   onClick={() => navigate(`/surveys/${survey.id}`)}
                 >
-                  <h2 className="font-medium text-lg mb-1">{survey.title}</h2>
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                    {survey.description}
-                  </p>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>생성일: {new Date(survey.created_at).toLocaleDateString()}</span>
-                    <span>마감일: {survey.end_date ? new Date(survey.end_date).toLocaleDateString() : '무기한'}</span>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h2 className="font-medium text-lg mb-1">{survey.title}</h2>
+                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                        {survey.description}
+                      </p>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>생성일: {new Date(survey.created_at).toLocaleDateString()}</span>
+                        <span>마감일: {survey.end_date ? new Date(survey.end_date).toLocaleDateString() : '무기한'}</span>
+                      </div>
+                    </div>
+                    <div className="flex space-x-1 ml-4">
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        onClick={(e) => handleEdit(e, survey.id)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        onClick={(e) => openDeleteDialog(e, survey.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -90,6 +182,24 @@ const Surveys = () => {
           )}
         </main>
       </div>
+      
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>설문 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 설문을 삭제하시겠습니까? 모든 질문과 응답도 함께 삭제됩니다.
+              이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
