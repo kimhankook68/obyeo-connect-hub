@@ -12,9 +12,9 @@ const WeeklyCalendar = () => {
   const [events, setEvents] = useState<any[]>([]);
   const navigate = useNavigate();
 
-  // Calculate week dates
+  // 주간 날짜 계산
   const weekDates = React.useMemo(() => {
-    const start = startOfWeek(date, { weekStartsOn: 0 }); // Start from Sunday
+    const start = startOfWeek(date, { weekStartsOn: 0 }); // 일요일부터 시작
     return Array.from({ length: 7 }).map((_, i) => addDays(start, i));
   }, [date]);
 
@@ -34,33 +34,33 @@ const WeeklyCalendar = () => {
         if (error) throw error;
         setEvents(data || []);
       } catch (error) {
-        console.error('Error fetching weekly events:', error);
+        console.error('주간 일정 조회 오류:', error);
       }
     };
 
     fetchWeekEvents();
   }, [date]);
 
-  // Navigate to previous week
+  // 이전 주로 이동
   const previousWeek = () => {
     const newDate = new Date(date);
     newDate.setDate(newDate.getDate() - 7);
     setDate(newDate);
   };
 
-  // Navigate to next week
+  // 다음 주로 이동
   const nextWeek = () => {
     const newDate = new Date(date);
     newDate.setDate(newDate.getDate() + 7);
     setDate(newDate);
   };
 
-  // Get events for a specific date
+  // 특정 날짜의 일정 가져오기
   const getEventsForDate = (day: Date) => {
     return events.filter(event => isSameDay(parseISO(event.start_time), day));
   };
 
-  // Get weekday name in Korean
+  // 한글 요일명 가져오기
   const getWeekdayName = (day: Date) => {
     return format(day, 'EEE', { locale: ko });
   };

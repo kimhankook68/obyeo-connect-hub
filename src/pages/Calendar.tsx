@@ -58,7 +58,7 @@ const Calendar = () => {
         const parsedDate = parseISO(dateParam);
         setSelectedDate(parsedDate);
       } catch (error) {
-        console.error('Invalid date format:', error);
+        console.error('유효하지 않은 날짜 형식:', error);
       }
     }
     

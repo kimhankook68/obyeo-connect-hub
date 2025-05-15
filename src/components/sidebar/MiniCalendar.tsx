@@ -58,7 +58,7 @@ const MiniCalendar = () => {
         .order('start_time', { ascending: true });
       
       if (error) {
-        console.error('Error fetching events:', error);
+        console.error('이벤트 가져오기 오류:', error);
         return;
       }
       

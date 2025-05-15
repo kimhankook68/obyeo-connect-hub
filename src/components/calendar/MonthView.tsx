@@ -56,7 +56,7 @@ const MonthView: React.FC<MonthViewProps> = ({
 
   // 날짜 클릭 핸들러 - 선택된 날짜를 업데이트하여 일정 목록 표시
   const handleDateClick = (day: Date | undefined) => {
-    console.log("Date clicked:", day);
+    console.log("날짜 클릭:", day);
     setDate(day);
   };
 
