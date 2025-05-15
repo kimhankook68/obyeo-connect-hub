@@ -101,7 +101,7 @@ const MiniCalendar = () => {
   const todayEvents = selectedDate ? getEventsForDay(selectedDate) : [];
   
   return (
-    <div className="px-2 py-3 border-t border-border">
+    <div className="px-2 py-3">
       <div className="text-sm font-medium mb-2 flex items-center justify-between">
         <button onClick={prevMonth} className="p-1 hover:bg-secondary rounded-md">
           <ChevronLeft className="h-4 w-4" />
@@ -163,7 +163,7 @@ const MiniCalendar = () => {
       </table>
 
       {selectedDate && (
-        <div className="mt-2 pt-2 border-t border-border">
+        <div className="mt-2 pt-2">
           <div className="flex justify-between items-center mb-2">
             <p className="text-xs font-medium">
               {format(selectedDate, 'yyyy-MM-dd', { locale: ko })}
