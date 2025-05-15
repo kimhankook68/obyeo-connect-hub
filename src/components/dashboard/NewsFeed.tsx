@@ -44,7 +44,7 @@ const NewsFeed = () => {
         // Fetch the most recent documents
         const { data: documents, error: documentError } = await supabase
           .from("documents")
-          .select("id, title, description:content, created_at, user_id")
+          .select("id, title, description, created_at, user_id")
           .order("created_at", { ascending: false })
           .limit(2);
 
@@ -56,11 +56,11 @@ const NewsFeed = () => {
         nextWeek.setDate(today.getDate() + 7);
 
         const { data: events, error: eventError } = await supabase
-          .from("events")
-          .select("id, title, description:content, start_date:created_at, user_id")
-          .gte("start_date", today.toISOString())
-          .lte("start_date", nextWeek.toISOString())
-          .order("start_date", { ascending: true })
+          .from("calendar_events")
+          .select("id, title, description, start_time, user_id")
+          .gte("start_time", today.toISOString())
+          .lte("start_time", nextWeek.toISOString())
+          .order("start_time", { ascending: true })
           .limit(2);
 
         if (eventError) throw eventError;
@@ -93,7 +93,7 @@ const NewsFeed = () => {
           title: event.title,
           content: event.description || "",
           type: 'event' as const,
-          created_at: event.start_date,
+          created_at: event.start_time,
           author: { name: "일정담당자" },
           likes: Math.floor(Math.random() * 5),
           comments: Math.floor(Math.random() * 2)
