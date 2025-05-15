@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 interface Comment {
   id: string;
   author: string;
-  content: string;
+  content: string | React.ReactNode;
   created_at: string;
 }
 
@@ -30,7 +30,7 @@ const CommentList = ({ comments }: CommentListProps) => {
               {new Date(comment.created_at).toLocaleDateString()} {new Date(comment.created_at).toLocaleTimeString()}
             </span>
           </div>
-          <p className="text-sm">{comment.content}</p>
+          <div className="text-sm">{comment.content}</div>
         </div>
       ))}
     </div>

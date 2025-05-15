@@ -3,20 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 interface FileUploaderProps {
   onSuccess?: () => void;
+  onFileSelected?: (files: FileList | null) => void;
+  className?: string;
 }
 
-const FileUploader = ({ onSuccess }: FileUploaderProps) => {
+const FileUploader = ({ onSuccess, onFileSelected, className }: FileUploaderProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [description, setDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
 
   // Fetch current user on component mount
   React.useEffect(() => {
@@ -46,6 +47,9 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
+      if (onFileSelected) {
+        onFileSelected(e.target.files);
+      }
     }
   };
 
@@ -119,7 +123,7 @@ const FileUploader = ({ onSuccess }: FileUploaderProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className={className}>
       <div>
         <label htmlFor="title" className="block text-sm font-medium mb-1">제목</label>
         <Input
