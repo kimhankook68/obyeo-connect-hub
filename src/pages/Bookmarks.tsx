@@ -27,11 +27,30 @@ const Bookmarks = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentBookmark, setCurrentBookmark] = useState<Partial<Bookmark>>({});
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchBookmarks();
+    // Get current user and fetch bookmarks
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUser(session.user.id);
+        fetchBookmarks();
+      } else {
+        // Handle not authenticated case
+        toast({
+          title: "인증 필요",
+          description: "즐겨찾기를 사용하기 위해서는 로그인이 필요합니다.",
+          variant: "destructive",
+        });
+        // Optionally redirect to login
+        // navigate('/auth');
+      }
+    };
+    
+    checkUser();
   }, []);
 
   const fetchBookmarks = async () => {
@@ -88,6 +107,15 @@ const Bookmarks = () => {
         return;
       }
 
+      if (!currentUser) {
+        toast({
+          title: "인증 필요",
+          description: "즐겨찾기를 저장하기 위해서는 로그인이 필요합니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Make sure URL has protocol
       const formattedUrl = validateUrl(currentBookmark.url);
       
@@ -115,6 +143,7 @@ const Bookmarks = () => {
             title: currentBookmark.title,
             url: formattedUrl,
             description: currentBookmark.description,
+            user_id: currentUser
           });
 
         if (error) throw error;
