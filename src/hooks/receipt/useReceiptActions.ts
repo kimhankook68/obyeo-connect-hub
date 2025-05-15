@@ -13,9 +13,14 @@ export const useReceiptActions = (id?: string, setReceipt?: (receipt: DonationRe
   
   const handleToggleProcessed = async (processed: boolean) => {
     try {
-      if (!id) return;
+      if (!id) {
+        console.error("Receipt ID is missing");
+        toast.error("영수증 ID가 없습니다.");
+        return;
+      }
       
       setProcessingStatus(true);
+      console.log(`Attempting to update receipt ${id} to processed=${processed}`);
       
       // 데이터베이스 업데이트
       const { error } = await supabase
@@ -23,7 +28,12 @@ export const useReceiptActions = (id?: string, setReceipt?: (receipt: DonationRe
         .update({ processed })
         .eq("id", id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating receipt status:", error);
+        throw error;
+      }
+      
+      console.log("Database update successful, fetching updated data...");
       
       // 업데이트된 영수증 가져오기
       const { data, error: fetchError } = await supabase
@@ -32,7 +42,10 @@ export const useReceiptActions = (id?: string, setReceipt?: (receipt: DonationRe
         .eq("id", id)
         .single();
       
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("Error fetching updated receipt:", fetchError);
+        throw fetchError;
+      }
       
       // 응답 데이터 확인 로깅
       console.log("Updated receipt data received:", data);
@@ -41,6 +54,8 @@ export const useReceiptActions = (id?: string, setReceipt?: (receipt: DonationRe
       if (data && setReceipt) {
         console.log("Updating UI with processed status:", data.processed);
         setReceipt(data as DonationReceipt);
+      } else {
+        console.warn("Cannot update UI: data or setReceipt function is missing");
       }
       
       toast.success(processed ? "발급 완료 처리되었습니다." : "대기중으로 변경되었습니다.");
