@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-import { MessageSquare, Heart, Share2, Bell, Send, Edit, Trash2, MoreHorizontal } from "lucide-react";
+import { MessageSquare, Heart, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { UserPost } from "@/types/member";
@@ -40,6 +40,7 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
   const [userId, setUserId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -51,15 +52,16 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
       setUserId(user?.id || null);
       
       if (user) {
-        // Get user role
+        // Get user role and name
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("role")
+          .select("role, name")
           .eq("id", user.id)
           .single();
           
-        if (profileData?.role) {
-          setUserRole(profileData.role);
+        if (profileData) {
+          setUserRole(profileData.role || null);
+          setUserName(profileData.name || user.email?.split('@')[0] || "사용자");
         }
       }
 
@@ -264,7 +266,7 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
       {/* Post create section */}
       <div className="mb-6 flex gap-4">
         <Avatar className="h-10 w-10">
-          <AvatarFallback>사용자</AvatarFallback>
+          <AvatarFallback>{userName?.substring(0, 2) || "사용자"}</AvatarFallback>
         </Avatar>
         <div className="flex-1 space-y-2">
           <Textarea 
@@ -283,7 +285,7 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
               disabled={!newPost.trim() || postLoading}
               onClick={handlePostSubmit}
             >
-              {postLoading ? "작성 중..." : "작성하기"} <Send className="ml-1 h-4 w-4" />
+              {postLoading ? "작성 중..." : "작성하기"}
             </Button>
           </div>
         </div>
@@ -385,9 +387,6 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
                   <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
                     <MessageSquare className="h-4 w-4" /> {Math.floor(Math.random() * 7)}
                   </button>
-                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground ml-auto">
-                    <Share2 className="h-4 w-4" /> 공유
-                  </button>
                 </div>
               </div>
             </div>
@@ -395,7 +394,6 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-          <Bell className="h-8 w-8 mb-2 opacity-50" />
           <p>새로운 소식이 없습니다</p>
         </div>
       )}
