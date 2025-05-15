@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-import { MessageSquare, Heart, Edit, Trash2, MoreHorizontal } from "lucide-react";
+import { MessageSquare, Heart, Edit, Trash2, MoreHorizontal, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { UserPost } from "@/types/member";
@@ -29,8 +29,32 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+interface PostLike {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+interface PostComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  author_name: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PostWithDetails extends UserPost {
+  likes: PostLike[];
+  comments: PostComment[];
+  isLiked?: boolean;
+  showComments?: boolean;
+}
+
 const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, showViewMoreButton?: boolean }) => {
-  const [userPosts, setUserPosts] = useState<UserPost[]>([]);
+  const [userPosts, setUserPosts] = useState<PostWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPost, setNewPost] = useState("");
   const [postLoading, setPostLoading] = useState(false);
@@ -41,6 +65,15 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  
+  // New state for comments
+  const [newComments, setNewComments] = useState<Record<string, string>>({});
+  const [commentLoading, setCommentLoading] = useState<Record<string, boolean>>({});
+  const [editingComment, setEditingComment] = useState<string | null>(null);
+  const [editCommentContent, setEditCommentContent] = useState("");
+  const [deleteCommentDialogOpen, setDeleteCommentDialogOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+  
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -65,7 +98,7 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
         }
       }
 
-      // Fetch user posts with better error handling
+      // Fetch user posts
       try {
         // Cast the raw response to any first to bypass type checking
         const response: any = await supabase
@@ -82,9 +115,51 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
             content: post.content,
             created_at: post.created_at,
             author_name: post.author_name,
-            user_id: post.user_id
+            user_id: post.user_id,
+            likes: [],
+            comments: [],
+            showComments: false
           }));
-          setUserPosts(posts);
+
+          // Get likes for each post
+          if (posts.length > 0) {
+            const postIds = posts.map((post: PostWithDetails) => post.id);
+            
+            // Fetch likes
+            const { data: likesData } = await supabase
+              .from("post_likes")
+              .select("*")
+              .in("post_id", postIds);
+
+            // Fetch comments
+            const { data: commentsData } = await supabase
+              .from("post_comments")
+              .select("*")
+              .in("post_id", postIds)
+              .order("created_at", { ascending: true });
+
+            // Add likes and comments to posts
+            if (likesData && commentsData) {
+              const updatedPosts = posts.map((post: PostWithDetails) => {
+                const postLikes = likesData.filter(like => like.post_id === post.id);
+                const postComments = commentsData.filter(comment => comment.post_id === post.id);
+                const isLiked = user ? postLikes.some(like => like.user_id === user.id) : false;
+                
+                return {
+                  ...post,
+                  likes: postLikes,
+                  comments: postComments,
+                  isLiked
+                };
+              });
+              
+              setUserPosts(updatedPosts);
+            } else {
+              setUserPosts(posts);
+            }
+          } else {
+            setUserPosts(posts);
+          }
         } else if (response.error) {
           console.error("Error fetching user posts:", response.error);
         }
@@ -105,6 +180,34 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
 
   useEffect(() => {
     fetchPosts();
+    
+    // Set up real-time listeners for likes and comments
+    const likesChannel = supabase
+      .channel('post_likes_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'post_likes' },
+        () => {
+          fetchPosts();
+        }
+      )
+      .subscribe();
+      
+    const commentsChannel = supabase
+      .channel('post_comments_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'post_comments' },
+        () => {
+          fetchPosts();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(likesChannel);
+      supabase.removeChannel(commentsChannel);
+    };
   }, [limit]);
 
   // Format date to relative time (e.g., "3 days ago")
@@ -179,12 +282,12 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
     }
   };
   
-  const handleEditPost = (post: UserPost) => {
+  const handleEditPost = (post: PostWithDetails) => {
     setEditingPost(post.id);
     setEditContent(post.content);
   };
   
-  const canModifyPost = (post: UserPost) => {
+  const canModifyPost = (post: PostWithDetails) => {
     return userId === post.user_id || userRole === 'admin';
   };
   
@@ -246,6 +349,207 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
       toast({
         title: "삭제 오류",
         description: "포스트 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Toggle like
+  const handleToggleLike = async (post: PostWithDetails) => {
+    if (!userId) {
+      toast({
+        title: "로그인 필요",
+        description: "좋아요를 추가하려면 로그인이 필요합니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      if (post.isLiked) {
+        // Find the like to remove
+        const likeToRemove = post.likes.find(like => like.user_id === userId);
+        
+        if (likeToRemove) {
+          const { error } = await supabase
+            .from("post_likes")
+            .delete()
+            .eq("id", likeToRemove.id);
+            
+          if (error) throw error;
+        }
+      } else {
+        // Add new like
+        const { error } = await supabase
+          .from("post_likes")
+          .insert({
+            post_id: post.id,
+            user_id: userId
+          });
+          
+        if (error) throw error;
+      }
+      
+      // Update local state
+      const updatedPosts = userPosts.map(p => {
+        if (p.id === post.id) {
+          if (post.isLiked) {
+            return {
+              ...p,
+              likes: p.likes.filter(like => like.user_id !== userId),
+              isLiked: false
+            };
+          } else {
+            return {
+              ...p,
+              likes: [...p.likes, { id: 'temp', post_id: p.id, user_id: userId!, created_at: new Date().toISOString() }],
+              isLiked: true
+            };
+          }
+        }
+        return p;
+      });
+      
+      setUserPosts(updatedPosts);
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      toast({
+        title: "좋아요 오류",
+        description: "좋아요 작업을 처리하는데 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Toggle comments view
+  const toggleComments = (postId: string) => {
+    const updatedPosts = userPosts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          showComments: !post.showComments
+        };
+      }
+      return post;
+    });
+    
+    setUserPosts(updatedPosts);
+  };
+
+  // Add new comment
+  const handleAddComment = async (postId: string) => {
+    const commentContent = newComments[postId];
+    if (!commentContent?.trim() || !userId) return;
+    
+    setCommentLoading({...commentLoading, [postId]: true});
+    
+    try {
+      // Get current user name
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("id", userId)
+        .single();
+        
+      const authorName = profileData?.name || userName || "사용자";
+      
+      const { error } = await supabase
+        .from("post_comments")
+        .insert({
+          post_id: postId,
+          user_id: userId,
+          author_name: authorName,
+          content: commentContent
+        });
+        
+      if (error) throw error;
+      
+      // Clear input field
+      setNewComments({...newComments, [postId]: ""});
+      
+      toast({
+        title: "댓글 작성 완료",
+        description: "새 댓글이 작성되었습니다.",
+      });
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast({
+        title: "댓글 작성 오류",
+        description: "댓글을 작성하는데 실패했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setCommentLoading({...commentLoading, [postId]: false});
+    }
+  };
+  
+  // Edit comment
+  const handleEditComment = (comment: PostComment) => {
+    setEditingComment(comment.id);
+    setEditCommentContent(comment.content);
+  };
+  
+  const canModifyComment = (comment: PostComment) => {
+    return userId === comment.user_id || userRole === 'admin';
+  };
+  
+  const handleUpdateComment = async () => {
+    if (!editingComment || !editCommentContent.trim()) return;
+    
+    try {
+      const { error } = await supabase
+        .from("post_comments")
+        .update({ content: editCommentContent, updated_at: new Date().toISOString() })
+        .eq("id", editingComment);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "댓글 수정 완료",
+        description: "댓글이 수정되었습니다.",
+      });
+      
+      setEditingComment(null);
+      setEditCommentContent("");
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      toast({
+        title: "댓글 수정 오류",
+        description: "댓글 수정에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Delete comment
+  const confirmDeleteComment = (commentId: string) => {
+    setCommentToDelete(commentId);
+    setDeleteCommentDialogOpen(true);
+  };
+  
+  const handleDeleteComment = async () => {
+    if (!commentToDelete) return;
+    
+    try {
+      const { error } = await supabase
+        .from("post_comments")
+        .delete()
+        .eq("id", commentToDelete);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "댓글 삭제 완료",
+        description: "댓글이 삭제되었습니다.",
+      });
+      
+      setDeleteCommentDialogOpen(false);
+      setCommentToDelete(null);
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      toast({
+        title: "댓글 삭제 오류",
+        description: "댓글 삭제에 실패했습니다.",
         variant: "destructive",
       });
     }
@@ -381,13 +685,132 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
                 )}
                 
                 <div className="flex items-center gap-4 pt-1">
-                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                    <Heart className="h-4 w-4" /> {Math.floor(Math.random() * 15)}
+                  <button 
+                    className={`flex items-center gap-1 text-xs ${post.isLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'}`}
+                    onClick={() => handleToggleLike(post)}
+                  >
+                    <Heart className={`h-4 w-4 ${post.isLiked ? 'fill-red-500' : ''}`} /> {post.likes.length}
                   </button>
-                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                    <MessageSquare className="h-4 w-4" /> {Math.floor(Math.random() * 7)}
+                  <button 
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => toggleComments(post.id)}
+                  >
+                    <MessageSquare className="h-4 w-4" /> {post.comments.length}
                   </button>
                 </div>
+                
+                {/* Comments section */}
+                {post.showComments && (
+                  <div className="mt-3 space-y-3 border-t border-gray-100 pt-3">
+                    {post.comments.length > 0 && (
+                      <div className="space-y-3">
+                        {post.comments.map(comment => (
+                          <div key={comment.id} className="flex items-start gap-2 bg-gray-50 p-2 rounded-md">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback>{comment.author_name?.substring(0, 2) || "익명"}</AvatarFallback>
+                            </Avatar>
+                            
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <div>
+                                  <span className="text-xs font-medium">{comment.author_name}</span>
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    {formatRelativeTime(comment.created_at)}
+                                  </span>
+                                </div>
+                                
+                                {canModifyComment(comment) && (
+                                  <div className="flex">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => handleEditComment(comment)}
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-6 w-6 p-0 text-red-500"
+                                      onClick={() => confirmDeleteComment(comment.id)}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {editingComment === comment.id ? (
+                                <div className="space-y-2">
+                                  <Textarea 
+                                    value={editCommentContent}
+                                    onChange={(e) => setEditCommentContent(e.target.value)}
+                                    className="resize-none text-xs min-h-[40px]"
+                                    maxLength={200}
+                                  />
+                                  <div className="flex justify-end gap-1">
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      className="h-6 text-xs"
+                                      onClick={() => {
+                                        setEditingComment(null);
+                                        setEditCommentContent("");
+                                      }}
+                                    >
+                                      취소
+                                    </Button>
+                                    <Button 
+                                      size="sm"
+                                      className="h-6 text-xs"
+                                      onClick={handleUpdateComment}
+                                    >
+                                      저장
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-xs">
+                                  {comment.content}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* New comment form */}
+                    <div className="flex items-start gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{userName?.substring(0, 2) || "사용자"}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 space-y-2">
+                        <Textarea 
+                          placeholder="댓글을 작성하세요..."
+                          value={newComments[post.id] || ""}
+                          onChange={(e) => setNewComments({...newComments, [post.id]: e.target.value})}
+                          className="resize-none min-h-[40px] text-xs"
+                          maxLength={200}
+                        />
+                        <div className="flex justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            {(newComments[post.id]?.length || 0)}/200자
+                          </span>
+                          <Button 
+                            size="sm" 
+                            className="h-7 text-xs"
+                            disabled={!newComments[post.id]?.trim() || commentLoading[post.id]}
+                            onClick={() => handleAddComment(post.id)}
+                          >
+                            {commentLoading[post.id] ? "작성 중..." : "댓글 작성"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -398,7 +821,7 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
         </div>
       )}
       
-      {/* Delete confirmation dialog */}
+      {/* Delete post confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -410,6 +833,22 @@ const NewsFeed = ({ limit = 5, showViewMoreButton = true }: { limit?: number, sh
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeletePost}>삭제</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Delete comment confirmation dialog */}
+      <AlertDialog open={deleteCommentDialogOpen} onOpenChange={setDeleteCommentDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>댓글 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              정말 이 댓글을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteComment}>삭제</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
