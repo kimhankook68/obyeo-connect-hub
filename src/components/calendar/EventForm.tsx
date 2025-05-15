@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -199,7 +198,12 @@ const EventForm: React.FC<EventFormProps> = ({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent 
+                        className="w-auto p-0" 
+                        align="start"
+                        side="bottom"
+                        sideOffset={4}
+                      >
                         <Calendar
                           mode="single"
                           selected={field.value ? parseISO(field.value) : undefined}
@@ -214,12 +218,17 @@ const EventForm: React.FC<EventFormProps> = ({
                               if (!endTimeValue) {
                                 const endTime = combineDateTime(date, '10:00');
                                 form.setValue("end_time", endTime);
+                              } else {
+                                // Keep end time but update date
+                                const endTime = getTimeFromDate(endTimeValue);
+                                const newEndDateTime = combineDateTime(date, endTime);
+                                form.setValue("end_time", newEndDateTime);
                               }
                             }
                           }}
                           initialFocus
                           locale={ko}
-                          className="pointer-events-auto"
+                          className="border-0"
                         />
                       </PopoverContent>
                     </Popover>
@@ -369,7 +378,7 @@ const EventForm: React.FC<EventFormProps> = ({
               />
 
               <Button type="submit" className="w-full h-12 mt-4 bg-blue-500 hover:bg-blue-600">
-                일정 추가
+                {selectedEvent ? '일정 수정' : '일정 추가'}
               </Button>
             </form>
           </Form>
