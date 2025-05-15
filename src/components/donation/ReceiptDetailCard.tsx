@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { DonationReceipt } from "@/types/donation-receipt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,11 @@ const ReceiptDetailCard: React.FC<ReceiptDetailCardProps> = ({
   onToggleProcessed,
   processingStatus = false,
 }) => {
+  // 상태 변경 시 로그 출력 (디버깅용)
+  useEffect(() => {
+    console.log("ReceiptDetailCard render with processed status:", receipt.processed);
+  }, [receipt.processed]);
+  
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-4">

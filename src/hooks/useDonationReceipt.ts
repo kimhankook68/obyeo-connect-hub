@@ -2,6 +2,7 @@
 import { useReceiptData } from "./receipt/useReceiptData";
 import { useReceiptComments } from "./receipt/useReceiptComments";
 import { useReceiptActions } from "./receipt/useReceiptActions";
+import { useEffect } from "react";
 
 export const useDonationReceipt = (id?: string) => {
   const { 
@@ -29,6 +30,13 @@ export const useDonationReceipt = (id?: string) => {
     handleEdit, 
     handleDelete 
   } = useReceiptActions(id, setReceipt);
+
+  // 상태가 변경될 때 디버그 로그 추가
+  useEffect(() => {
+    if (receipt) {
+      console.log("useDonationReceipt hook - receipt state updated:", receipt);
+    }
+  }, [receipt]);
 
   // Wrapper for handleSubmitComment to pass the current user
   const handleSubmitComment = async (comment: string) => {

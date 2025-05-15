@@ -56,6 +56,7 @@ export const useReceiptData = (id?: string) => {
       if (error) throw error;
       
       if (data) {
+        console.log("Fetched receipt data:", data);
         setReceipt(data as DonationReceipt);
       }
     } catch (error) {
