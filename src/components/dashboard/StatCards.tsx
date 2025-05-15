@@ -31,12 +31,12 @@ const StatCards = () => {
         if (eventsError) throw eventsError;
         
         // Fetch donation receipt requests
-        const { data, error: donationError } = await supabase
+        const { data: donationData, error: donationError } = await supabase
           .from('donation_receipts')
-          .select('id', { count: 'exact' })
+          .select('id')
           .eq('processed', false);
           
-        const donationCount = data?.length || 0;
+        const donationCount = donationData?.length || 0;
         if (donationError) console.error(donationError);
         
         // Fetch active surveys
