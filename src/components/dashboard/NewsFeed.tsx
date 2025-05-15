@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardCard } from "@/components/DashboardCard";
@@ -24,6 +23,15 @@ interface NewsItem {
   created_at: string;
   likes?: number;
   comments?: number;
+}
+
+// Add interface for user posts
+interface UserPost {
+  id: string;
+  content: string;
+  created_at: string;
+  author_name: string | null;
+  user_id: string;
 }
 
 const NewsFeed = () => {
@@ -69,9 +77,9 @@ const NewsFeed = () => {
 
       if (eventError) throw eventError;
 
-      // Fetch user posts
+      // Fetch user posts - using type assertion to fix TypeScript error
       const { data: posts, error: postsError } = await supabase
-        .from("user_posts")
+        .from("user_posts" as any)
         .select("id, content, created_at, user_id, author_name")
         .order("created_at", { ascending: false })
         .limit(5);
@@ -112,10 +120,12 @@ const NewsFeed = () => {
         comments: Math.floor(Math.random() * 2)
       })) || [];
 
-      const processedPosts = posts?.map(post => ({
+      // Cast posts to UserPost[] to ensure TypeScript type safety
+      const typedPosts = posts as UserPost[] || [];
+      const processedPosts = typedPosts.map(post => ({
         id: post.id,
         title: "", // Posts don't have titles
-        content: post.content || "",
+        content: post.content,
         type: 'post' as const,
         created_at: post.created_at,
         author: { name: post.author_name || "사용자" },
@@ -199,9 +209,9 @@ const NewsFeed = () => {
 
       const authorName = profileData?.name || user.email?.split('@')[0] || "사용자";
 
-      // Insert new post
+      // Insert new post - using type assertion to fix TypeScript error
       const { data, error } = await supabase
-        .from("user_posts")
+        .from("user_posts" as any)
         .insert({
           content: newPost,
           user_id: user.id,
