@@ -25,6 +25,7 @@ export const useCalendarEvents = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const { toast: uiToast } = useToast();
   const [user, setUser] = useState<any>(null);
+  const [viewOnlyMode, setViewOnlyMode] = useState(false);
 
   // Fetch the current user
   useEffect(() => {
@@ -140,14 +141,15 @@ export const useCalendarEvents = () => {
   };
 
   const handleEdit = (event: CalendarEvent) => {
-    // 권한 확인
-    if (event.user_id && user?.id !== event.user_id) {
-      toast.error("본인이 등록한 일정만 수정할 수 있습니다");
-      return;
-    }
-    
-    console.log("Editing event:", event);
     setSelectedEvent(event);
+    
+    // 본인이 등록한 일정인지 확인
+    const canEdit = !event.user_id || (user?.id === event.user_id);
+    
+    // 뷰 모드 설정 (수정 가능 여부에 따라)
+    setViewOnlyMode(!canEdit);
+    
+    // 모달 열기
     setModalOpen(true);
   };
 
@@ -166,6 +168,7 @@ export const useCalendarEvents = () => {
   const handleAdd = () => {
     console.log("Adding new event");
     setSelectedEvent(null);
+    setViewOnlyMode(false);
     setModalOpen(true);
   };
 
@@ -185,6 +188,7 @@ export const useCalendarEvents = () => {
     deleteDialogOpen,
     setDeleteDialogOpen,
     user,
+    viewOnlyMode,
     handleAdd,
     handleEdit,
     handleDelete,

@@ -51,6 +51,12 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     }
   };
   
+  // 일정 클릭 핸들러 - 이벤트 세부 정보 표시
+  const onEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+    e.stopPropagation(); // 이벤트 버블링 방지
+    handleEdit(event); // 이 함수는 이제 수정뿐만 아니라 세부 정보 표시에도 사용
+  };
+  
   return (
     <td 
       className={cn(
@@ -99,10 +105,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
                       "text-[10px] px-1 py-[1px] rounded text-white truncate leading-tight",
                       getEventColor(event.type)
                     )}
-                    onClick={(e) => {
-                      e.stopPropagation(); // 이벤트 버블링 방지
-                      handleEdit(event);
-                    }}
+                    onClick={(e) => onEventClick(event, e)}
                   >
                     {event.title}
                   </div>
