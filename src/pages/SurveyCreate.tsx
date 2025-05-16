@@ -12,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, PlusIcon, Trash2Icon, GripVertical } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -39,8 +39,10 @@ const SurveyCreate = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [endDateInput, setEndDateInput] = useState("");
   const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,6 +60,31 @@ const SurveyCreate = () => {
 
     fetchUser();
   }, [navigate]);
+
+  // Update input field when date is selected from calendar
+  useEffect(() => {
+    if (endDate) {
+      setEndDateInput(format(endDate, "yyyy-MM-dd"));
+    }
+  }, [endDate]);
+
+  // Parse manual date input
+  const handleEndDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    setEndDateInput(inputValue);
+    
+    // Try to parse the date if format is correct
+    if (inputValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const parsedDate = parse(inputValue, "yyyy-MM-dd", new Date());
+      if (isValid(parsedDate)) {
+        setEndDate(parsedDate);
+      } else {
+        setEndDate(undefined);
+      }
+    } else {
+      setEndDate(undefined);
+    }
+  };
 
   const addQuestion = () => {
     setQuestions([
@@ -164,6 +191,17 @@ const SurveyCreate = () => {
     try {
       setLoading(true);
       
+      // Manual parsing for endDate if text input is provided but date object is not set
+      let finalEndDate = null;
+      if (endDateInput && !endDate) {
+        const parsedDate = parse(endDateInput, "yyyy-MM-dd", new Date());
+        if (isValid(parsedDate)) {
+          finalEndDate = parsedDate.toISOString();
+        }
+      } else if (endDate) {
+        finalEndDate = endDate.toISOString();
+      }
+      
       // Create survey with user_id
       const { data: surveyData, error: surveyError } = await supabase
         .from("surveys")
@@ -171,8 +209,8 @@ const SurveyCreate = () => {
           {
             title,
             description: description.trim() || null,
-            end_date: endDate ? endDate.toISOString() : null,
-            user_id: user.id // Add user_id here
+            end_date: finalEndDate,
+            user_id: user.id
           }
         ])
         .select();
@@ -249,33 +287,45 @@ const SurveyCreate = () => {
               <label htmlFor="endDate" className="text-sm font-medium">
                 마감일 (선택사항)
               </label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="endDate"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "yyyy-MM-dd") : "날짜 선택"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-                  <div className="bg-background rounded-md shadow-md border">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      initialFocus
-                      disabled={(date) => date < new Date()}
-                      className="border-0"
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <div className="flex items-start space-x-2">
+                <div className="flex-1">
+                  <Input
+                    id="endDateInput"
+                    placeholder="YYYY-MM-DD"
+                    value={endDateInput}
+                    onChange={handleEndDateInputChange}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">예) 2025-12-31 형식으로 입력하세요</p>
+                </div>
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="px-3"
+                      type="button"
+                      aria-label="달력에서 날짜 선택"
+                    >
+                      <CalendarIcon className="h-5 w-5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                    <div className="bg-background rounded-md shadow-md border">
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={(date) => {
+                          setEndDate(date);
+                          setIsCalendarOpen(false);
+                        }}
+                        initialFocus
+                        disabled={(date) => date < new Date()}
+                        className="border-0 pointer-events-auto"
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
             
             <Separator className="my-6" />
@@ -334,7 +384,7 @@ const SurveyCreate = () => {
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="pointer-events-auto">
                                 <SelectItem value="text">짧은 답변</SelectItem>
                                 <SelectItem value="textarea">긴 답변</SelectItem>
                                 <SelectItem value="single_choice">단일 선택</SelectItem>
