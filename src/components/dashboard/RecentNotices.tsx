@@ -12,7 +12,6 @@ interface Notice {
   id: string;
   title: string;
   created_at: string;
-  is_important?: boolean;
   author: string;
 }
 
@@ -25,7 +24,7 @@ const RecentNotices = () => {
       try {
         const { data, error } = await supabase
           .from("notices")
-          .select("id, title, created_at, is_important, author")
+          .select("id, title, created_at, author")
           .order("created_at", { ascending: false })
           .limit(5);
 
@@ -53,19 +52,12 @@ const RecentNotices = () => {
   };
 
   const renderNoticeTitle = (notice: Notice) => {
-    // Create Badge separately with correct typings
-    const badge = notice.is_important ? (
-      <Badge variant="destructive" className="ml-2">
-        중요
+    // Check if the notice is new (less than 24 hours old)
+    const badge = isNewNotice(notice.created_at) ? (
+      <Badge variant="secondary" className="ml-2">
+        N
       </Badge>
-    ) : (
-      // Check if the notice is new (less than 24 hours old)
-      isNewNotice(notice.created_at) && (
-        <Badge variant="secondary" className="ml-2">
-          N
-        </Badge>
-      )
-    );
+    ) : null;
 
     return (
       <div className="flex items-center">
