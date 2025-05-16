@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -249,7 +250,7 @@ const EventForm: React.FC<EventFormProps> = ({
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent 
-                        className="w-auto p-0" 
+                        className="w-auto p-0 pointer-events-auto" 
                         align="start"
                         side="bottom"
                         sideOffset={4}
@@ -279,7 +280,7 @@ const EventForm: React.FC<EventFormProps> = ({
                             }}
                             initialFocus
                             locale={ko}
-                            className="border-0 select-none"
+                            className="border-0 select-none pointer-events-auto"
                           />
                         </div>
                       </PopoverContent>
@@ -315,7 +316,7 @@ const EventForm: React.FC<EventFormProps> = ({
                             <Clock className="h-4 w-4 opacity-50" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="h-[300px]">
+                        <SelectContent className="h-[300px] pointer-events-auto">
                           {timeOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
@@ -354,7 +355,7 @@ const EventForm: React.FC<EventFormProps> = ({
                             <Clock className="h-4 w-4 opacity-50" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="h-[300px]">
+                        <SelectContent className="h-[300px] pointer-events-auto">
                           {timeOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
@@ -396,7 +397,7 @@ const EventForm: React.FC<EventFormProps> = ({
                           <SelectValue placeholder="일정 유형 선택" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="pointer-events-auto">
                         {eventTypes.map((type) => (
                           <SelectItem key={type.value} value={type.value}>
                             {type.label}
