@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -84,31 +85,37 @@ const EventForm: React.FC<EventFormProps> = ({
       }
     } else {
       // 새 일정 추가 시 현재 선택된 날짜가 있다면 적용
-      const currentDate = new Date();
+      let startDate = new Date();
+      let dateFound = false;
       
       // 데이터 소스 우선순위: 
       // 1. URL 검색 파라미터
       // 2. location.state 
       // 3. 기본값 (현재 날짜)
-      let startDate = currentDate;
       
       // URL 검색 파라미터에서 날짜 확인
       const dateParam = searchParams.get('date');
       if (dateParam) {
         try {
           startDate = parseISO(dateParam);
+          dateFound = true;
+          console.log("Using date from URL params:", dateParam);
         } catch (error) {
           console.error("유효하지 않은 날짜 형식 (URL):", error);
         }
       }
       
-      // location.state에서 날짜 확인
-      const state = location.state as any;
-      if (state?.selectedDate) {
-        try {
-          startDate = parseISO(state.selectedDate);
-        } catch (error) {
-          console.error("유효하지 않은 날짜 형식 (state):", error);
+      // location.state에서 날짜 확인 (URL에 날짜가 없는 경우에만)
+      if (!dateFound) {
+        const state = location.state as any;
+        if (state?.selectedDate) {
+          try {
+            startDate = parseISO(state.selectedDate);
+            dateFound = true;
+            console.log("Using date from location state:", state.selectedDate);
+          } catch (error) {
+            console.error("유효하지 않은 날짜 형식 (state):", error);
+          }
         }
       }
       
@@ -119,6 +126,8 @@ const EventForm: React.FC<EventFormProps> = ({
       // 종료 시간을 해당 날짜의 10시로 설정
       const endDateTime = new Date(startDate);
       endDateTime.setHours(10, 0, 0, 0);
+      
+      console.log("Form reset with date:", startDateTime);
       
       form.reset({
         title: "",

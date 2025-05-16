@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -101,6 +100,7 @@ const Calendar = () => {
     setModalOpen(open);
     // 모달이 닫히면 URL 상태 정리
     if (!open) {
+      // URL 상태를 유지하되, navigate 사용 시 replace 옵션 사용
       navigate('/calendar', { replace: true });
     }
   };
