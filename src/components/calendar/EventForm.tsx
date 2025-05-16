@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -250,12 +249,12 @@ const EventForm: React.FC<EventFormProps> = ({
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent 
-                        className="w-auto p-0 z-50" 
+                        className="w-auto p-0" 
                         align="start"
                         side="bottom"
                         sideOffset={4}
                       >
-                        <div className="z-50 bg-background rounded-md shadow-md border">
+                        <div className="bg-background rounded-md shadow-md border pointer-events-auto">
                           <Calendar
                             mode="single"
                             selected={field.value ? parseISO(field.value) : undefined}

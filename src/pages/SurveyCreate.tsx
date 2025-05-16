@@ -263,14 +263,17 @@ const SurveyCreate = () => {
                     {endDate ? format(endDate, "yyyy-MM-dd") : "날짜 선택"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                    disabled={(date) => date < new Date()}
-                  />
+                <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                  <div className="bg-background rounded-md shadow-md border">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                      disabled={(date) => date < new Date()}
+                      className="border-0"
+                    />
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
