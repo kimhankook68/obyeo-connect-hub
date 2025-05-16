@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -109,7 +110,14 @@ const Calendar = () => {
   const handleAddEventOnDay = (day: Date) => {
     if (isUserLoggedIn) {
       setSelectedDate(day);
-      handleAdd();
+      // 이제 URL 매개변수가 아닌 state를 사용하여 선택한 날짜 정보 전달
+      navigate('/calendar', { 
+        state: { 
+          openEventModal: true, 
+          selectedDate: format(day, 'yyyy-MM-dd')
+        },
+        replace: true
+      });
     }
   };
 

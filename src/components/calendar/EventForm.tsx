@@ -89,32 +89,32 @@ const EventForm: React.FC<EventFormProps> = ({
       let dateFound = false;
       
       // 데이터 소스 우선순위: 
-      // 1. URL 검색 파라미터
-      // 2. location.state 
+      // 1. location.state (Navigation API 사용) 
+      // 2. URL 검색 파라미터
       // 3. 기본값 (현재 날짜)
       
-      // URL 검색 파라미터에서 날짜 확인
-      const dateParam = searchParams.get('date');
-      if (dateParam) {
+      // location.state에서 날짜 확인
+      const state = location.state as any;
+      if (state?.selectedDate) {
         try {
-          startDate = parseISO(dateParam);
+          startDate = parseISO(state.selectedDate);
           dateFound = true;
-          console.log("Using date from URL params:", dateParam);
+          console.log("Using date from location state:", state.selectedDate);
         } catch (error) {
-          console.error("유효하지 않은 날짜 형식 (URL):", error);
+          console.error("유효하지 않은 날짜 형식 (state):", error);
         }
       }
       
-      // location.state에서 날짜 확인 (URL에 날짜가 없는 경우에만)
+      // URL 검색 파라미터에서 날짜 확인 (state에 날짜가 없는 경우에만)
       if (!dateFound) {
-        const state = location.state as any;
-        if (state?.selectedDate) {
+        const dateParam = searchParams.get('date');
+        if (dateParam) {
           try {
-            startDate = parseISO(state.selectedDate);
+            startDate = parseISO(dateParam);
             dateFound = true;
-            console.log("Using date from location state:", state.selectedDate);
+            console.log("Using date from URL params:", dateParam);
           } catch (error) {
-            console.error("유효하지 않은 날짜 형식 (state):", error);
+            console.error("유효하지 않은 날짜 형식 (URL):", error);
           }
         }
       }
