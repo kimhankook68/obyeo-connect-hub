@@ -6,6 +6,7 @@ import { DashboardCard } from '@/components/DashboardCard';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek, addDays, isSameDay, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import EventTypeLegend from '@/components/calendar/EventTypeLegend';
 
 const WeeklyCalendar = () => {
   const [date, setDate] = useState<Date>(new Date());
@@ -173,6 +174,9 @@ const WeeklyCalendar = () => {
             )}
           </div>
         </div>
+        
+        {/* 컴팩트한 형태의 범례 추가 */}
+        <EventTypeLegend compact={true} />
       </div>
     </DashboardCard>
   );

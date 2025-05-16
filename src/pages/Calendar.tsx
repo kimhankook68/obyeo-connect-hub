@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -9,6 +8,7 @@ import CalendarView from "@/components/calendar/CalendarView";
 import EventForm from "@/components/calendar/EventForm";
 import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
 import EventDetailsDialog from "@/components/calendar/EventDetailsDialog";
+import EventTypeLegend from "@/components/calendar/EventTypeLegend";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -228,20 +228,25 @@ const Calendar = () => {
                   </div>
                 </div>
               ) : (
-                <div className="p-4 h-full">
-                  <CalendarView 
-                    viewMode={viewMode} 
-                    events={events} 
-                    loading={loading}
-                    date={selectedDate} 
-                    setDate={setSelectedDate}
-                    getEventCountForDay={getEventCountForDay}
-                    handleEdit={handleViewDetails}
-                    handleDelete={handleDelete}
-                    formatEventDate={formatEventDate}
-                    isUserLoggedIn={isUserLoggedIn}
-                    handleAddEvent={handleAddEventOnDay}
-                  />
+                <div className="p-4 h-full flex flex-col">
+                  <div className="flex-grow">
+                    <CalendarView 
+                      viewMode={viewMode} 
+                      events={events} 
+                      loading={loading}
+                      date={selectedDate} 
+                      setDate={setSelectedDate}
+                      getEventCountForDay={getEventCountForDay}
+                      handleEdit={handleViewDetails}
+                      handleDelete={handleDelete}
+                      formatEventDate={formatEventDate}
+                      isUserLoggedIn={isUserLoggedIn}
+                      handleAddEvent={handleAddEventOnDay}
+                    />
+                  </div>
+                  
+                  {/* 범례 및 안내 메시지 추가 */}
+                  <EventTypeLegend />
                 </div>
               )}
             </Card>
