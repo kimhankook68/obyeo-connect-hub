@@ -57,6 +57,9 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     handleEdit(event); // 이 함수는 이제 수정뿐만 아니라 세부 정보 표시에도 사용
   };
   
+  // 화면에 표시할 일정 최대 개수 (5개로 변경)
+  const maxEventsToShow = 5;
+  
   return (
     <td 
       className={cn(
@@ -83,9 +86,10 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
           </span>
         </div>
         
-        {/* 이벤트 표시 영역 - 고정 높이 설정 */}
+        {/* 이벤트 표시 영역 - 영역 높이 조정 및 overflow 처리 */}
         <div 
-          className="min-h-[1.75rem] h-[1.75rem] overflow-y-auto overflow-x-hidden"
+          className="overflow-y-auto overflow-x-hidden"
+          style={{ minHeight: '1.75rem', maxHeight: `${maxEventsToShow * 1.1}rem` }}
           onClick={onEmptyCellClick} // 빈 영역 클릭 시에도 일정 추가
         >
           {isCurrentMonth && dayEvents.length > 0 && (
@@ -98,7 +102,8 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
               isUserLoggedIn={isUserLoggedIn}
             >
               <div className="space-y-[2px]">
-                {dayEvents.slice(0, 1).map(event => (
+                {/* 일정 5개까지 표시하도록 수정 */}
+                {dayEvents.slice(0, maxEventsToShow).map(event => (
                   <div 
                     key={event.id}
                     className={cn(
@@ -111,7 +116,8 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
                   </div>
                 ))}
                 
-                {dayEvents.length > 1 && (
+                {/* 추가 일정이 있는 경우 "더보기" 표시 */}
+                {dayEvents.length > maxEventsToShow && (
                   <div 
                     className="text-[9px] text-blue-600 font-medium px-1 leading-tight"
                     onClick={(e) => {
@@ -120,7 +126,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
                       handleDateClick(day);
                     }}
                   >
-                    +{dayEvents.length - 1}개 더보기
+                    +{dayEvents.length - maxEventsToShow}개 더보기
                   </div>
                 )}
               </div>
