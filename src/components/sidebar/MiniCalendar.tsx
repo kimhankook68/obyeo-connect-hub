@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isSameDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -7,11 +8,14 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarEvent } from '@/hooks/useCalendarEvents';
+import EventDetailsDialog from '@/components/calendar/EventDetailsDialog';
 
 const MiniCalendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const navigate = useNavigate();
   
   // 이전 달로 이동
@@ -106,8 +110,37 @@ const MiniCalendar = () => {
     });
   };
   
+  // 일정 클릭 핸들러 - 상세 보기 다이얼로그 표시
+  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+    e.stopPropagation(); // 이벤트 버블링 방지 (날짜 클릭 이벤트가 발생하지 않도록)
+    setSelectedEvent(event);
+    setDetailsDialogOpen(true);
+  };
+  
+  // 일정 수정 핸들러
+  const handleEditEvent = () => {
+    if (selectedEvent) {
+      navigate(`/calendar?event=${selectedEvent.id}`);
+      setDetailsDialogOpen(false);
+    }
+  };
+  
+  // 일정 삭제 핸들러 - 미니 캘린더에서는 삭제 기능은 제공하지 않고 캘린더 페이지로 이동
+  const handleDeleteEvent = () => {
+    if (selectedEvent) {
+      navigate(`/calendar?event=${selectedEvent.id}`);
+      setDetailsDialogOpen(false);
+    }
+  };
+  
   const weeks = getDaysInMonth();
   const todayEvents = selectedDate ? getEventsForDay(selectedDate) : [];
+  
+  // 로그인 여부 확인 (간소화된 방식, 실제로는 인증 상태를 확인하는 로직 필요)
+  const isUserLoggedIn = true;
+  
+  // 이벤트 수정 권한 확인 (간소화된 방식)
+  const canEditEvent = true;
   
   return (
     <div className="px-2 py-3">
@@ -192,7 +225,7 @@ const MiniCalendar = () => {
               todayEvents.slice(0, 3).map((event) => (
                 <div 
                   key={event.id}
-                  onClick={() => navigate(`/calendar?event=${event.id}`)}
+                  onClick={(e) => handleEventClick(event, e)}
                   className={cn(
                     "text-[10px] p-1 rounded truncate cursor-pointer",
                     event.type === "meeting" ? "bg-red-100 text-red-800" : 
@@ -217,6 +250,17 @@ const MiniCalendar = () => {
           </div>
         </div>
       )}
+      
+      {/* 일정 상세 다이얼로그 */}
+      <EventDetailsDialog
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        event={selectedEvent}
+        onEdit={handleEditEvent}
+        onDelete={handleDeleteEvent}
+        isUserLoggedIn={isUserLoggedIn}
+        canEditEvent={canEditEvent}
+      />
     </div>
   );
 };
