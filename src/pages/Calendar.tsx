@@ -11,7 +11,7 @@ import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSearchParams, useLocation } from "react-router-dom";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { parseISO, format } from "date-fns";
 
 const Calendar = () => {
@@ -20,6 +20,7 @@ const Calendar = () => {
   const [user, setUser] = useState<any>(null);
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   
   const {
     events,
@@ -38,7 +39,8 @@ const Calendar = () => {
     updateEvent,
     deleteEvent,
     getSelectedDateEvents,
-    formatEventDate
+    formatEventDate,
+    viewOnlyMode
   } = useCalendarEvents();
 
   useEffect(() => {
@@ -89,10 +91,19 @@ const Calendar = () => {
       }
       
       handleAdd();
-      // 상태 정리
+      // 상태 정리 - 이렇게 해야 모달을 닫았다가 다시 열 때 제대로 작동함
       window.history.replaceState({}, document.title);
     }
   }, [location.state, handleAdd, setSelectedDate]);
+
+  // 모달 닫을 때 URL 상태 정리
+  const handleModalClose = (open: boolean) => {
+    setModalOpen(open);
+    // 모달이 닫히면 URL 상태 정리
+    if (!open) {
+      navigate('/calendar', { replace: true });
+    }
+  };
 
   // 특정 날짜에 일정 추가 핸들러
   const handleAddEventOnDay = (day: Date) => {
@@ -215,7 +226,7 @@ const Calendar = () => {
             {/* 일정 폼 다이얼로그 */}
             <EventForm 
               open={modalOpen} 
-              onOpenChange={setModalOpen}
+              onOpenChange={handleModalClose}
               selectedEvent={selectedEvent}
               createEvent={createEvent}
               updateEvent={updateEvent}

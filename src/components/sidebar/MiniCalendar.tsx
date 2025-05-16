@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isSameDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -94,12 +93,14 @@ const MiniCalendar = () => {
   
   // 새 일정 추가 핸들러
   const handleAddEvent = () => {
+    // 현재 선택된 날짜가 있는지 확인
+    if (!selectedDate) return;
+    
     // 현재 선택된 날짜와 함께 일정 추가 창 열기 상태 전달
-    // 방문 기록 상태를 한 번만 업데이트
     navigate('/calendar', { 
       state: { 
         openEventModal: true,
-        selectedDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
+        selectedDate: format(selectedDate, 'yyyy-MM-dd')
       },
       replace: true // 기존 상태를 대체하여 중복 실행 방지
     });
