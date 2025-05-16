@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import CalendarView from "@/components/calendar/CalendarView";
 import EventForm from "@/components/calendar/EventForm";
 import DeleteEventDialog from "@/components/calendar/DeleteEventDialog";
+import EventDetailsDialog from "@/components/calendar/EventDetailsDialog";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,9 +31,12 @@ const Calendar = () => {
     setSelectedDate,
     modalOpen,
     setModalOpen,
+    detailsDialogOpen,
+    setDetailsDialogOpen,
     deleteDialogOpen,
     setDeleteDialogOpen,
     handleAdd,
+    handleViewDetails,
     handleEdit,
     handleDelete,
     createEvent,
@@ -40,7 +44,8 @@ const Calendar = () => {
     deleteEvent,
     getSelectedDateEvents,
     formatEventDate,
-    viewOnlyMode
+    viewOnlyMode,
+    canManageEvent
   } = useCalendarEvents();
 
   useEffect(() => {
@@ -106,6 +111,15 @@ const Calendar = () => {
     }
   };
 
+  // 상세 보기 다이얼로그 닫을 때 URL 상태 정리
+  const handleDetailsDialogClose = (open: boolean) => {
+    setDetailsDialogOpen(open);
+    // 다이얼로그가 닫히면 URL 상태 정리
+    if (!open) {
+      navigate('/calendar', { replace: true });
+    }
+  };
+
   // 특정 날짜에 일정 추가 핸들러
   const handleAddEventOnDay = (day: Date) => {
     if (isUserLoggedIn) {
@@ -118,6 +132,20 @@ const Calendar = () => {
         },
         replace: true
       });
+    }
+  };
+
+  // 선택된 이벤트 수정 처리
+  const handleEditSelectedEvent = () => {
+    if (selectedEvent) {
+      handleEdit(selectedEvent);
+    }
+  };
+  
+  // 선택된 이벤트 삭제 처리
+  const handleDeleteSelectedEvent = () => {
+    if (selectedEvent) {
+      handleDelete(selectedEvent);
     }
   };
 
@@ -208,7 +236,7 @@ const Calendar = () => {
                     date={selectedDate} 
                     setDate={setSelectedDate}
                     getEventCountForDay={getEventCountForDay}
-                    handleEdit={handleEdit}
+                    handleEdit={handleViewDetails}
                     handleDelete={handleDelete}
                     formatEventDate={formatEventDate}
                     isUserLoggedIn={isUserLoggedIn}
@@ -230,6 +258,17 @@ const Calendar = () => {
                 </Button>
               </div>
             )}
+
+            {/* 일정 상세 보기 다이얼로그 */}
+            <EventDetailsDialog
+              open={detailsDialogOpen}
+              onOpenChange={handleDetailsDialogClose}
+              event={selectedEvent}
+              onEdit={handleEditSelectedEvent}
+              onDelete={handleDeleteSelectedEvent}
+              isUserLoggedIn={isUserLoggedIn}
+              canEditEvent={canManageEvent(selectedEvent)}
+            />
 
             {/* 일정 폼 다이얼로그 */}
             <EventForm 

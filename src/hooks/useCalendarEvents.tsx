@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { toast } from "sonner";
@@ -21,6 +20,7 @@ export const useCalendarEvents = () => {
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const { toast: uiToast } = useToast();
@@ -140,6 +140,21 @@ export const useCalendarEvents = () => {
     }
   };
 
+  // 일정 상세 보기
+  const handleViewDetails = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+    
+    // 본인이 등록한 일정인지 확인 (수정/삭제 권한 확인용)
+    const canEdit = !event.user_id || (user?.id === event.user_id);
+    
+    // 뷰 모드 설정 (수정 가능 여부에 따라)
+    setViewOnlyMode(!canEdit);
+    
+    // 상세 보기 모달 열기
+    setDetailsDialogOpen(true);
+  };
+
+  // 일정 수정 모드로 전환
   const handleEdit = (event: CalendarEvent) => {
     setSelectedEvent(event);
     
@@ -149,7 +164,8 @@ export const useCalendarEvents = () => {
     // 뷰 모드 설정 (수정 가능 여부에 따라)
     setViewOnlyMode(!canEdit);
     
-    // 모달 열기
+    // 수정 모달 열기
+    setDetailsDialogOpen(false);
     setModalOpen(true);
   };
 
@@ -172,6 +188,12 @@ export const useCalendarEvents = () => {
     setModalOpen(true);
   };
 
+  // 이벤트 권한 체크 (수정/삭제 가능 여부)
+  const canManageEvent = (event: CalendarEvent | null): boolean => {
+    if (!event || !user) return false;
+    return !event.user_id || event.user_id === user.id;
+  }
+
   // Initialize by loading events
   useEffect(() => {
     fetchEvents();
@@ -185,11 +207,14 @@ export const useCalendarEvents = () => {
     setSelectedDate,
     modalOpen,
     setModalOpen,
+    detailsDialogOpen,
+    setDetailsDialogOpen,
     deleteDialogOpen,
     setDeleteDialogOpen,
     user,
     viewOnlyMode,
     handleAdd,
+    handleViewDetails,
     handleEdit,
     handleDelete,
     createEvent,
@@ -197,6 +222,7 @@ export const useCalendarEvents = () => {
     deleteEvent,
     fetchEvents,
     formatEventDate,
-    getSelectedDateEvents
+    getSelectedDateEvents,
+    canManageEvent
   };
 };

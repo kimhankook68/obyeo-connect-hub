@@ -87,7 +87,12 @@ const EventsGrid: React.FC<EventsGridProps> = ({
         >
           <CardHeader className="p-4 pb-2">
             <div className="flex justify-between items-start">
-              <CardTitle className="text-lg">{event.title}</CardTitle>
+              <CardTitle 
+                className="text-lg cursor-pointer hover:text-primary transition-colors"
+                onClick={() => handleEdit(event)}
+              >
+                {event.title}
+              </CardTitle>
               <Badge variant="outline">{getEventTypeLabel(event.type)}</Badge>
             </div>
             <CardDescription className="flex items-center mt-2 text-sm">
@@ -116,7 +121,7 @@ const EventsGrid: React.FC<EventsGridProps> = ({
                   size="sm" 
                   onClick={() => handleEdit(event)}
                 >
-                  수정
+                  보기
                 </Button>
                 <Button 
                   variant="destructive" 

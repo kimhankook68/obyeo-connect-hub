@@ -59,7 +59,12 @@ const EventItem: React.FC<EventItemProps> = ({
     }}>
       <CardHeader className="pb-2 pt-3 px-4">
         <div className="flex justify-between items-start">
-          <h3 className="text-lg font-medium">{event.title}</h3>
+          <h3 
+            className="text-lg font-medium cursor-pointer hover:text-primary transition-colors" 
+            onClick={() => onEdit(event)}
+          >
+            {event.title}
+          </h3>
           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
             {getEventTypeLabel(event.type)}
           </span>
@@ -80,17 +85,23 @@ const EventItem: React.FC<EventItemProps> = ({
             </div>
           )}
           {event.description && (
-            <p className="text-sm text-muted-foreground mt-2">{event.description}</p>
+            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{event.description}</p>
           )}
         </div>
       </CardContent>
       {isUserLoggedIn && (
         <CardFooter className="pt-2 px-4 pb-3 bg-gray-50">
           <div className="flex justify-end space-x-2 w-full">
-            <Button variant="outline" size="sm" onClick={() => onEdit(event)}>
-              수정
+            <Button variant="outline" size="sm" onClick={(e) => {
+              e.stopPropagation();
+              onEdit(event);
+            }}>
+              보기
             </Button>
-            <Button variant="destructive" size="sm" onClick={() => onDelete(event)}>
+            <Button variant="destructive" size="sm" onClick={(e) => {
+              e.stopPropagation();
+              onDelete(event);
+            }}>
               삭제
             </Button>
           </div>
