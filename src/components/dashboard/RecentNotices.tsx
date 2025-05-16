@@ -13,6 +13,7 @@ interface Notice {
   title: string;
   created_at: string;
   is_important?: boolean;
+  author: string;
 }
 
 const RecentNotices = () => {
@@ -24,7 +25,7 @@ const RecentNotices = () => {
       try {
         const { data, error } = await supabase
           .from("notices")
-          .select("*")
+          .select("id, title, created_at, is_important, author")
           .order("created_at", { ascending: false })
           .limit(5);
 
@@ -107,9 +108,11 @@ const RecentNotices = () => {
               <Link to={`/notices/${notice.id}`} className="hover:text-primary truncate max-w-[70%]">
                 {renderNoticeTitle(notice)}
               </Link>
-              <span className="text-xs text-muted-foreground flex-shrink-0">
-                {formatDate(notice.created_at)}
-              </span>
+              <div className="text-xs text-muted-foreground flex-shrink-0 flex items-center space-x-2">
+                <span>{notice.author}</span>
+                <span>•</span>
+                <span>{formatDate(notice.created_at)}</span>
+              </div>
             </div>
           ))
         ) : (

@@ -85,9 +85,16 @@ const UpcomingEvents = () => {
 
   const getAuthorDisplayName = (post: FreePost) => {
     if (post.user_id && members[post.user_id]) {
-      return members[post.user_id].name || post.author.split('@')[0];
+      return members[post.user_id].name;
     }
-    return post.author.split('@')[0];
+    
+    // For older posts that might not have been created with proper author name
+    // Or if the author's profile couldn't be found
+    if (post.author.includes('@')) {
+      return post.author.split('@')[0];
+    }
+    
+    return post.author;
   };
 
   const getCategoryBadge = (category?: string) => {
