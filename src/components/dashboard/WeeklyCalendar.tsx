@@ -127,11 +127,6 @@ const WeeklyCalendar = () => {
                         event.type === 'volunteer' ? '#198754' : '#6c757d',
                       color: 'white'
                     }}
-                    onClick={(e) => {
-                      e.stopPropagation(); // 이벤트 버블링 방지
-                      // 일정 클릭 시 팝업창 표시하지 않고 달력 페이지로만 이동
-                      navigate('/calendar');
-                    }}
                   >
                     {event.title}
                   </div>
@@ -156,7 +151,7 @@ const WeeklyCalendar = () => {
               <div 
                 key={event.id} 
                 className="p-2 border rounded-md hover:bg-muted/50 cursor-pointer"
-                onClick={() => navigate('/calendar')}
+                onClick={() => navigate(`/calendar?event=${event.id}`)}
               >
                 <h4 className="font-medium line-clamp-1 text-sm">{event.title}</h4>
                 <div className="flex items-center text-xs text-muted-foreground mt-1">
