@@ -84,8 +84,9 @@ const UpcomingEvents = () => {
   };
 
   const getAuthorDisplayName = (post: FreePost) => {
+    // If we have member data for this user_id, use the member's name
     if (post.user_id && members[post.user_id]) {
-      return members[post.user_id].name;
+      return members[post.user_id].name || "사용자";
     }
     
     // For older posts that might not have been created with proper author name
