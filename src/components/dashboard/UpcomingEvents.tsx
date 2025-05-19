@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DashboardCard } from "@/components/DashboardCard";
@@ -131,6 +130,7 @@ const UpcomingEvents = () => {
     <DashboardCard 
       title="자유게시판" 
       action={<Button variant="ghost" size="sm" onClick={() => navigate("/freeboards")}>더보기</Button>}
+      className="shadow-sm"
     >
       {loading ? (
         <div className="flex justify-center py-8">
@@ -141,15 +141,15 @@ const UpcomingEvents = () => {
           최근 게시물이 없습니다.
         </div>
       ) : (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y">
           {posts.map(post => (
             <div 
               key={post.id} 
-              className="flex items-center py-3 cursor-pointer hover:bg-muted/20 transition-colors px-2"
+              className="py-3 flex justify-between cursor-pointer hover:bg-muted/20 transition-colors"
               onClick={() => navigate(`/freeboards/${post.id}`)}
             >
-              <div className="flex-grow">
-                <p className="font-medium text-sm items-center flex">
+              <div className="hover:text-primary truncate max-w-[70%]">
+                <p className="flex items-center">
                   {getCategoryBadge(post.category)}
                   <span className="truncate">{post.title}</span>
                   {(new Date().getTime() - new Date(post.created_at).getTime()) < 86400000 && (
@@ -159,11 +159,10 @@ const UpcomingEvents = () => {
                   )}
                 </p>
               </div>
-              <div className="flex-shrink-0 text-xs text-gray-500 ml-2">
-                {getAuthorDisplayName(post)}
-              </div>
-              <div className="flex-shrink-0 text-xs text-gray-500 ml-4">
-                {formatPostDate(post.created_at)}
+              <div className="text-xs text-muted-foreground flex-shrink-0 flex items-center space-x-2">
+                <span>{getAuthorDisplayName(post)}</span>
+                <span>•</span>
+                <span>{formatPostDate(post.created_at)}</span>
               </div>
             </div>
           ))}

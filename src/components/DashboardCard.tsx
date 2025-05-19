@@ -18,7 +18,7 @@ export const DashboardCard = ({ title, children, className, action }: DashboardC
       )}
     >
       <div className="flex items-center justify-between p-4 border-b border-border">
-        <h3 className="font-medium">{title}</h3>
+        <h3 className="font-medium text-lg">{title}</h3>
         {action}
       </div>
       <div className="p-4">{children}</div>
