@@ -35,7 +35,7 @@ const Index = () => {
             <h1 className="text-2xl font-semibold mb-1">
               안녕하세요, {user?.user_metadata?.name || user?.email?.split('@')[0] || '방문자'}님!
             </h1>
-            <p className="text-muted-foreground">오늘도 행복한 하루 되십시요!</p>
+            <p className="text-muted-foreground">"그리스도를 본받아 이웃을 사랑하며 섬기는 오병이어복지재단"</p>
           </div>
           
           <StatCards />
