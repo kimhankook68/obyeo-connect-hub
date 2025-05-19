@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
@@ -10,23 +9,22 @@ import RecentDocuments from "@/components/dashboard/RecentDocuments";
 import RecentPosts from "@/components/dashboard/UpcomingEvents";
 import WeeklyCalendar from "@/components/dashboard/WeeklyCalendar";
 import NewsFeed from "@/components/dashboard/NewsFeed";
-
 const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
-  
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
       setUser(session?.user || null);
     };
-    
     fetchUser();
   }, []);
-
-  return (
-    <div className="flex h-screen">
+  return <div className="flex h-screen">
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -37,7 +35,7 @@ const Index = () => {
             <h1 className="text-2xl font-semibold mb-1">
               안녕하세요, {user?.user_metadata?.name || user?.email?.split('@')[0] || '방문자'}님!
             </h1>
-            <p className="text-muted-foreground">오늘도 좋은 하루 되세요.</p>
+            <p className="text-muted-foreground">오늘도 행복한 하루 되십시요!</p>
           </div>
           
           <StatCards />
@@ -58,8 +56,6 @@ const Index = () => {
           </div>
         </main>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
