@@ -80,7 +80,7 @@ const RecentNotices = () => {
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg">최근 공지사항</CardTitle>
           <Link to="/notices" className="text-xs text-muted-foreground hover:underline">
-            모두 보기
+            더보기
           </Link>
         </div>
       </CardHeader>
