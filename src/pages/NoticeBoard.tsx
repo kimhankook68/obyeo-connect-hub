@@ -149,7 +149,7 @@ const NoticeBoard = () => {
                                 {notice.category ? renderCategoryBadge(notice.category) : '-'}
                               </TableCell>
                               <TableCell className="font-medium">
-                                <div className="truncate">
+                                <div className="flex items-center gap-2">
                                   {notice.title}
                                   {notice.attachment_url && <FileText size={16} className="text-blue-500" />}
                                 </div>
