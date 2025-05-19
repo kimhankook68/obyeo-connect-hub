@@ -3,10 +3,11 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 interface Notice {
   id: string;
@@ -18,6 +19,7 @@ interface Notice {
 const RecentNotices = () => {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNotices = async () => {
@@ -79,9 +81,14 @@ const RecentNotices = () => {
       <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg">최근 공지사항</CardTitle>
-          <Link to="/notices" className="text-xs text-muted-foreground hover:underline">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate("/notices")}
+            className="h-8"
+          >
             더보기
-          </Link>
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="divide-y">
